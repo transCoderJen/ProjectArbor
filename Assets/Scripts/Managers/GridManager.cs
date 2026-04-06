@@ -58,15 +58,14 @@ public class GridManager : Singleton<GridManager>
             {
                 Vector3 spawnPos = startPoint + new Vector3(x * CellSize, transform.position.y, z * CellSize);
                 GrowBlock newBlock = Instantiate(BaseGridBlock, spawnPos, Quaternion.Euler(90f,0f,0f), GridParent);
-                newBlock.SR.sprite = null;
+                // newBlock.SR.sprite = null;
 
                 newBlock.SetGridPosition(x,z);
  
                 BlockRows[z].Blocks.Add(newBlock);
 
-                if (Physics.CheckBox(spawnPos, GetCellHalfExtents(), Quaternion.identity, GridBlockers))
+                if (Physics.CheckBox(spawnPos, GetCellHalfExtents(), Quaternion.identity, GridBlockers, QueryTriggerInteraction.Collide))
                 {
-
                     newBlock.PreventUse = true;   
                 }
             }

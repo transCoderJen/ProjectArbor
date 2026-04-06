@@ -26,6 +26,7 @@ public class Entity : MonoBehaviour
 
     [Header("Facing")]
     public Vector3 FacingDir { get; private set; } = Vector3.right;
+    public Vector2 LastFacingDir { get; private set; } = Vector3.right;
     public bool FacingRight { get; private set; } = true;
 
     [Header("Knockback")]
@@ -40,6 +41,9 @@ public class Entity : MonoBehaviour
     public bool IsDead = false;
 
     public Action OnFacingChanged = delegate { };
+
+    private float lastAnimX = 0f;
+    private float lastAnimY = 0f;
 
     protected virtual void Awake()
     {
@@ -107,10 +111,34 @@ public class Entity : MonoBehaviour
         float finalSpeed = CurrentMoveSpeed + speedStat;
 
         Vector3 velocity = moveDirection * finalSpeed;
-
         Rb.linearVelocity = velocity;
 
-        UpdateFacingFromInput(Input);
+        float animX = Mathf.Abs(Input.x) > 0.5f ? Mathf.Sign(Input.x) : 0f;
+        float animY = Mathf.Abs(Input.y) > 0.5f ? Mathf.Sign(Input.y) : 0f;
+
+        bool hasSnappedDirection = animX != 0f || animY != 0f;
+
+        if (hasSnappedDirection)
+        {
+            if (animX != lastAnimX)
+            {
+                Anim.SetFloat("MovementX", animX);
+                lastAnimX = animX;
+            }
+
+            if (animY != lastAnimY)
+            {
+                Anim.SetFloat("MovementY", animY);
+                lastAnimY = animY;
+            }
+
+            UpdateFacingFromSnappedDirection(animX, animY);
+        }
+
+        if (FacingDir.sqrMagnitude > 0.01f)
+        {
+            LastFacingDir = FacingDir;
+        }
     }
 
     public void StopMovement()
@@ -149,16 +177,18 @@ public class Entity : MonoBehaviour
     #endregion
 
     #region Facing
-    protected virtual void UpdateFacingFromInput(Vector2 Input)
+    protected virtual void UpdateFacingFromSnappedDirection(float x, float y)
     {
-        if (Input.sqrMagnitude < 0.0001f)
+        Vector3 newFacingDir = new Vector3(x, 0f, y);
+
+        if (newFacingDir == FacingDir)
             return;
 
-        FacingDir = new Vector3(Input.x, 0f, Input.y).normalized;
+        FacingDir = newFacingDir;
 
-        if (FacingDir.x > 0.01f && !FacingRight)
+        if (FacingDir.x > 0f && !FacingRight)
             FlipSprite();
-        else if (FacingDir.x < -0.01f && FacingRight)
+        else if (FacingDir.x < 0f && FacingRight)
             FlipSprite();
 
         OnFacingChanged?.Invoke();

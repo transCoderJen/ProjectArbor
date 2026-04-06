@@ -71,6 +71,8 @@ public class GrowBlock : MonoBehaviour
         {
             CurrentStage = GrowthStage.Ploughed;
             SetSoilSprite();
+
+            PlayerManager.Instance.Player.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
         }
     }
 
@@ -87,6 +89,8 @@ public class GrowBlock : MonoBehaviour
         {
             CurrentStage = GrowthStage.Planted;
             UpdateCropSprite();
+
+            
         }
 
     }

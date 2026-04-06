@@ -8,7 +8,7 @@ public class Player : Entity
     [SerializeField] private InputActionReference moveInput;
     public InputActionReference MoveInput => moveInput;
 
-    [SerializeField] private TerrainGrassCutter GrassCutter;
+    public TerrainGrassCutter GrassCutter;
     [SerializeField] private LayerBasedParticleSpawner ParticleSpawner;
 
     public enum ToolType
@@ -78,7 +78,7 @@ public class Player : Entity
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            TryCutGrass(AttackCheck.position);
+            TryCutGrass(LastFacingDir);
         }
     }
 
@@ -118,10 +118,10 @@ public class Player : Entity
 
     private void TryCutGrass(Vector3 hitPoint)
     {
-        if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 2f))
-        {
-            ParticleSpawner.SpawnFromHit(hit);
-        }
-        GrassCutter.CutGrass(hitPoint);
+        // if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 2f, TerrainLayer))
+        // {
+        //     ParticleSpawner.SpawnFromHit(hit);
+        // }
+        GrassCutter.CutGrass(LastFacingDir);
     }
 }
