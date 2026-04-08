@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -72,6 +73,8 @@ public class CameraManager : Singleton<CameraManager>
     [Header("Follow Offset")]
     [SerializeField] private float followOffsetScrollSpeed = 1f;
     [SerializeField] private float followOffsetLerpSpeed = 5f;
+    [SerializeField] private float followOffsetSwitchThreshold = 0.05f;
+    [SerializeField] private float maxResetWaitTime = 1.5f;
 
     [Header("Free Look Movement")]
     [SerializeField] private float freeLookPanSpeed = 20f;
@@ -79,6 +82,9 @@ public class CameraManager : Singleton<CameraManager>
     private VCamera currentVCamera;
     private float targetFieldOfView;
     private Vector3 targetFollowOffset;
+
+    private Coroutine cameraTransitionCoroutine;
+    private bool isTransitioning;
 
     /// <summary>
     /// The currently active camera entry.
@@ -101,14 +107,18 @@ public class CameraManager : Singleton<CameraManager>
         if (CurrentVirtualCamera == null)
             return;
 
-        HandleScrollInput();
-        HandleFreeLookMovement();
+        if (!isTransitioning)
+        {
+            HandleScrollInput();
+            HandleFreeLookMovement();
+        }
+
         UpdateFieldOfView();
         UpdateFollowOffset();
     }
 
     /// <summary>
-    /// Switches to a virtual camera by type.
+    /// Switches to a virtual camera by type immediately.
     /// </summary>
     /// <param name="cameraType">The camera type to activate.</param>
     public void SwitchCamera(VirtualCameraType cameraType)
@@ -122,6 +132,32 @@ public class CameraManager : Singleton<CameraManager>
         }
 
         SetActiveCamera(cameraEntry);
+    }
+
+    /// <summary>
+    /// Smoothly resets the current camera offset, then switches to the target camera.
+    /// </summary>
+    /// <param name="cameraType">The camera type to switch to after reset.</param>
+    public void ResetOffsetsAndSwitchCamera(VirtualCameraType cameraType)
+    {
+        VCamera nextCameraEntry = GetCameraEntry(cameraType);
+
+        if (nextCameraEntry == null || nextCameraEntry.VirtualCamera == null)
+        {
+            Debug.LogWarning($"CameraManager: No camera entry found for {cameraType}.");
+            return;
+        }
+
+        if (CurrentVirtualCamera == null)
+        {
+            SetActiveCamera(nextCameraEntry);
+            return;
+        }
+
+        if (cameraTransitionCoroutine != null)
+            StopCoroutine(cameraTransitionCoroutine);
+
+        cameraTransitionCoroutine = StartCoroutine(ResetOffsetsAndSwitchCameraCoroutine(nextCameraEntry));
     }
 
     /// <summary>
@@ -265,13 +301,50 @@ public class CameraManager : Singleton<CameraManager>
         cameraEntry.VirtualCamera.LookAt = target;
     }
 
+    /// <summary>
+    /// Smoothly resets the current camera's X and Z follow offset.
+    /// </summary>
     public void ResetOffsets()
     {
-        CinemachineFollow offset = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
+        if (CurrentVirtualCamera == null)
+            return;
 
-        offset.FollowOffset = new Vector3 (0, offset.FollowOffset.y, -30);
+        CinemachineFollow follow = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
+        if (follow == null)
+            return;
+
+        targetFollowOffset = new Vector3(0f, follow.FollowOffset.y, -30f);
     }
-    
+
+    private IEnumerator ResetOffsetsAndSwitchCameraCoroutine(VCamera nextCameraEntry)
+    {
+        isTransitioning = true;
+
+        ResetOffsets();
+
+        CinemachineFollow follow = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
+
+        if (follow != null)
+        {
+            float elapsedTime = 0f;
+
+            while (Vector3.Distance(follow.FollowOffset, targetFollowOffset) > followOffsetSwitchThreshold)
+            {
+                elapsedTime += Time.deltaTime;
+
+                if (elapsedTime >= maxResetWaitTime)
+                    break;
+
+                yield return null;
+            }
+        }
+
+        SetActiveCamera(nextCameraEntry);
+
+        isTransitioning = false;
+        cameraTransitionCoroutine = null;
+    }
+
     private void HandleScrollInput()
     {
         if (Mouse.current == null)

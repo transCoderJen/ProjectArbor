@@ -13,8 +13,7 @@ public class PlayerManagementState : PlayerState
     {
         base.Enter();
         CameraManager.Instance.SwitchCamera(CameraManager.VirtualCameraType.FreeLook);
-        // CameraManager.Instance.ResetOffsets();
-        player.toolIndicator.gameObject.SetActive(true);
+        CameraManager.Instance.ResetOffsets();
         player.StopMovement();
         
     }
@@ -25,15 +24,19 @@ public class PlayerManagementState : PlayerState
         if (Keyboard.current.fKey.wasPressedThisFrame)
         {
             player.StateMachine.ChangeState(player.IdleState);
+            return;
         }
 
+        ToggleToolTipVisibility();
+
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit)) {
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
             Vector3 worldPosition = hit.point; // This is the exact world position
             worldPosition.y = .27f;
 
             var cellSize = GridManager.Instance.CellSize;
-            
+
             worldPosition = new Vector3(
                 Mathf.Floor(worldPosition.x / cellSize) * cellSize + (cellSize / 2),
                 worldPosition.y,
@@ -44,6 +47,18 @@ public class PlayerManagementState : PlayerState
 
     }
 
+    private void ToggleToolTipVisibility()
+    {
+        if (player.GetBlock() == null ||player.GetBlock().PreventUse)
+        {
+            player.toolIndicator.gameObject.SetActive(false);
+        }
+        else
+        {
+            player.toolIndicator.gameObject.SetActive(true);
+        }
+    }
+
     public override void FixedUpdate()
     {
         base.FixedUpdate();
@@ -52,6 +67,8 @@ public class PlayerManagementState : PlayerState
     public override void Exit()
     {
         base.Exit();
-        CameraManager.Instance.SwitchCamera(CameraManager.VirtualCameraType.Player);
+        CameraManager.Instance.ResetOffsetsAndSwitchCamera(CameraManager.VirtualCameraType.Player);
+        player.toolIndicator.gameObject.SetActive(false);
+        
     }
 }

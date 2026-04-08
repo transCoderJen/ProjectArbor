@@ -91,18 +91,14 @@ public class Player : Entity
 
     private void UseTool()
     {
-        GrowBlock block = null;
-
-        // block = FindFirstObjectByType<GrowBlock>();
-
-        block = GridManager.Instance.GetBlock(toolIndicator.position.x, toolIndicator.position.z);
+        GrowBlock block = GetBlock();
 
         if (block == null) return;
-        
+
         switch (CurrentTool)
         {
             case ToolType.Plough:
-                block.PloughSoil(); 
+                block.PloughSoil();
                 break;
             case ToolType.Blood:
                 block.WaterSoil();
@@ -114,6 +110,12 @@ public class Player : Entity
                 block.HarvestCrop();
                 break;
         }
+    }
+
+    public GrowBlock GetBlock()
+    {
+        GrowBlock block = GridManager.Instance.GetBlock(toolIndicator.position.x, toolIndicator.position.z);
+        return block;
     }
 
     private void TryCutGrass(Vector3 hitPoint)
