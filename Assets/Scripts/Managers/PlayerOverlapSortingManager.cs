@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.Tools;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace ShiftedSignalGames.GOF.Rendering
+namespace ShiftedSignal.Garden.Managers
 {
     /// <summary>
     /// Detects foreground objects between the camera and player, then adjusts their sorting

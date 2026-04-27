@@ -1,33 +1,40 @@
 using UnityEngine;
 
-public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
+namespace ShiftedSignal.Garden.Misc
 {
-    private static T instance;
-    public static T Instance => instance;
-
-    [SerializeField] private bool dontDestroyOnLoad = true;
-
-    protected virtual void Awake()
+    
+    /// <summary>
+    /// Simple generic singleton base for runtime managers.
+    /// </summary>
+    public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
-        if (instance != null && instance != this)
+        private static T instance;
+        public static T Instance => instance;
+
+        [SerializeField] private bool DontDestroyOnLoadEnabled = true;
+
+        protected virtual void Awake()
         {
-            Destroy(gameObject);
-            return;
+            if (instance != null && instance != this as T)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            instance = this as T;
+
+            if (Application.isPlaying && DontDestroyOnLoadEnabled)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
         }
 
-        instance = this as T;
-
-        if (dontDestroyOnLoad)
+        protected virtual void OnDestroy()
         {
-            DontDestroyOnLoad(gameObject);
-        }
-    }
-
-    protected virtual void OnDestroy()
-    {
-        if (instance == this)
-        {
-            instance = null;
+            if (instance == this as T)
+            {
+                instance = null;
+            }
         }
     }
 }

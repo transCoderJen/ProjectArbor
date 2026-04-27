@@ -1,8 +1,8 @@
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using UnityEditor.MPE;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-namespace ShiftedSignalGames.GOF.SceneManagement
+namespace ShiftedSignal.Garden.SceneManagement
 {  
     public class AreaExit : MonoBehaviour
     {

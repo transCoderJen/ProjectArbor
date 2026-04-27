@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7108175810157100884}
   - component: {fileID: -6224880701544253866}
   - component: {fileID: 5992528395243977072}
+  - component: {fileID: -8210513356389701922}
   m_Layer: 6
   m_Name: Tree 11
   m_TagString: Untagged
@@ -125,6 +126,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TransparentAlpha: 0.35
+  InvisibleAlpha: 0
   FadeDuration: 0.2
   VisibleShadowClipThreshold: 0.2
   OccludedShadowClipThreshold: 1
@@ -165,3 +167,17 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 5, z: 0.2}
   m_Center: {x: 0, y: 2.5, z: 0}
+--- !u!114 &-8210513356389701922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7367463274079047175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74416aa5869fcc74199e0b0cdad11bdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WaveSpeed: 1
+  WaveAmount: 5

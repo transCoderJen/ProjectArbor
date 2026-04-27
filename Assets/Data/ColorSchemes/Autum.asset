@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1409609967590304fb61ad30acdac28a, type: 3}
+  m_Name: Autum
+  m_EditorClassIdentifier: 
+  SelectionBoxBorder: {r: 3.7587674, g: 1.3849796, b: 5.992157, a: 1}
+  TerrainLayerColorEntries:
+  - LayerName: 0
+    Color: {r: 0.254717, g: 0.08770915, b: 0.08770915, a: 0}
+  - LayerName: 1
+    Color: {r: 0.13181962, g: 0.04614632, b: 0.16037738, a: 0}
+  TerrainTintCompensation: {r: 0.6415094, g: 0.28141683, b: 0.28141683, a: 1}
+  TreeColorEntries:
+  - TreeMaterial: {fileID: 2100000, guid: 74bb35ec48f30d64b9dd458445f42b5a, type: 2}
+    LeavesColor: {r: 0.9433962, g: 0.41088784, b: 0.28924885, a: 1}
+    LeavesBorderColor: {r: 0.4433962, g: 0.12758097, b: 0.13746525, a: 1}
+    TrunkColor: {r: 0.20000002, g: 0.21960786, b: 0.14117648, a: 1}
+    TrunkBorderColor: {r: 0.039215688, g: 0.039215688, b: 0.027450982, a: 1}

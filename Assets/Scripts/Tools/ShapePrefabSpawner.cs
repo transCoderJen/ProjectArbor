@@ -5,6 +5,9 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
+namespace ShiftedSignal.Garden.Tools
+{
+    
 
     /// <summary>
     /// Spawns random prefabs across the top surface of a collider using editor buttons.
@@ -394,3 +397,4 @@ using UnityEditor;
         }
     }
 #endif
+}

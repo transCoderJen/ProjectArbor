@@ -1,11 +1,15 @@
 
-public class SceneManager : Singleton<SceneManager>
-{
-    public string SceneTransitionName { get; private set; }
+using ShiftedSignal.Garden.Misc;
 
-    public void SetTransitionName(string transitionName)
+namespace ShiftedSignal.Garden.SceneManagement
+{
+    public class SceneManager : Singleton<SceneManager>
     {
-        SceneTransitionName = transitionName;
+        public string SceneTransitionName { get; private set; }
+
+        public void SetTransitionName(string transitionName)
+        {
+            SceneTransitionName = transitionName;
+        }
     }
 }
-

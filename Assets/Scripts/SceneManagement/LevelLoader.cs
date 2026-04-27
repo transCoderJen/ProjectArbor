@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using ShiftedSignal.Garden.Misc;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-
+namespace ShiftedSignal.Garden.SceneManagement
+{
     public enum TransitionType
     {
         Fade,
@@ -114,3 +115,4 @@ using UnityEngine.SceneManagement;
             yield return Helpers.GetWait(1f);
         }
     }
+}

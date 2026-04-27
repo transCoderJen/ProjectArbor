@@ -14,9 +14,11 @@ GameObject:
   - component: {fileID: 7108175810157100884}
   - component: {fileID: -6224880701544253866}
   - component: {fileID: 5992528395243977072}
+  - component: {fileID: 480977836980175004}
+  - component: {fileID: 7322816492271662372}
   m_Layer: 6
   m_Name: Tree 1
-  m_TagString: Untagged
+  m_TagString: Tree1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -59,7 +61,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: ff811e1dbc9f3f941a6fd3a5ecb39cf0, type: 3}
+  - {fileID: 2100000, guid: 74bb35ec48f30d64b9dd458445f42b5a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,6 +127,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   TransparentAlpha: 0.35
+  InvisibleAlpha: 0
   FadeDuration: 0.2
   VisibleShadowClipThreshold: 0.2
   OccludedShadowClipThreshold: 1
@@ -165,3 +168,36 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 5, z: 0.2}
   m_Center: {x: 0, y: 2.5, z: 0}
+--- !u!114 &480977836980175004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7367463274079047175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74416aa5869fcc74199e0b0cdad11bdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  WaveSpeed: 1
+  WaveAmount: 5
+--- !u!114 &7322816492271662372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7367463274079047175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6727a1e964a8200438a75da4a6db228a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  treeType: 1
+  leavesRenderer: {fileID: 2137666227061929567}
+  trunkRenderer: {fileID: 2137666227061929567}
+  leavesColorProperty: _LeavesColor
+  leavesBorderColorProperty: _LeavesBorderColor
+  trunkColorProperty: _TrunkColor
+  trunkBorderColorProperty: _TrunkBorderColor

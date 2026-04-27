@@ -1,41 +1,47 @@
 using Unity.VisualScripting;
 using UnityEngine;
 
-public class PlayerMoveState : PlayerState
+namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
-    public PlayerMoveState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
+    
+    public class PlayerMoveState : PlayerState
     {
-    }
-
-    public override void Enter()
-    {
-        base.Enter();
-    }
-
-    public override void FixedUpdate()
-    {
-        base.FixedUpdate();
-
-        
-        player.ApplyMovement(cachedMoveInput);
-    }
-
-    public override void Update()
-    {
-        base.Update();
-
-
-        if (cachedMoveInput == Vector2.zero)
+        public PlayerMoveState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
         {
-            player.StateMachine.ChangeState(player.IdleState);
+        }
+
+        public override void Enter()
+        {
+            base.Enter();
+        }
+
+        public override void FixedUpdate()
+        {
+            base.FixedUpdate();
+
+            
+            Player.ApplyMovement(CachedMoveInput);
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (Player.AttackInput.action.WasPressedThisFrame())
+            {
+                Player.StateMachine.ChangeState(Player.AttackState);   
+            }
+
+            if (CachedMoveInput == Vector2.zero)
+            {
+                Player.StateMachine.ChangeState(Player.IdleState);
+            }
+        }
+
+        public override void Exit() 
+        {
+            base.Exit();
+            
         }
     }
-
-    public override void Exit() 
-    {
-        base.Exit();
-        
-    }
-
-
 }

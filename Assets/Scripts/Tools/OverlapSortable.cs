@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 
-namespace ShiftedSignalGames.GOF.Rendering
+namespace ShiftedSignal.Garden.Tools
 {
     /// <summary>
     /// Stores sorting data for an object that may need to render in front of the player

@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b907af8d133bf24387eab5f3c10e586, type: 3}
+  m_Name: Test Armor
+  m_EditorClassIdentifier: 
+  ItemType: 2
+  ItemName: 
+  Description: 
+  Icon: {fileID: 638664807, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
+  ItemID: 3b1c8ff76fbc8cd499723fe726f0a705
+  DropChance: 0
+  EquipmentType: 2
+  Weapon: {fileID: 0}
+  ItemCooldown: 0
+  SlashFX: 3
+  HitFX: 5
+  ItemEffects: []
+  HP: 0
+  MP: 0
+  Power: 5
+  Vitality: 0
+  Defense: 0
+  Speed: 0
+  CritChance: 0
+  CritPower: 0
+  Evasion: 0
+  MagicResistance: 0
+  AttackSpeed: 0
+  craftingMaterials: []

@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
+{
     public class PlayerStateMachine
     {
 
@@ -20,3 +22,4 @@ using UnityEngine;
             CurrentState.Enter();
         }
     }
+}

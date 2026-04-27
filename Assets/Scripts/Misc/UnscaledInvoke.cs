@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace ShiftedSignalGames.GOF.Misc
+namespace ShiftedSignal.Garden.Misc
 {
     public class UnscaledInvoke : MonoBehaviour
     {
