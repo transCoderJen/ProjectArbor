@@ -5,10 +5,8 @@ using UnityEngine.InputSystem;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.EventBus;
-
-using System;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
+
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -68,8 +66,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
     [HideInInspector] public bool AttackBuffered = false;
 #endregion
         
-        
-
         public ToolType CurrentTool;
 
         #endregion

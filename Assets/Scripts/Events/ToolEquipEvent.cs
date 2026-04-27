@@ -12,5 +12,4 @@ namespace ShiftedSignal.Garden.Events
             Tool = (ToolType) tool;
         }
     }
-    
 }

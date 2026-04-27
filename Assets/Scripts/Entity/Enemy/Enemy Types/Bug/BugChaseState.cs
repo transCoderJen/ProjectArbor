@@ -47,20 +47,36 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 
             Enemy.Hover();
             CheckIfHitPlayer();
+            bool flowControl = BoidLogic();
+            if (!flowControl)
+            {
+                return;
+            }
+        }
 
+        private bool BoidLogic()
+        {
             BugBoidManager boids = BugBoidManager.Instance;
+
+            if (PlayerManager.Instance.Player == null)
+            {
+                Enemy.StateMachine.ChangeState(Enemy.IdleState);
+                return false;
+            }
+
+
             Vector3 playerPos = PlayerManager.Instance.Player.transform.position;
 
             if (boids == null)
             {
                 Enemy.Agent.SetDestination(playerPos);
-                return;
+                return false;
             }
 
             repathTimer -= Time.deltaTime;
 
             if (repathTimer > 0f)
-                return;
+                return false;
 
             repathTimer = boids.RepathRate;
 
@@ -107,6 +123,8 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
             {
                 Enemy.Agent.SetDestination(playerPos);
             }
+
+            return true;
         }
 
         private void CheckIfHitPlayer()

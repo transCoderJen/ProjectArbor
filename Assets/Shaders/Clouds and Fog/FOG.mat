@@ -35,7 +35,7 @@ Material:
     - _MaxDistance: 200
     - _NoiseOffset: 0
     - _NoiseTiling: 0
-    - _StepSize: 3.94
+    - _StepSize: 14
     m_Colors:
     - _Color: {r: 0.9056604, g: 0.9056604, b: 0.9056604, a: 1}
     - _LightContribution: {r: 9.655394, g: 7.059368, b: 7.059368, a: 1}

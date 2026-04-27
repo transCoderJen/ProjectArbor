@@ -75,8 +75,8 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _LeavesBorderColor: {r: 0.42857146, g: 0, b: 0.5, a: 1}
-    - _LeavesColor: {r: 1, g: 1, b: 1, a: 0}
-    - _TrunkBorderColor: {r: 0.6132076, g: 0.29214135, b: 0.29214135, a: 0}
+    - _LeavesBorderColor: {r: 0.50916064, g: 0.111294046, b: 0.5754717, a: 1}
+    - _LeavesColor: {r: 0.93626475, g: 0.5613208, b: 1, a: 0}
+    - _TrunkBorderColor: {r: 0.509434, g: 0.08410466, b: 0.08410466, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

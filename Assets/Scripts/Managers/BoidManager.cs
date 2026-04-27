@@ -24,6 +24,7 @@ namespace ShiftedSignal.Garden.Managers
 
         [Header("Movement")]
         public float ChaseStepDistance = 5f;
+        public float WanderDistance = 5f;
         public float RepathRate = 0.1f;
         public float NavMeshSampleDistance = 3f;
 
