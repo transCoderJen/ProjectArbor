@@ -28,10 +28,11 @@ MonoBehaviour:
   MP: 2
   Power: 4
   Vitality: 70
-  Defense: 65
-  Speed: 12
-  CritChance: 65
-  CritPower: 105
-  Evasion: 50
+  Defense: 0
+  Speed: 0
+  CritChance: 0
+  CritPower: 0
+  Evasion: 0
   MagicResistance: 0
   AttackSpeed: 0
+  craftingMaterials: []

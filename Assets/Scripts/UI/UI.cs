@@ -39,6 +39,9 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private GameObject[] menuItems;
         private MenuName selectedMenu;
 
+        [Header("Tooltip Compnents")]
+        public UI_ItemTooltip ItemToolTip;
+
         [Header("Inputs")]
         public InputActionReference toolSelectorInput;
         public InputActionReference weaponSelectorInput;

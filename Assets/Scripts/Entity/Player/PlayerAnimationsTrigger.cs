@@ -7,12 +7,14 @@ using ShiftedSignal.Garden.Stats;
 using ShiftedSignalGames.GOF.ItemsAndInventory;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Tools;
+using ShiftedSignal.Garden.Misc;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {    
     public class PlayerAnimationsTriggers : MonoBehaviour
     {
         private Player player => GetComponentInParent<Player>();
+        private Collider[] enemyHits = new Collider[50];
 
         private void AnimationTrigger()
         {
@@ -24,10 +26,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Debugging.Instance.DisableAttackDamage) return;
             // // AudioManager.instance.PlaySFX(SFXSounds.attack3, null);
         
-            Collider[] colliders = Physics.OverlapSphere(player.AttackCheck.position, player.AttackCheckRadius);
+            int enemyCount = Physics.OverlapSphereNonAlloc(
+                player.AttackCheck.position, 
+                player.AttackCheckRadius,
+                enemyHits);
 
-            foreach(var hit in colliders)
+            for (int i = 0; i < enemyCount; i++)
             {
+                Collider hit = enemyHits[i];
+                
                 Enemy enemy = hit.GetComponentInParent<Enemy>();
 
                 if (enemy != null)
@@ -66,15 +73,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         
 
         private void ThrowSword()
-        {
-            
+        {       
             // SkillManager.instance.sword.CanUseSkill();
         }
 
         private IEnumerator SlowDownTime()
         {
             Time.timeScale = .5f;
-            yield return new WaitForSecondsRealtime(.1f);
+            yield return Helpers.GetWait(.1f);
             Time.timeScale = 1f;
         }
 

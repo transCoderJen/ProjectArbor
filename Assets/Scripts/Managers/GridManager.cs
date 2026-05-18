@@ -13,6 +13,7 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private GrowBlock BaseGridBlock;
         [SerializeField] private Transform GridParent;
         [SerializeField] private LayerMask GridBlockers;
+        [SerializeField] private LayerMask ActivationBlocks;
         [SerializeField] private LayerMask InteractionLayer;
         public List<BlockRow> BlockRows = new List<BlockRow>();
 
@@ -70,9 +71,18 @@ namespace ShiftedSignal.Garden.Managers
     
                     BlockRows[z].Blocks.Add(newBlock);
 
+                    newBlock.IsActive = false;
+
                     if (Physics.CheckBox(spawnPos, GetCellHalfExtents(), Quaternion.identity, GridBlockers, QueryTriggerInteraction.Collide))
                     {
-                        newBlock.PreventUse = true;   
+                        newBlock.PreventUse = true;
+                        newBlock.gameObject.SetActive(false);
+                    }
+
+                    if (Physics.CheckBox(spawnPos, GetCellHalfExtents(), Quaternion.identity, ActivationBlocks, QueryTriggerInteraction.Collide))
+                    {
+                        newBlock.IsActive = true;
+                        newBlock.IsActivationBlock = true;
                     }
                 }
             }
@@ -159,6 +169,18 @@ namespace ShiftedSignal.Garden.Managers
             }
 
             return null;
+        }
+
+        public GrowBlock GetBlock(int x, int y)
+        {
+            if (y < 0 || y >= BlockRows.Count)
+                return null;
+
+            BlockRow row = BlockRows[y];
+            if (row == null || x < 0 || x >= row.Blocks.Count)
+                return null;
+
+            return row.Blocks[x];
         }
 
         public GrowBlock GetBlockController()

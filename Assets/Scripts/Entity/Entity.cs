@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using ShiftedSignal.Garden.Effects;
 using ShiftedSignal.Garden.Stats;
+using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.UserInterface;
 using UnityEngine;
 
@@ -32,6 +34,7 @@ namespace ShiftedSignal.Garden.EntitySpace
         public SpriteRenderer Sr { get; private set; }
         public CharacterStats Stats { get; private set; }
         public CapsuleCollider Cd { get; private set; }
+        public EntityFX Fx { get; private set; }
 
         #endregion
 
@@ -57,6 +60,8 @@ namespace ShiftedSignal.Garden.EntitySpace
         [Tooltip("The Distance in front of the player")]public float AttackCheckDistance = 1f;
         [Tooltip("How High the Checks Should Be")] public float CheckHeight = 1f;
         [SerializeField] public Vector3 RotationAdjustment { get; private set; }
+        [SerializeField] public float AttackCoolDown;
+        [HideInInspector] public float AttackTimer;
 
         public bool IsDead = false;
 
@@ -74,6 +79,7 @@ namespace ShiftedSignal.Garden.EntitySpace
             Rb = GetComponent<Rigidbody>();
             Stats = GetComponent<CharacterStats>();
             Cd = GetComponentInChildren<CapsuleCollider>();
+            Fx = GetComponent<EntityFX>();
             
 
             if (Rb != null)
@@ -90,6 +96,16 @@ namespace ShiftedSignal.Garden.EntitySpace
             GameObject canvas = GameObject.Find("Canvas");
             // if (canvas != null)
             //     UI = canvas.GetComponent<UI>();
+        }
+
+        protected virtual void OnEnable()
+        {
+            
+        }
+
+        protected virtual void OnDisable()
+        {
+            
         }
 
 
@@ -241,6 +257,8 @@ namespace ShiftedSignal.Garden.EntitySpace
 
         protected virtual void FlipSprite()
         {
+            return;
+            
             FacingRight = !FacingRight;
 
             Vector3 scale = transform.localScale;
@@ -293,6 +311,12 @@ namespace ShiftedSignal.Garden.EntitySpace
         #region Gizmos
         protected virtual void OnDrawGizmosSelected()
         {
+            if (!Debugging.Instance.DrawGizmos)
+            {
+                Debug.Log("Returning from gizmos draw on entity");
+                return;
+            }
+
             if (AttackCheck != null)
                 Gizmos.DrawWireSphere(AttackCheck.position, AttackCheckRadius);
 
@@ -305,6 +329,7 @@ namespace ShiftedSignal.Garden.EntitySpace
         {
             IsDead = true;
             StopMovement();
+            Destroy(gameObject); //TODO DeathStates for player and enemies.
         }
     }
 }

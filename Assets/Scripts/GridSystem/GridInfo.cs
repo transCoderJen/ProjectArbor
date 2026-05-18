@@ -9,7 +9,6 @@ namespace ShiftedSignal.Garden.GridSystem
     
     public class GridInfo : Singleton<GridInfo>
     {
-
         public bool HasGrid;
 
         public List<InfoRow> Grid = new List<InfoRow>();
@@ -21,7 +20,7 @@ namespace ShiftedSignal.Garden.GridSystem
                 CreateGrid();
             }
         }
-
+        
         public void CreateGrid()
         {
             HasGrid = true;

@@ -61,6 +61,11 @@ namespace ShiftedSignal.Garden.Effects
         
         public void CreatePopUpText(string _text)
         {
+            CreatePopUpText(_text, Color.red);
+        }
+
+        public void CreatePopUpText(string _text, Color _color)
+        {
             float randomX = Random.Range(-.5f,.5f);
             float randomY = Random.Range(1, 3);
 
@@ -68,6 +73,7 @@ namespace ShiftedSignal.Garden.Effects
             GameObject newText = Instantiate(popUpTextPrefab, transform.position + positionOffset, Quaternion.identity, transform);
             
             newText.GetComponent<TextMeshPro>().text = _text;
+            newText.GetComponent<TextMeshPro>().color = _color;
         }
 
         public void MakeTransparent(bool _transparent)

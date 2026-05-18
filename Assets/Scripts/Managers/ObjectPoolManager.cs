@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ShiftedSignal.Garden.Managers
 {
     /// <summary>
-    /// Manages pooled GameObjects using enum-based lookup instead of prefab names.
+    /// Manages pooled GameObjects using enum-based lookup and runtime prefab lookup.
     /// </summary>
     public class ObjectPoolManager : Singleton<ObjectPoolManager>
     {
@@ -17,7 +17,8 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private PooledObject[] PooledObjects;
 
         private static readonly Dictionary<PooledObjectList, PoolRuntimeData> Pools = new();
-        private static readonly Dictionary<GameObject, PooledObjectList> InstanceLookup = new();
+        private static readonly Dictionary<GameObject, PoolRuntimeData> InstanceLookup = new();
+        private static readonly Dictionary<GameObject, PoolRuntimeData> RuntimePools = new();
 
         protected override void Awake()
         {
@@ -25,13 +26,11 @@ namespace ShiftedSignal.Garden.Managers
             InitializePools();
         }
 
-        /// <summary>
-        /// Creates all configured pools and prewarms them.
-        /// </summary>
         private void InitializePools()
         {
             Pools.Clear();
             InstanceLookup.Clear();
+            RuntimePools.Clear();
 
             if (ObjectPoolEmptyHolder == null)
             {
@@ -74,9 +73,14 @@ namespace ShiftedSignal.Garden.Managers
         }
 
         /// <summary>
-        /// Spawns an object from the specified pool type.
+        /// Spawns an object from the specified enum-based pool type.
         /// </summary>
-        public static GameObject SpawnObject(PooledObjectList poolType, Vector3 position, Quaternion rotation, Transform parent = null, float scale = 1)
+        public static GameObject SpawnObject(
+            PooledObjectList poolType,
+            Vector3 position,
+            Quaternion rotation,
+            Transform parent = null,
+            float scale = 1f)
         {
             if (!Pools.TryGetValue(poolType, out PoolRuntimeData pool))
             {
@@ -84,6 +88,42 @@ namespace ShiftedSignal.Garden.Managers
                 return null;
             }
 
+            return SpawnFromPool(pool, position, rotation, parent, scale);
+        }
+
+        /// <summary>
+        /// Spawns an object directly from a prefab.
+        /// If no runtime pool exists for this prefab, one is created automatically.
+        /// </summary>
+        public static GameObject SpawnObject(
+            GameObject prefab,
+            Vector3 position,
+            Quaternion rotation,
+            Transform parent = null,
+            float scale = 1f)
+        {
+            if (prefab == null)
+            {
+                Debug.LogWarning("Tried to spawn a null prefab.");
+                return null;
+            }
+
+            if (!RuntimePools.TryGetValue(prefab, out PoolRuntimeData pool))
+            {
+                pool = CreateRuntimePool(prefab);
+                RuntimePools.Add(prefab, pool);
+            }
+
+            return SpawnFromPool(pool, position, rotation, parent, scale);
+        }
+
+        private static GameObject SpawnFromPool(
+            PoolRuntimeData pool,
+            Vector3 position,
+            Quaternion rotation,
+            Transform parent,
+            float scale)
+        {
             GameObject instance = null;
 
             while (pool.InactiveObjects.Count > 0 && instance == null)
@@ -95,42 +135,29 @@ namespace ShiftedSignal.Garden.Managers
             {
                 instance = CreateNewInstance(pool);
             }
-            
-            Transform instanceTransform = instance.transform;
-            instanceTransform.localScale = new Vector3(scale, scale, scale);
-            
 
-            if (parent != null)
-                instanceTransform.SetParent(parent);
-            else
-                instanceTransform.SetParent(pool.Parent);
-            
-                
+            Transform instanceTransform = instance.transform;
+            instanceTransform.localScale = Vector3.one * scale;
+
+            instanceTransform.SetParent(parent != null ? parent : pool.Parent);
             instanceTransform.SetPositionAndRotation(position, rotation);
-            
+
             instance.SetActive(true);
 
             return instance;
         }
 
         /// <summary>
-        /// Returns an object to its pool.
+        /// Returns an object to its original pool.
         /// </summary>
         public static void ReturnObjectToPool(GameObject obj)
         {
             if (obj == null)
                 return;
 
-            if (!InstanceLookup.TryGetValue(obj, out PooledObjectList poolType))
+            if (!InstanceLookup.TryGetValue(obj, out PoolRuntimeData pool))
             {
                 Debug.LogWarning($"Trying to return non-pooled object: {obj.name}");
-                obj.SetActive(false);
-                return;
-            }
-
-            if (!Pools.TryGetValue(poolType, out PoolRuntimeData pool))
-            {
-                Debug.LogWarning($"Pool runtime data missing for type: {poolType}");
                 obj.SetActive(false);
                 return;
             }
@@ -147,9 +174,23 @@ namespace ShiftedSignal.Garden.Managers
         {
             foreach (PoolRuntimeData pool in Pools.Values)
             {
-                for (int i = pool.Parent.childCount - 1; i >= 0; i--)
+                ReturnPoolChildren(pool);
+            }
+
+            foreach (PoolRuntimeData pool in RuntimePools.Values)
+            {
+                ReturnPoolChildren(pool);
+            }
+        }
+
+        private static void ReturnPoolChildren(PoolRuntimeData pool)
+        {
+            for (int i = pool.Parent.childCount - 1; i >= 0; i--)
+            {
+                Transform child = pool.Parent.GetChild(i);
+
+                if (child.gameObject.activeInHierarchy)
                 {
-                    Transform child = pool.Parent.GetChild(i);
                     ReturnObjectToPool(child.gameObject);
                 }
             }
@@ -165,10 +206,29 @@ namespace ShiftedSignal.Garden.Managers
 
             if (!InstanceLookup.ContainsKey(instance))
             {
-                InstanceLookup.Add(instance, pool.Type);
+                InstanceLookup.Add(instance, pool);
             }
 
             return instance;
+        }
+
+        /// <summary>
+        /// Creates a runtime pool for a prefab that was not configured in the inspector.
+        /// </summary>
+        private static PoolRuntimeData CreateRuntimePool(GameObject prefab)
+        {
+            GameObject groupObject = new GameObject($"{prefab.name}_RuntimePool");
+
+            if (Instance != null && Instance.ObjectPoolEmptyHolder != null)
+            {
+                groupObject.transform.SetParent(Instance.ObjectPoolEmptyHolder);
+            }
+
+            return new PoolRuntimeData(
+                PooledObjectList.None,
+                prefab,
+                groupObject.transform
+            );
         }
 
         [ContextMenu("Rebuild Pools")]
@@ -186,9 +246,6 @@ namespace ShiftedSignal.Garden.Managers
         }
     }
 
-    /// <summary>
-    /// Editor-facing configuration for a single pool.
-    /// </summary>
     [Serializable]
     public struct PooledObject
     {
@@ -202,9 +259,6 @@ namespace ShiftedSignal.Garden.Managers
         [Min(0)] public int InitialSize;
     }
 
-    /// <summary>
-    /// Enum used to identify each pool.
-    /// </summary>
     public enum PooledObjectList
     {
         None,
@@ -214,12 +268,11 @@ namespace ShiftedSignal.Garden.Managers
         SlashRed,
         HitBubbles,
         HitRedSparks,
-        Pickup
+        Pickup,
+        HealArea,
+        HeartRoot
     }
 
-    /// <summary>
-    /// Internal runtime data for each configured pool.
-    /// </summary>
     public class PoolRuntimeData
     {
         public PooledObjectList Type;

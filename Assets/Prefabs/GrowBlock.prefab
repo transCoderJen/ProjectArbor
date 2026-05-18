@@ -57,7 +57,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -178,20 +178,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurrentStage: 0
   SR: {fileID: 5390414751969265511}
+  BlockActiveSprite: {fileID: 21300000, guid: 1e9a0cb177a8ddf4ca093ca6c993a01b, type: 3}
   SoilTilledSprite: {fileID: 21300000, guid: 4e1f49779b7b14940a1262b8bd96add1, type: 3}
   SoilWateredSprite: {fileID: 21300000, guid: 2048356465f874b4ba38a05d3d2dda5e, type: 3}
   CropSprite: {fileID: 1312158679538933271}
-  CropPlantedSprite: {fileID: -1927889906097043966, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing1Sprite: {fileID: 5004531278555049960, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing2Sprite: {fileID: -5395861003456798081, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropRipeSprite: {fileID: -6800931340347744238, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  Seed: {fileID: 0}
   IsWatered: 0
   PreventUse: 0
+  IsActive: 0
+  IsActivationBlock: 0
   GridPosition: {x: 0, y: 0}
   SelectionBox: {fileID: 1253478706470637801}
   InteractionMask:
     serializedVersion: 2
     m_Bits: 1024
+  health: 100
+  SpawnedPlant: {fileID: 0}
 --- !u!65 &9004524080292141147
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -265,7 +267,7 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 3
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: a2a07aa81aca3624f8c309699a1ca2ca, type: 2}
@@ -352,10 +354,10 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 3
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 7dc7ce74f7f3b3547af6630387b080f6, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

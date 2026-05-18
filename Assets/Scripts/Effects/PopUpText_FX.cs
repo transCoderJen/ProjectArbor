@@ -81,7 +81,7 @@ namespace ShiftedSignal.Garden.Effects
         {
             transform.position += Vector3.up * moveSpeed * Time.deltaTime;
         }
-
+        
         private void FadeOut()
         {
             Color color = myText.color;

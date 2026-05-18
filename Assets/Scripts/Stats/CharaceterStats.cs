@@ -165,7 +165,7 @@ namespace ShiftedSignal.Garden.Stats
         protected virtual void Die()
         {
             IsDead = true;
-            Destroy(gameObject); //TODO DeathStates for player and enemies.
+            
         }
 
         public void MakeInvincible(bool Invincible) => IsInvincible = Invincible;

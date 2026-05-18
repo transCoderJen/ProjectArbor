@@ -49,19 +49,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             // }
 
         }
-
-        private void ToggleToolTipVisibility()
-        {
-            if (Player.GetBlock() == null ||Player.GetBlock().PreventUse)
-            {
-                Player.ToolIndicator.gameObject.SetActive(false);
-            }
-            else
-            {
-                Player.ToolIndicator.gameObject.SetActive(true);
-            }
-        }
-
+        
         public override void FixedUpdate()
         {
             base.FixedUpdate();

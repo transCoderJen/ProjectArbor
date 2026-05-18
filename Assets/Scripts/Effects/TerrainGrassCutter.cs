@@ -1,4 +1,5 @@
 using System;
+using ShiftedSignal.Garden.Tools;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Effects
@@ -44,9 +45,6 @@ namespace ShiftedSignal.Garden.Effects
         [SerializeField] private bool cutAllDetailLayers = true;
         [SerializeField] private int detailLayerIndex = 0;
         [SerializeField] private CutShape defaultCutShape = CutShape.Sphere;
-
-        [Header("Debug")]
-        [SerializeField] private bool drawDebugGizmo = true;
 
         /// <summary>
         /// Cuts grass using the default cut settings.
@@ -487,7 +485,7 @@ namespace ShiftedSignal.Garden.Effects
 
         private void OnDrawGizmosSelected()
         {
-            if (!drawDebugGizmo)
+            if (!Debugging.Instance.DrawGizmos)
             {
                 return;
             }

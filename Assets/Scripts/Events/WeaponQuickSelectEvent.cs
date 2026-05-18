@@ -10,7 +10,6 @@ namespace ShiftedSignal.Garden.Events
 
         public WeaponQuickSelectEvent(ItemData_Equipment weapon)
         {
-            Debug.Log("Inside event call");
             if (weapon.EquipmentType != EquipmentType.Weapon)
             {
                 throw new System.ArgumentException("Item must be of equipment type Tool", nameof(weapon));

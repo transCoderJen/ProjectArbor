@@ -11,12 +11,7 @@ using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Events;
 using System.Linq;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 using TMPro;
-
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -43,8 +38,13 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
 
     public class Inventory : Singleton<Inventory>, ISaveManager
     {
-        [Header("Starting Equipment")]
+        [Header("Dynamic Slot Prefabs")]
+        [SerializeField] private GameObject stashSlotPrefab;
+
+        [Header("Starting Items")]
         public List<ItemData> StartingEquipment = new();
+        public List<ItemData> StartingStashItems = new();
+        public List<ItemData> StartingSeedBankItems = new();
 
         [Header("Runtime Collections")]
         public List<InventoryItem> equipment = new();
@@ -55,12 +55,18 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
 
         public List<InventoryItem> stash = new();
         public Dictionary<ItemData, InventoryItem> stashDictionary = new();
+        
+        public List<InventoryItem> seedBank = new();
+        public Dictionary<ItemData, InventoryItem> seedBankDictionary = new();
+
+
 
         [Header("Inventory UI")]
         [SerializeField] private Transform inventorySlotParent;
         [SerializeField] private Transform stashSlotParent;
         [SerializeField] public Transform equipmentSlotParent;
         [SerializeField] public Transform statSlotParent;
+        [SerializeField] public Transform seedBankSlotParent;
 
         [SerializeField] public TMP_Dropdown sortModeDropdown;
         [SerializeField] public TMP_Dropdown sortTypeDropdown;
@@ -69,6 +75,7 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
         private UI_ItemSlot[] stashItemSlot = Array.Empty<UI_ItemSlot>();
         private UI_EquipmentSlot[] equipmentSlot = Array.Empty<UI_EquipmentSlot>();
         private UI_StatSlot[] statSlot = Array.Empty<UI_StatSlot>();
+        private UI_ItemSlot[] seedBankItemSlot = Array.Empty<UI_ItemSlot>();
 
         private float flaskTimer;
         private float armorTimer;
@@ -190,6 +197,9 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
             stash ??= new List<InventoryItem>();
             stashDictionary ??= new Dictionary<ItemData, InventoryItem>();
 
+            seedBank ??= new List<InventoryItem>();
+            seedBankDictionary ??= new Dictionary<ItemData, InventoryItem>();
+
             equipment ??= new List<InventoryItem>();
             equipmentDictionary ??= new Dictionary<ItemData_Equipment, InventoryItem>();
 
@@ -219,6 +229,17 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                 statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>(true);
             else
                 statSlot = Array.Empty<UI_StatSlot>();
+
+            if (seedBankSlotParent != null)
+                seedBankItemSlot = seedBankSlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
+            else
+                seedBankItemSlot = Array.Empty<UI_ItemSlot>();
+        }
+
+        [ContextMenu("Add StashSlot")]
+        private void AddStashSlot()
+        {
+            Instantiate(stashSlotPrefab, stashSlotParent);
         }
 
         private void HandleWeaponEquipped(WeaponQuickSelectEvent evt)
@@ -240,7 +261,6 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
             {
                 if (loadedEquipment.Count > 0)
                 {
-                    Debug.Log("1st hook");
                     foreach (ItemData_Equipment item in loadedEquipment)
                     {
                         if (item == null)
@@ -252,7 +272,6 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
 
                 if (loadedItems.Count > 0)
                 {
-                    Debug.Log("2nd hook");
                     foreach (InventoryItem item in loadedItems)
                     {
                         if (item == null || item.data == null)
@@ -276,29 +295,68 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
 
                 if (!SaveManager.Instance.HasSavedData())
                 {
-                    for (int i = 0; i < StartingEquipment.Count; i++)
-                    {
-                        if (StartingEquipment[i] == null)
-                            continue;
-
-                        EquipItem(StartingEquipment[i]);
-                    }
+                    AddStartingEquipment();
+                    AddStartingStashItems();
+                    AddStartingSeedBankItems();
                 }
             }
             else
             {
-                Debug.Log("SaveManager.Instance is null or debug option selected to load starting equipment.");
-                for (int i = 0; i < StartingEquipment.Count; i++)
-                {
-                    if (StartingEquipment[i] == null)
-                        continue;
-
-                    EquipItem(StartingEquipment[i]);
-                }
+                Debug.Log("SaveManager.Instance is null or debug option selected to load starting items.");
+                AddStartingEquipment();
+                AddStartingStashItems();
+                AddStartingSeedBankItems();
             }
 
             startingItemsApplied = true;
             UpdateSlotUI();
+        }
+
+        private void AddStartingSeedBankItems()
+        {
+            for (int i = 0; i < StartingSeedBankItems.Count; i++)
+            {
+                if (StartingSeedBankItems[i] == null)
+                    continue;
+
+                AddItem(StartingSeedBankItems[i], false);
+            }
+        }
+
+        private void AddToSeedBank(ItemData item)
+        {
+            if (seedBankDictionary.TryGetValue(item, out InventoryItem value))
+            {
+                value.AddStack();
+            }
+            else
+            {
+                InventoryItem newItem = new InventoryItem(item);
+                seedBank.Add(newItem);
+                seedBankDictionary.Add(item, newItem);
+            }
+        }
+
+        private void AddStartingEquipment()
+        {
+            for (int i = 0; i < StartingEquipment.Count; i++)
+            {
+                if (StartingEquipment[i] == null)
+                    continue;
+
+                EquipItem(StartingEquipment[i]);
+            }
+        }
+
+        private void AddStartingStashItems()
+        {
+            for (int i = 0; i < StartingStashItems.Count; i++)
+            {
+                if (StartingStashItems[i] == null)
+                    continue;
+
+                AddItem(StartingStashItems[i], false);
+            }
         }
 
         public void EquipItem(ItemData item)
@@ -419,6 +477,21 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                 {
                     if (stashItemSlot[i] != null)
                         stashItemSlot[i].UpdateSlot(stash[i]);
+                }
+            }
+
+            if (seedBankItemSlot != null)
+            {
+                for (int i = 0; i < seedBankItemSlot.Length; i++)
+                {
+                    if (seedBankItemSlot[i] != null)
+                        seedBankItemSlot[i].CleanUpSlot();
+                }
+
+                for (int i = 0; i < seedBank.Count && i < seedBankItemSlot.Length; i++)
+                {
+                    if (seedBankItemSlot[i] != null)
+                        seedBankItemSlot[i].UpdateSlot(seedBank[i]);
                 }
             }
 
@@ -563,6 +636,10 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
             {
                 AddToStash(item);
             }
+            else if (item.ItemType == ItemType.Seed)
+            {
+                AddToSeedBank(item);
+            }
 
             if (updateUI)
                 UpdateSlotUI();
@@ -596,6 +673,16 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
             }
         }
 
+        public bool HasItem(ItemData item)
+        {
+            if (item == null)
+                return false;
+            
+            return inventoryDictionary.ContainsKey(item) ||
+                    stashDictionary.ContainsKey(item) ||
+                    seedBankDictionary.ContainsKey(item);
+        }
+
         public void RemoveItem(ItemData item, bool updateUI = true)
         {
             InitializeCollections();
@@ -626,6 +713,19 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                 else
                 {
                     stashValue.RemoveStack();
+                }
+            }
+
+            if (seedBankDictionary.TryGetValue(item, out InventoryItem seedBankValue))
+            {
+                if (seedBankValue.stackSize <= 1)
+                {
+                    seedBank.Remove(seedBankValue);
+                    seedBankDictionary.Remove(item);
+                }
+                else
+                {
+                    seedBankValue.RemoveStack();
                 }
             }
 

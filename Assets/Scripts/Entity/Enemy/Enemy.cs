@@ -1,5 +1,7 @@
 using System.Collections;
 using ShiftedSignal.Garden.Effects;
+using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.Tools;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,6 +10,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
     public class Enemy : Entity
     {
         public LayerMask WhatIsPlayer;
+        public LayerMask WhatIsCrop;
  
         [Header("Stunned Info")]
         public float stunDuration;
@@ -29,7 +32,6 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
         public NavMeshAgent Agent { get; private set; }
 
         public EnemyStateMachine StateMachine { get; private set; }
-        public EntityFX fx { get; private set; }
         public string lastAnimBoolName { get; private set; }
 
         [Header("State Triggers")]
@@ -48,7 +50,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
         protected override void Start()
         {
             base.Start();
-            fx = GetComponent<EntityFX>();
+            
         }
 
         protected override void Update()
@@ -58,24 +60,17 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
                 
             base.Update();
 
-            if (StateMachine == null)
-            {
-                Debug.Log("State mahchine is null");
-            }
-            if (StateMachine.CurrentState == null)
-            {
-                Debug.Log("Current state is null");
-            }
+            AttackTimer -= Time.deltaTime;
             
             StateMachine.CurrentState.Update();
-            if (transform.position.y < -20)
-                Destroy(this.gameObject);
         }
+
+
 
         public override void DamageEffect(bool Knockback, Transform Attacker = null)
         {
             // fx.StartCoroutine(nameof(fx.FlashFX));
-            fx.NewFlashFX();
+            Fx.NewFlashFX();
             base.DamageEffect(Knockback, Attacker);
         }
         
@@ -151,6 +146,9 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
 
         protected override void OnDrawGizmosSelected()
         {
+            if (!Debugging.Instance.DrawGizmos)
+                return;
+                
             base.OnDrawGizmosSelected();
             
             Gizmos.color = Color.yellow;
@@ -158,6 +156,17 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
             Gizmos.DrawWireSphere(transform.position, AttackTriggerRadius);
             Gizmos.DrawWireSphere(transform.position, ChaseTriggerRadius);
             
+        }
+
+        public override void Die()
+        {
+            StartCoroutine(nameof(DelayedDeath));
+        }
+
+        private IEnumerator DelayedDeath()
+        {
+            yield return Helpers.GetWait(.2f);
+            base.Die();  
         }
     }
     

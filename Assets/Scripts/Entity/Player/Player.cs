@@ -6,6 +6,8 @@ using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.EventBus;
 using UnityEngine;
+using ShiftedSignal.Garden.Tools;
+using System;
 
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
@@ -18,7 +20,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         Basket
     }
     
-    public class Player : Entity
+    public class Player : Entity, IHealable
     {   
         [Header("Attack Details")]
         public Vector2[] AttackMovement;
@@ -53,7 +55,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [Header("Settings")]
         public float GrowBlockCheckDistance;
 
-
         #endregion
 
         #region === Equipment ===
@@ -61,6 +62,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [Header("Equipment")]
         // public WeaponData ActiveWeapon;
         public ItemData_Equipment EquippedWeapon;
+        public ItemData_Seed EquippedSeed;
+        // public ItemData_Seed EquippedSeed;
 
 #region Input Buffers
     [HideInInspector] public bool AttackBuffered = false;
@@ -105,19 +108,26 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             StateMachine.Initialize(IdleState);
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
             playerInput.onControlsChanged += OnControlsChanged;
             Bus<WeaponEquipEvent>.OnEvent += HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent += HandleToolEquipped;
+            Bus<SeedEquipEvent>.OnEvent += HandleSeedEquipped;
         }
 
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
             playerInput.onControlsChanged -= OnControlsChanged;
-            Bus<WeaponEquipEvent>.OnEvent += HandleWeaponEquipped;
+            Bus<WeaponEquipEvent>.OnEvent -= HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent -= HandleToolEquipped;
+            Bus<SeedEquipEvent>.OnEvent -= HandleSeedEquipped;
+        }
+
+        private void HandleSeedEquipped(SeedEquipEvent evt)
+        {
+            EquippedSeed = evt.Seed;
         }
 
         private void HandleToolEquipped(ToolEquipEvent evt)
@@ -140,6 +150,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (actionInput.action.WasPressedThisFrame())
             {
                 UseTool();
+            }
+
+            if (Keyboard.current.kKey.isPressed)
+            {
+                GridInfo.Instance.GrowCrop();
             }
 
             HandleDebugInputs();
@@ -179,9 +194,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Keyboard.current.eKey.wasPressedThisFrame)
                 UseTool();
 
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
-                
-
             if (Keyboard.current.numpad1Key.wasPressedThisFrame)
                 CurrentTool = ToolType.Plough;
 
@@ -192,7 +204,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 CurrentTool = ToolType.Seeds;
 
             if (Keyboard.current.oem4Key.wasPressedThisFrame)
-                CurrentTool = ToolType.Plough;
+                CurrentTool = ToolType.Basket;
         }
 
         #endregion
@@ -220,24 +232,40 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         private void UseTool()
         {
             GrowBlock block = GetBlock();
-            if (block == null) return;
 
-            switch (CurrentTool)
-            {
-                case ToolType.Plough:
-                    block.PloughSoil();
-                    break;
-                case ToolType.Blood:
-                    block.WaterSoil();
-                    break;
-                case ToolType.Seeds:
-                    block.PlantCrop();
-                    break;
-                case ToolType.Basket:
-                    block.HarvestCrop();
-                    break;
-            }
+            if (block == null)
+                return;
+
+            block.UseContextAction(EquippedSeed);
         }
+        
+        // private void UseTool()
+        // {
+        //     GrowBlock block = GetBlock();
+        //     if (block == null || block.PreventUse || !block.IsActive) return;
+
+        //     if (block.IsActivationBlock || Debugging.Instance.UnlockFarmAlways) 
+        //     {
+        //         block.TriggerActivationBlock();
+        //         return;
+        //     }
+
+        //     switch (CurrentTool)
+        //     {
+        //         case ToolType.Plough:
+        //             block.PloughSoil();
+        //             break;
+        //         case ToolType.Blood:
+        //             block.WaterSoil();
+        //             break;
+        //         case ToolType.Seeds:
+        //             block.PlantCrop(EquippedSeed);
+        //             break;
+        //         case ToolType.Basket:
+        //             block.HarvestCrop();
+        //             break;
+        //     }
+        // }
 
         public GrowBlock GetBlock()
         {
@@ -270,6 +298,12 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public void AnimationTrigger()
         {
             StateMachine.CurrentState.AnimationFinishedTrigger();
+        }
+
+        public void Heal(int HealAmount)
+        {
+            Stats.IncreaseHealthBy(HealAmount);
+            Fx.CreatePopUpText(HealAmount.ToString(), Color.blue);
         }
 
         #endregion

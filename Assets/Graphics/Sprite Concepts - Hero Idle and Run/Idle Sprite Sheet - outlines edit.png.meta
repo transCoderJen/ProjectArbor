@@ -1,0 +1,866 @@
+fileFormatVersion: 2
+guid: 4c360286fb3a99e4d9da2cd242a3a89f
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 0
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 60
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_12
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2168
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0f5907a84b99f542ba0414a82d6ded9
+      internalID: -1015801795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_13
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 2168
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd20c71c5dba25e46966c3370725ef17
+      internalID: 425484852
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_14
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 2168
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1ae60bc4194b59d4ca42234a49d9c7e9
+      internalID: 1068764596
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_15
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 2168
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dfe5bd30915c0ac4380f90b4ffabca82
+      internalID: -1207897448
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1626
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2b017570767812a4f9cad5a671455144
+      internalID: -176848759
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_17
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 1626
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ccf88afae95627547b734bc3bd2ca770
+      internalID: 875142354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_18
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 1626
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de07348b03379f24e94bfdca145e4409
+      internalID: -1861684738
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_19
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 1626
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a37d274c64520d499c7cdc41ebcd088
+      internalID: 838351916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_20
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1084
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9d2cc518ca57f6040b23ebedcc64c6e1
+      internalID: -37347411
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_21
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 1084
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7432a774cfcf651458eef37ddb4bb585
+      internalID: -1779817701
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_22
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 1084
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3008738a1adae97429e2116a619ca048
+      internalID: -612135878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_23
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 1084
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 16c167c66df38fc4da3eb823d8e90db4
+      internalID: -1829496153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 542
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6204a96d0324c594c82ca756af4669fa
+      internalID: -1107957832
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_25
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 542
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e992f473c25e79045a33707a7d56f625
+      internalID: -1040328308
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_26
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 542
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aac9b850bc92d7d448f9a9f2d5fd814d
+      internalID: -2014317632
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_27
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 542
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f2eabef821987e440860e4e0244379e0
+      internalID: 1011874011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_28
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 99cdac20d57a5b64995fcd38e2e2a797
+      internalID: -1627246205
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_29
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 0
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 43836658456e7564398f337762138610
+      internalID: 499767265
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_30
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 0
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 059f3355056c0a44dbb9bca535735724
+      internalID: 573636106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_31
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 0
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 790843531f70c57479b1aab43f183dad
+      internalID: -698052686
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3794
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 317c37fa882452847a1e697265b64d97
+      internalID: 399008616
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_1
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 3794
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9b0b48bca6cd83b4c9a605ce59843e1f
+      internalID: -753143119
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_2
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 3794
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 45b527d8b8a3c7844ae3c59d7fdb3092
+      internalID: -658695734
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_3
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 3794
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 07b58a6d74ae949448cbe110d29c3fbd
+      internalID: 1633964779
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_4
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 3252
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f4446ffb95599024b870e92e4c771fc8
+      internalID: -35206353
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_5
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 3252
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5de933c77d24ba4428a1c741a35e6ffc
+      internalID: -1386479909
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_6
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 3252
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84e7b2a67276eb145816609110cd0f25
+      internalID: -1449186657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_7
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 3252
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aff397ad2ae2e234ab1142a5a3339cfb
+      internalID: -2109775576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 2710
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5ad65b8ce9e1094e9f0bec5c5a5fd78
+      internalID: -273090400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_9
+      rect:
+        serializedVersion: 2
+        x: 485
+        y: 2710
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 86923ab0585bafd4b8a403c30fc4d62a
+      internalID: -541870283
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_10
+      rect:
+        serializedVersion: 2
+        x: 970
+        y: 2710
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ef73030cfc633c84eb9096b51a792aa4
+      internalID: -840765467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Idle Sprite Sheet - outlines edit_11
+      rect:
+        serializedVersion: 2
+        x: 1455
+        y: 2710
+        width: 485
+        height: 542
+      alignment: 7
+      pivot: {x: 0.5, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7dba5a5292ca7fa47ad8dc9385deef91
+      internalID: -209054609
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: b6e2395cbe1dd484a83da4c8d5b7f836
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Idle Sprite Sheet - outlines edit_0: 399008616
+      Idle Sprite Sheet - outlines edit_1: -753143119
+      Idle Sprite Sheet - outlines edit_10: -840765467
+      Idle Sprite Sheet - outlines edit_11: -209054609
+      Idle Sprite Sheet - outlines edit_12: -1015801795
+      Idle Sprite Sheet - outlines edit_13: 425484852
+      Idle Sprite Sheet - outlines edit_14: 1068764596
+      Idle Sprite Sheet - outlines edit_15: -1207897448
+      Idle Sprite Sheet - outlines edit_16: -176848759
+      Idle Sprite Sheet - outlines edit_17: 875142354
+      Idle Sprite Sheet - outlines edit_18: -1861684738
+      Idle Sprite Sheet - outlines edit_19: 838351916
+      Idle Sprite Sheet - outlines edit_2: -658695734
+      Idle Sprite Sheet - outlines edit_20: -37347411
+      Idle Sprite Sheet - outlines edit_21: -1779817701
+      Idle Sprite Sheet - outlines edit_22: -612135878
+      Idle Sprite Sheet - outlines edit_23: -1829496153
+      Idle Sprite Sheet - outlines edit_24: -1107957832
+      Idle Sprite Sheet - outlines edit_25: -1040328308
+      Idle Sprite Sheet - outlines edit_26: -2014317632
+      Idle Sprite Sheet - outlines edit_27: 1011874011
+      Idle Sprite Sheet - outlines edit_28: -1627246205
+      Idle Sprite Sheet - outlines edit_29: 499767265
+      Idle Sprite Sheet - outlines edit_3: 1633964779
+      Idle Sprite Sheet - outlines edit_30: 573636106
+      Idle Sprite Sheet - outlines edit_31: -698052686
+      Idle Sprite Sheet - outlines edit_4: -35206353
+      Idle Sprite Sheet - outlines edit_5: -1386479909
+      Idle Sprite Sheet - outlines edit_6: -1449186657
+      Idle Sprite Sheet - outlines edit_7: -2109775576
+      Idle Sprite Sheet - outlines edit_8: -273090400
+      Idle Sprite Sheet - outlines edit_9: -541870283
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

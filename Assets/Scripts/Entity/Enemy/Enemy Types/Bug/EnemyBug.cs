@@ -1,7 +1,7 @@
-using System;
+using ShiftedSignal.Garden.Managers;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 {
@@ -11,20 +11,33 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 
         public BugIdleState IdleState { get; private set; }
         public BugChaseState ChaseState { get; private set; }
+        public BugCropState CropState { get; private set; }
+
         #endregion
 
         [Header("Hover")]
-        [SerializeField] private float amplitude = 4f;
-        [SerializeField] private float frequency = 1f;
-        [SerializeField] private float offset = 6f;
+        [SerializeField] private Vector2 AmplitudeRange = new Vector2(1f, 8f);
+        [SerializeField] private float Frequency = 1f;
+        [SerializeField] private float Offset = 6f;
+        [SerializeField] private float MinimumGroundDistance = 2f;
 
         [Header("Hover Speed Variation")]
-        [SerializeField] private Vector2 verticalSpeedRange = new Vector2(1f, 10f);
-        [SerializeField] private Vector2 speedChangeIntervalRange = new Vector2(.2f, 3f);
-        [SerializeField] private float speedSmoothTime = 2f;
+        [SerializeField] private Vector2 VerticalSpeedRange = new Vector2(0.8f, 2f);
+        [SerializeField] private Vector2 SpeedChangeIntervalRange = new Vector2(2f, 5f);
+        [SerializeField] private float SpeedSmoothTime = 1.5f;
+        [SerializeField] private float AmplitudeSmoothTime = 1.5f;
+
+        public int BoidIndex { get; set; } = -1;
+        public BugBoidMode BoidMode { get; private set; } = BugBoidMode.Idle;
+        public Vector3 BoidTarget { get; private set; }
+        public Vector3 BoidDirection { get; set; }
+        public Vector3 BoidDestination { get; set; }
 
         private float randomHeightOffset;
         private float hoverTime;
+
+        private float amplitude;
+        private float targetAmplitude;
 
         private float verticalSpeed;
         private float targetVerticalSpeed;
@@ -35,38 +48,56 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
         {
             base.Awake();
 
-            randomHeightOffset = UnityEngine.Random.Range(0f, 2f * math.PI);
-            amplitude = UnityEngine.Random.Range(1f, 4f * math.PI);
+            randomHeightOffset = Random.Range(0f, 2f * math.PI);
 
-            verticalSpeed = UnityEngine.Random.Range(
-                verticalSpeedRange.x,
-                verticalSpeedRange.y
-            );
+            amplitude = Random.Range(AmplitudeRange.x, AmplitudeRange.y);
+            targetAmplitude = amplitude;
 
+            verticalSpeed = Random.Range(VerticalSpeedRange.x, VerticalSpeedRange.y);
             targetVerticalSpeed = verticalSpeed;
 
             SetNewSpeedTimer();
 
+            Agent.updateUpAxis = false;
+
             IdleState = new BugIdleState(this, StateMachine, "Idle", this);
             ChaseState = new BugChaseState(this, StateMachine, "Move", this);
+            CropState = new BugCropState(this, StateMachine, "Move", this);
         }
 
         protected override void Start()
         {
             base.Start();
+
+            Agent.updateUpAxis = false;
+            Agent.updateRotation = false;
+
             StateMachine.Initialize(IdleState);
         }
 
-        protected override void Update()
+        protected override void OnEnable()
         {
-            base.Update();
+            base.OnEnable();
+
+            if (BugBoidJobManager.Instance != null)
+                BoidIndex = BugBoidJobManager.Instance.RegisterBug(this);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+
+            if (BugBoidJobManager.Instance != null)
+                BugBoidJobManager.Instance.UnregisterBug(this);
+
+            BoidIndex = -1;
         }
 
         public override bool CanBeStunned()
         {
             if (base.CanBeStunned())
             {
-                // StateMachine.ChangeState(stunnedState); TODO add stunned state
+                // StateMachine.ChangeState(stunnedState); TODO: Add stunned state.
                 return true;
             }
 
@@ -78,14 +109,35 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
             base.Die();
         }
 
+        public void SetBoidData(BugBoidMode mode, Vector3 target)
+        {
+            BoidMode = mode;
+            BoidTarget = target;
+        }
+
+        public void ApplyBoidAgentSettings()
+        {
+            BugBoidManager boids = BugBoidManager.Instance;
+
+            if (boids == null)
+                return;
+
+            Agent.obstacleAvoidanceType = boids.AvoidanceType;
+            Agent.avoidancePriority = Random.Range(
+                boids.MinAvoidancePriority,
+                boids.MaxAvoidancePriority + 1
+            );
+        }
+
         public void Hover()
         {
             UpdateHoverSpeed();
 
-            hoverTime += Time.deltaTime * verticalSpeed * frequency;
+            hoverTime += Time.deltaTime * verticalSpeed * Frequency;
 
-            float y = Mathf.Sin(hoverTime + randomHeightOffset) * amplitude + offset;
-            GroundDist = Math.Max(2f, y);
+            float targetY = Mathf.Sin(hoverTime + randomHeightOffset) * amplitude + Offset;
+
+            GroundDist = Mathf.Max(MinimumGroundDistance, targetY);
         }
 
         private void UpdateHoverSpeed()
@@ -94,12 +146,15 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 
             if (speedTimer <= 0f)
             {
-                targetVerticalSpeed = UnityEngine.Random.Range(
-                    verticalSpeedRange.x,
-                    verticalSpeedRange.y
+                targetVerticalSpeed = Random.Range(
+                    VerticalSpeedRange.x,
+                    VerticalSpeedRange.y
                 );
 
-                amplitude = UnityEngine.Random.Range(1f, 4f * math.PI);
+                targetAmplitude = Random.Range(
+                    AmplitudeRange.x,
+                    AmplitudeRange.y
+                );
 
                 SetNewSpeedTimer();
             }
@@ -107,16 +162,37 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
             verticalSpeed = Mathf.Lerp(
                 verticalSpeed,
                 targetVerticalSpeed,
-                Time.deltaTime * speedSmoothTime
+                Time.deltaTime * SpeedSmoothTime
+            );
+
+            amplitude = Mathf.Lerp(
+                amplitude,
+                targetAmplitude,
+                Time.deltaTime * AmplitudeSmoothTime
             );
         }
 
         private void SetNewSpeedTimer()
         {
-            speedTimer = UnityEngine.Random.Range(
-                speedChangeIntervalRange.x,
-                speedChangeIntervalRange.y
+            speedTimer = Random.Range(
+                SpeedChangeIntervalRange.x,
+                SpeedChangeIntervalRange.y
             );
+        }
+
+        protected override void OnValidate()
+        {
+            AmplitudeRange.x = Mathf.Max(0f, AmplitudeRange.x);
+            AmplitudeRange.y = Mathf.Max(AmplitudeRange.x, AmplitudeRange.y);
+
+            VerticalSpeedRange.x = Mathf.Max(0f, VerticalSpeedRange.x);
+            VerticalSpeedRange.y = Mathf.Max(VerticalSpeedRange.x, VerticalSpeedRange.y);
+
+            SpeedChangeIntervalRange.x = Mathf.Max(0.01f, SpeedChangeIntervalRange.x);
+            SpeedChangeIntervalRange.y = Mathf.Max(SpeedChangeIntervalRange.x, SpeedChangeIntervalRange.y);
+
+            Frequency = Mathf.Max(0f, Frequency);
+            MinimumGroundDistance = Mathf.Max(0f, MinimumGroundDistance);
         }
     }
 }

@@ -1,9 +1,8 @@
-
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
-using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
@@ -11,14 +10,32 @@ namespace ShiftedSignalGames.GOF.UISpace
 {
     public class WeaponSelectorUI : MonoBehaviour
     {
+        [Header("Buttons")]
         [SerializeField] private Button[] weaponButtons = new Button[5];
-        public InputActionReference rightThumbstick;
 
-        public ItemData_Equipment[] wheelAssignedWeapons = new ItemData_Equipment[5];
+        [Header("Input")]
+        [SerializeField] private InputActionReference rightThumbstick;
+        [SerializeField] private float controllerDeadZone = 0.5f;
+        [SerializeField] private float mouseMinDistanceFromCenter = 40f;
+
+        [Header("Weapons")]
+        [SerializeField] private ItemData_Equipment[] wheelAssignedWeapons = new ItemData_Equipment[5];
+
+        [Header("Layout")]
+        [SerializeField] private float radius = 150f;
         
+        [Tooltip("Moves the entire selector wheel up or down.")]
+        [SerializeField] private float verticalOffset = 0f;
+
+        private int lastButtonIndex = -1;
+        private RectTransform rectTransform;
+        private Vector2 wheelCenterScreenPosition;
+
         private void Awake()
         {
-            for (int i = 0; i < weaponButtons.Length; i++)
+            rectTransform = GetComponent<RectTransform>();
+
+            for (int i = 0; i < wheelAssignedWeapons.Length; i++)
             {
                 if (wheelAssignedWeapons[i] != null && wheelAssignedWeapons[i].EquipmentType != EquipmentType.Weapon)
                 {
@@ -27,65 +44,130 @@ namespace ShiftedSignalGames.GOF.UISpace
             }
         }
 
-        // Start is called once before the first execution of Update after the MonoBehaviour is created
-        void Start()
+        private void Start()
         {
-            // Position buttons in a circle around the center of the screen
-            float radius = 150f;
-            float centerX = Screen.width / 2f;
-            float centerY = Screen.height / 2f;
+            PositionButtons();
+            UpdateButtonIcons();
+        }
 
-            for (int i = 0; i < weaponButtons.Length; i++)
+        private void OnEnable()
+        {
+            rightThumbstick?.action.Enable();
+            Time.timeScale = 0f;
+        }
+
+        private void OnDisable()
+        {
+            rightThumbstick?.action.Disable();
+            ClearSelection();
+            Time.timeScale = 1f;
+        }
+
+        private void Update()
+        {
+            Vector2 controllerInput = rightThumbstick.action.ReadValue<Vector2>();
+
+            if (controllerInput.magnitude > controllerDeadZone)
             {
-                float angle = (i * 72f) * Mathf.Deg2Rad;
-                float x = centerX + radius * Mathf.Sin(angle);
-                float y = centerY + radius * Mathf.Cos(angle);
-                
-                weaponButtons[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(x - centerX, y - centerY);
+                SelectFromDirection(controllerInput);
+                return;
             }
 
+            SelectFromMouse();
+        }
+
+        private void PositionButtons()
+        {
             for (int i = 0; i < weaponButtons.Length; i++)
             {
+                if (weaponButtons[i] == null)
+                    continue;
+
+                float angle = i * 72f * Mathf.Deg2Rad;
+
+                float x = radius * Mathf.Sin(angle);
+                float y = radius * Mathf.Cos(angle) + verticalOffset;
+
+                weaponButtons[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(x, y);
+            }
+        }
+
+        private void UpdateButtonIcons()
+        {
+            for (int i = 0; i < weaponButtons.Length; i++)
+            {
+                if (weaponButtons[i] == null)
+                    continue;
+
                 if (wheelAssignedWeapons[i] != null)
+                {
                     weaponButtons[i].image.sprite = wheelAssignedWeapons[i].Icon;
-            }
-        }
-
-        void OnDisable()
-        {
-            
-        }
-
-        // Update is called once per frame
-        private int lastButtonIndex = -1;
-
-        void Update()
-        {
-            Vector2 input = rightThumbstick.action.ReadValue<Vector2>();
-            if (input.magnitude > 0.5f)
-            {
-                float angle = Mathf.Atan2(input.x, input.y) * Mathf.Rad2Deg;
-                if (angle < 0) angle += 360f;
-                
-                int buttonIndex = Mathf.RoundToInt(angle / 72f) % 5;
-                
-                if (buttonIndex != lastButtonIndex)
-                {               
-                    if (lastButtonIndex != -1)
-                    {
-                        weaponButtons[lastButtonIndex].OnDeselect(null);
-                    }
-                    
-                    weaponButtons[buttonIndex].OnSelect(null);
-
-                    if (wheelAssignedWeapons[buttonIndex] != null)
-                    {
-                        Debug.Log("Weapon Equip event being raised");
-                        Bus<WeaponQuickSelectEvent>.Raise(new WeaponQuickSelectEvent(wheelAssignedWeapons[buttonIndex]));
-                    }
-                    lastButtonIndex = buttonIndex;
                 }
             }
+        }
+
+        private void SelectFromMouse()
+        {
+            wheelCenterScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                null,
+                rectTransform.position + new Vector3(0f, verticalOffset, 0f)
+            );
+
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+            Vector2 direction = mousePosition - wheelCenterScreenPosition;
+
+            if (direction.magnitude < mouseMinDistanceFromCenter)
+                return;
+
+            SelectFromDirection(direction.normalized);
+        }
+
+        private void SelectFromDirection(Vector2 direction)
+        {
+            float angle = Mathf.Atan2(direction.x, direction.y) * Mathf.Rad2Deg;
+
+            if (angle < 0f)
+                angle += 360f;
+
+            int buttonIndex = Mathf.RoundToInt(angle / 72f) % weaponButtons.Length;
+
+            SelectButton(buttonIndex);
+        }
+
+        private void SelectButton(int buttonIndex)
+        {
+            if (buttonIndex == lastButtonIndex)
+                return;
+
+            if (lastButtonIndex != -1 && weaponButtons[lastButtonIndex] != null)
+            {
+                weaponButtons[lastButtonIndex].OnDeselect(null);
+            }
+
+            if (weaponButtons[buttonIndex] != null)
+            {
+                weaponButtons[buttonIndex].OnSelect(null);
+            }
+
+            if (wheelAssignedWeapons[buttonIndex] != null)
+            {
+                Debug.Log("Weapon Equip event being raised");
+                Bus<WeaponQuickSelectEvent>.Raise(
+                    new WeaponQuickSelectEvent(wheelAssignedWeapons[buttonIndex])
+                );
+            }
+
+            lastButtonIndex = buttonIndex;
+        }
+
+        private void ClearSelection()
+        {
+            if (lastButtonIndex != -1 && weaponButtons[lastButtonIndex] != null)
+            {
+                weaponButtons[lastButtonIndex].OnDeselect(null);
+            }
+
+            lastButtonIndex = -1;
         }
     }
 }
