@@ -1,10 +1,20 @@
-using ShiftedSignal.Garden.Misc;
+using UnityEngine;
 
-namespace ShiftedSignal.Garden.SceneManagement
+namespace ShiftedSignal.Garden.Misc
 {
-    public class PersistObjects : Singleton<PersistObjects>
+    /// <summary>
+    /// Makes a GameObject persist across scene loads.
+    /// </summary>
+    public class PersistObject : MonoBehaviour
     {
-        
+        [SerializeField] private bool dontDestroyOnLoadEnabled = true;
+
+        protected virtual void Awake()
+        {
+            if (Application.isPlaying && dontDestroyOnLoadEnabled)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
+        }
     }
-    
 }

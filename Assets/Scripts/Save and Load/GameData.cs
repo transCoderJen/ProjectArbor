@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using ShiftedSignal.Garden.QuestSystem;
 
 namespace ShiftedSignal.Garden.SaveAndLoad
 {
@@ -10,6 +10,9 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public int currency;
         public SerializableDictionary<string, bool> skillTree;
         public SerializableDictionary<string, int> inventory;
+
+        public SerializableDictionary<string, QuestData> quests;
+
         public List<string> spells;
         public List<string> equippedSpells;
         public List<string> equipmentId;
@@ -28,12 +31,16 @@ namespace ShiftedSignal.Garden.SaveAndLoad
 
         public GameData()
         {
-            this.lostCurrencyAmount = 0;
-            this.lostCurrencyX = 0;
-            this.lostCurrencyY = 0;
-            this.currency = 0;
+            lostCurrencyAmount = 0;
+            lostCurrencyX = 0;
+            lostCurrencyY = 0;
+            currency = 0;
+
             skillTree = new SerializableDictionary<string, bool>();
             inventory = new SerializableDictionary<string, int>();
+
+            quests = new SerializableDictionary<string, QuestData>();
+
             spells = new List<string>();
             equippedSpells = new List<string>();
             equipmentId = new List<string>();
@@ -41,7 +48,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
             lastCheckpointId = string.Empty;
             checkpoints = new SerializableDictionary<string, bool>();
             volumeSettings = new SerializableDictionary<string, float>();
-            this.showPopupText = true;
+
+            showPopupText = true;
         }
     }
 }

@@ -27,8 +27,8 @@ TagManager:
   - Enemy
   - TransparentAirFloor
   - GridActivation
-  - 
-  - 
+  - Interactable
+  - TreeBlocker
   - 
   - 
   - 

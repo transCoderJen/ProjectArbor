@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1409609967590304fb61ad30acdac28a, type: 3}
+  m_Name: Green
+  m_EditorClassIdentifier: 
+  SelectionBoxBorder: {r: 0.60771555, g: 1.1203104, b: 0.61473745, a: 1}
+  TerrainLayerColorEntries:
+  - LayerName: 0
+    Color: {r: 0.09447313, g: 0.103773594, b: 0.097973265, a: 0}
+  - LayerName: 1
+    Color: {r: 0.010590949, g: 0.01886791, b: 0.010831971, a: 0}
+  TerrainTintCompensation: {r: 0.09064614, g: 0.1981132, b: 0.1072468, a: 0}
+  TreeColorEntries:
+  - TreeMaterial: {fileID: 0}
+    LeavesColor: {r: 0.25987896, g: 0.754717, b: 0.33498824, a: 0}
+    LeavesBorderColor: {r: 0.01437344, g: 0.16037738, b: 0.03858975, a: 1}
+    TrunkColor: {r: 0.3490566, g: 0.11360805, b: 0.11360805, a: 0}
+    TrunkBorderColor: {r: 0.254717, g: 0.10933607, b: 0.10933607, a: 0}

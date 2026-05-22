@@ -3,6 +3,8 @@ using TMPro;
 using Unity.VisualScripting;
 using System;
 using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 
 namespace ShiftedSignal.Garden.UserInterface
 {
@@ -16,38 +18,33 @@ namespace ShiftedSignal.Garden.UserInterface
             UpdateTimeUI();
         }
 
+        private void OnEnable()
+        {
+            AddEventHandlers();
+        }
+
         private void OnDisable()
         {
             RemoveEventHandlers();
         }
 
-        private void RemoveEventHandlers()
-        {
-            TimeManger.Instance.OnTimeChanged -= UpdateTimeUI;
-            TimeManger.Instance.OnDayStarted -= UpdateDayUI;
-            TimeManger.Instance.OnDayPeriodChanged -= UpdateDayPeriodUI;
-        }
-
         private void AddEventHandlers()
         {
-            TimeManger.Instance.OnTimeChanged += UpdateTimeUI;
-            TimeManger.Instance.OnDayStarted += UpdateDayUI;
-            TimeManger.Instance.OnDayPeriodChanged += UpdateDayPeriodUI;
+            Bus<TimeChangedEvent>.OnEvent += UpdateTimeUI;
+            Bus<DayStartedEvent>.OnEvent += UpdateDayUI;
+            Bus<DayPeriodChangedEvent>.OnEvent += UpdateDayPeriodUI;
         }
 
-        private void UpdateDayUI()
+        private void RemoveEventHandlers()
         {
-            // TODO Implement UpdateDayUI
+            Bus<TimeChangedEvent>.OnEvent -= UpdateTimeUI;
+            Bus<DayStartedEvent>.OnEvent -= UpdateDayUI;
+            Bus<DayPeriodChangedEvent>.OnEvent -= UpdateDayPeriodUI;
         }
 
-        private void UpdateTimeUI()
+        private void UpdateDayPeriodUI(DayPeriodChangedEvent evt)
         {
-            TimeText.text = TimeManger.Instance.FormattedTime;
-        }
-
-        private void UpdateDayPeriodUI(DayPeriod period)
-        {
-            switch(period)
+            switch(evt.DayPeriod)
             {
                 case DayPeriod.Dawn:
                     Debug.Log("It is currently Dawn");
@@ -65,7 +62,22 @@ namespace ShiftedSignal.Garden.UserInterface
                     Debug.Log("It is currently Night");
                     break;
                 
-            }       
+            }
+        }
+
+        private void UpdateDayUI(DayStartedEvent args)
+        {
+            // TODO Implement UpdateDayUI
+        }
+
+        private void UpdateTimeUI(TimeChangedEvent evt)
+        {
+            TimeText.text = TimeManger.Instance.FormattedTime;
+        }
+
+        private void UpdateTimeUI()
+        {
+            TimeText.text = TimeManger.Instance.FormattedTime;
         }
     }
 }

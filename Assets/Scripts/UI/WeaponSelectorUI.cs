@@ -151,7 +151,6 @@ namespace ShiftedSignalGames.GOF.UISpace
 
             if (wheelAssignedWeapons[buttonIndex] != null)
             {
-                Debug.Log("Weapon Equip event being raised");
                 Bus<WeaponQuickSelectEvent>.Raise(
                     new WeaponQuickSelectEvent(wheelAssignedWeapons[buttonIndex])
                 );

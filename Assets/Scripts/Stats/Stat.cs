@@ -1,42 +1,52 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Stats
 {
     [System.Serializable]
-    public class Stat 
+    public class Stat
     {
         [SerializeField] private int baseValue;
 
-        public List<int> modifiers;
+        private readonly List<int> modifiers = new();
+
+        public int BaseValue => baseValue;
 
         public int GetValue()
         {
-            int finalValue = baseValue;
+            return baseValue + GetModifiersValue();
+        }
 
-            foreach (var modifier in modifiers)
+        public int GetModifiersValue()
+        {
+            int total = 0;
+
+            foreach (int modifier in modifiers)
             {
-                finalValue += modifier;
+                total += modifier;
             }
 
-            return finalValue;
+            return total;
         }
 
-        public void SetDefaultValue(int _value)
+        public void SetDefaultValue(int value)
         {
-            baseValue = _value;
+            baseValue = value;
         }
 
-        public void AddModifier(int _modifier)
+        public void AddModifier(int modifier)
         {
-            modifiers.Add(_modifier);
-            
+            modifiers.Add(modifier);
         }
 
-        public void RemoveModifier(int _modifier)
+        public void RemoveModifier(int modifier)
         {
-            modifiers.Remove(_modifier);
+            modifiers.Remove(modifier);
+        }
+
+        public void ClearModifiers()
+        {
+            modifiers.Clear();
         }
     }
 }

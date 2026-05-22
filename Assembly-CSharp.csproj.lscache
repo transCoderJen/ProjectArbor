@@ -123,6 +123,9 @@ Assets/
   TestingRotate.cs
   TestingSceneSwitching.cs
   TestingSequencer.cs
+ Resources/Quests/
+  CollectCoinsQuest/CollectCoinsQuestStep.cs
+  UnlockFarmingArea/UnlockFarmingAreaStep.cs
  Scripts/
   Camera/VCamera.cs
   Effects/
@@ -164,14 +167,26 @@ Assets/
    IEvent.cs
   Events/
    AssignSeedToQuickSelectEvent.cs
+   CurrencyUpdatedEvent.cs
+   PlayerLevelUpEvent.cs
+   Quest/
+    AdvanceQuestEvent.cs
+    FinishQuestEvent.cs
+    QuestStateChangedEvent.cs
+    QuestStepStateChangedEvent.cs
+    StartQuestEvent.cs
    SeedEquipEvent.cs
    ToolEquipEvent.cs
+   UnlockFarmingAreaEvent.cs
+   UpdateInGameTimerEvent.cs
    WeaponEquipEvent.cs
    WeaponQuickSelectEvent.cs
   GridSystem/
    GridInfo.cs
    GrowBlock.cs
+  Interfaces/IInteractable.cs
   Items and Inventory/
+   Coin.cs
    Inventory.cs
    InventoryItem.cs
    ItemData.cs
@@ -192,6 +207,16 @@ Assets/
    Helpers.cs
    Singleton.cs
    UnscaledInvoke.cs
+  Quest System/
+   Quest.cs
+   QuestData.cs
+   QuestIcon.cs
+   QuestInfoSO.cs
+   QuestManager.cs
+   QuestPoint.cs
+   QuestState.cs
+   QuestStep.cs
+   QuestStepState.cs
   Save and Load/
    FileDataHandler.cs
    GameData.cs
@@ -258,6 +283,31 @@ Assets/
    SortifyUserDataManager.cs
   Modules/SortifyHighlight/SortifyHighlight.cs
   Sample/SortifyCustomAttributeSample.cs
+ Sprite Shaders Ultimate/Demo/Scripts/
+  Demo_Camera.cs
+  Demo_ColorPicker.cs
+  Demo_Display.cs
+  Demo_DisplayTitle.cs
+  Demo_FloatPicker.cs
+  Demo_GUI.cs
+  Demo_Player.cs
+  Demo_Shaders.cs
+  Demo_SpriteFader.cs
+  Demo_Trigger.cs
+  Demo_VectorFollow.cs
+  Demo_VectorPicker.cs
+ Sprite Shaders Ultimate/Scripts/
+  ImageSSU.cs
+  Interactive/
+   InteractiveSquishSSU.cs
+   InteractiveWindSSU.cs
+   WindManagerSSU.cs
+   WindParallaxSSU.cs
+  Internal/InstancerSSU.cs
+  MaterialInstancerSSU.cs
+  ShaderFaderSSU.cs
+  SpriteSheetSSU.cs
+  UnscaledTimeSSU.cs
  TutorialInfo/Scripts/Readme.cs
 Temp/obj/Debug/Assembly-CSharp/.NETStandard,Version=v2.1.AssemblyAttributes.cs
 

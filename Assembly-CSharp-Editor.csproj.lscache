@@ -67,6 +67,19 @@ Assets/
    TagAttributeDrawer.cs
    UnitAttributeDrawer.cs
    ValidateAttributeDrawer.cs
+ Sprite Shaders Ultimate/Scripts/Editor/
+  CodingHelper.cs
+  ImageSSUEditor.cs
+  MaterialInstancerSSUEditor.cs
+  ShaderFaderSSUEditor.cs
+  ShaderHintSSU.cs
+  SpriteSheetSSUEditor.cs
+  SSUShaderGUI.cs
+  UnscaledTimeSSUEditor.cs
+ Sprite Shaders Ultimate/Scripts/Interactive/Editor/
+  InteractiveWindSSUEditor.cs
+  WindManagerSSUEditor.cs
+  WindParallaxSSUEditor.cs
  TutorialInfo/Scripts/Editor/ReadmeEditor.cs
 Temp/obj/Debug/Assembly-CSharp-Editor/.NETStandard,Version=v2.1.AssemblyAttributes.cs
 

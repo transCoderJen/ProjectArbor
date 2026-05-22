@@ -4,17 +4,16 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Tools
 {
-
     [RequireComponent(typeof(Collider))]
     public class Occludable : MonoBehaviour
     {
         private static readonly int FadeAlphaId = Shader.PropertyToID("_Alpha");
-        private static readonly int ShadowClipThresholdId = Shader.PropertyToID("_ShadowClipThreshold");
+        private static readonly int FullAlphaDissolveFadeId = Shader.PropertyToID("_FullAlphaDissolveFade");
+        // private static readonly int ShadowClipThresholdId = Shader.PropertyToID("_ShadowClipThreshold");
 
         [Header("Fade Settings")]
         [Range(0f, 1f)]
         [SerializeField] private float TransparentAlpha = 0.35f;
-        [SerializeField] private float InvisibleAlpha = 0.00f;
 
         [SerializeField] private float FadeDuration = 0.2f;
 
@@ -30,8 +29,9 @@ namespace ShiftedSignal.Garden.Tools
 
         private Material[] materials;
         private Coroutine fadeCoroutine;
+
         private float currentTargetAlpha = 1f;
-        private float currentTargetShadowClipThreshold = 0.5f;
+        // private float currentTargetShadowClipThreshold = 0.5f;
 
         private void Awake()
         {
@@ -40,7 +40,7 @@ namespace ShiftedSignal.Garden.Tools
 
             CacheMaterials();
 
-            currentTargetShadowClipThreshold = VisibleShadowClipThreshold;
+            // currentTargetShadowClipThreshold = VisibleShadowClipThreshold;
 
             ApplyImmediateValues(1f, VisibleShadowClipThreshold);
         }
@@ -53,43 +53,40 @@ namespace ShiftedSignal.Garden.Tools
 
             if (cam != null)
             {
-                // Use renderer bounds center if available (better for tall objects like trees)
                 Vector3 worldPoint = transform.position;
 
                 if (TargetRenderers != null && TargetRenderers.Length > 0 && TargetRenderers[0] != null)
-                {
                     worldPoint = TargetRenderers[0].bounds.center;
-                }
 
-                // Convert to camera local space
                 Vector3 localPos = cam.transform.InverseTransformPoint(worldPoint);
                 float depthToScreen = localPos.z;
 
-                // Only consider objects in front of the camera
                 if (depthToScreen > 0f)
-                {
                     forceInvisible = depthToScreen < OcclusionManager.Instance.zDepthCutOff;
-                }
-
-                // Debug.Log($"{name} | DepthToScreen: {depthToScreen:F2} | ForceInvisible: {forceInvisible}");
             }
 
             float targetAlpha = forceInvisible
                 ? 0f
-                : (isOccluded ? TransparentAlpha : 1f);
+                : isOccluded
+                    ? TransparentAlpha
+                    : 1f;
 
             float targetShadowClipThreshold = forceInvisible
                 ? 1f
-                : (isOccluded ? OccludedShadowClipThreshold : VisibleShadowClipThreshold);
+                : isOccluded
+                    ? OccludedShadowClipThreshold
+                    : VisibleShadowClipThreshold;
 
             bool alphaUnchanged = Mathf.Approximately(currentTargetAlpha, targetAlpha);
-            bool shadowUnchanged = Mathf.Approximately(currentTargetShadowClipThreshold, targetShadowClipThreshold);
+            // bool shadowUnchanged = Mathf.Approximately(currentTargetShadowClipThreshold, targetSh
 
-            if (alphaUnchanged && shadowUnchanged)
+// 
+            if (alphaUnchanged)
+            // if (alphaUnchanged && shadowUnchanged)
                 return;
 
             currentTargetAlpha = targetAlpha;
-            currentTargetShadowClipThreshold = targetShadowClipThreshold;
+            // currentTargetShadowClipThreshold = targetShadowClipThreshold;
 
             if (fadeCoroutine != null)
                 StopCoroutine(fadeCoroutine);
@@ -103,6 +100,7 @@ namespace ShiftedSignal.Garden.Tools
                 yield break;
 
             float elapsed = 0f;
+
             float[] startAlphas = new float[materials.Length];
             float[] startShadowThresholds = new float[materials.Length];
 
@@ -114,7 +112,7 @@ namespace ShiftedSignal.Garden.Tools
                     continue;
 
                 startAlphas[i] = GetFadeAlpha(material);
-                startShadowThresholds[i] = GetShadowClipThreshold(material);
+                // startShadowThresholds[i] = GetShadowClipThreshold(material);
             }
 
             while (elapsed < FadeDuration)
@@ -133,7 +131,7 @@ namespace ShiftedSignal.Garden.Tools
                     float shadowThreshold = Mathf.Lerp(startShadowThresholds[i], targetShadowClipThreshold, t);
 
                     SetFadeAlpha(material, alpha);
-                    SetShadowClipThreshold(material, shadowThreshold);
+                    // SetShadowClipThreshold(material, shadowThreshold);
                 }
 
                 yield return null;
@@ -147,7 +145,7 @@ namespace ShiftedSignal.Garden.Tools
                     continue;
 
                 SetFadeAlpha(material, targetAlpha);
-                SetShadowClipThreshold(material, targetShadowClipThreshold);
+                // SetShadowClipThreshold(material, targetShadowClipThreshold);
             }
 
             fadeCoroutine = null;
@@ -155,6 +153,9 @@ namespace ShiftedSignal.Garden.Tools
 
         private float GetFadeAlpha(Material material)
         {
+            if (material.HasProperty(FullAlphaDissolveFadeId))
+                return material.GetFloat(FullAlphaDissolveFadeId);
+
             if (material.HasProperty(FadeAlphaId))
                 return material.GetFloat(FadeAlphaId);
 
@@ -163,23 +164,26 @@ namespace ShiftedSignal.Garden.Tools
 
         private void SetFadeAlpha(Material material, float alpha)
         {
+            if (material.HasProperty(FullAlphaDissolveFadeId))
+                material.SetFloat(FullAlphaDissolveFadeId, alpha);
+
             if (material.HasProperty(FadeAlphaId))
                 material.SetFloat(FadeAlphaId, alpha);
         }
 
-        private float GetShadowClipThreshold(Material material)
-        {
-            if (material.HasProperty(ShadowClipThresholdId))
-                return material.GetFloat(ShadowClipThresholdId);
+        // private float GetShadowClipThreshold(Material material)
+        // {
+        //     if (material.HasProperty(ShadowClipThresholdId))
+        //         return material.GetFloat(ShadowClipThresholdId);
 
-            return 0f;
-        }
+        //     return 0f;
+        // }
 
-        private void SetShadowClipThreshold(Material material, float threshold)
-        {
-            if (material.HasProperty(ShadowClipThresholdId))
-                material.SetFloat(ShadowClipThresholdId, threshold);
-        }
+        // private void SetShadowClipThreshold(Material material, float threshold)
+        // {
+        //     if (material.HasProperty(ShadowClipThresholdId))
+        //         material.SetFloat(ShadowClipThresholdId, threshold);
+        // }
 
         private void ApplyImmediateValues(float alpha, float shadowClipThreshold)
         {
@@ -194,7 +198,7 @@ namespace ShiftedSignal.Garden.Tools
                     continue;
 
                 SetFadeAlpha(material, alpha);
-                SetShadowClipThreshold(material, shadowClipThreshold);
+                // SetShadowClipThreshold(material, shadowClipThreshold);
             }
         }
 

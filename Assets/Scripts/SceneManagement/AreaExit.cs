@@ -1,4 +1,6 @@
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using UnityEditor.MPE;
 using UnityEngine;
 
@@ -16,6 +18,8 @@ namespace ShiftedSignal.Garden.SceneManagement
         {
             if (other.TryGetComponent(out Player player))
             {
+                Bus<UpdateInGameTimerEvent>.Raise(new UpdateInGameTimerEvent(false));
+
                 player.StateMachine.ChangeState(player.IdleState);
 
                 // StartCoroutine(player.BusyFor(1f));

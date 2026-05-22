@@ -1,14 +1,13 @@
 using ShiftedSignal.Garden.Effects;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Managers;
-using UnityEngine.InputSystem;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.EventBus;
-using UnityEngine;
-using ShiftedSignal.Garden.Tools;
-using System;
+using ShiftedSignal.Garden.Interfaces;
 
+using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -19,9 +18,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         Seeds,
         Basket
     }
-    
+
     public class Player : Entity, IHealable
-    {   
+    {
+        public static Player Instance { get; private set; }
+
         [Header("Attack Details")]
         public Vector2[] AttackMovement;
         public float CounterAttackDuration;
@@ -38,7 +39,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [SerializeField] private InputActionReference attackInput;
         public InputActionReference AttackInput => attackInput;
 
-        public PlayerInput playerInput { get; private set; }
+        [SerializeField] private InputActionReference interactInput;
+        public InputActionReference InteractInput => interactInput;
+
+        public PlayerInput PlayerInput { get; private set; }
 
         #endregion
 
@@ -46,7 +50,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         [Header("Components")]
         public TerrainGrassCutter GrassCutter;
-        [SerializeField] private LayerBasedParticleSpawner ParticleSpawner;
+        [SerializeField] private LayerBasedParticleSpawner particleSpawner;
 
         [Header("Transforms")]
         public Transform ToolIndicator;
@@ -60,15 +64,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         #region === Equipment ===
 
         [Header("Equipment")]
-        // public WeaponData ActiveWeapon;
         public ItemData_Equipment EquippedWeapon;
         public ItemData_Seed EquippedSeed;
-        // public ItemData_Seed EquippedSeed;
 
-#region Input Buffers
-    [HideInInspector] public bool AttackBuffered = false;
-#endregion
-        
+        [Header("Interact")]
+        [SerializeField] private float interactRadius = 2f;
+        [SerializeField] private LayerMask interactLayer;
+
+        [HideInInspector] public bool AttackBuffered = false;
+
         public ToolType CurrentTool;
 
         #endregion
@@ -90,6 +94,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         protected override void Awake()
         {
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+
             base.Awake();
 
             StateMachine = new PlayerStateMachine();
@@ -98,8 +110,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             ManagementState = new PlayerManagementState(this, StateMachine, "Idle");
             AttackState = new PlayerAttackState(this, StateMachine, "Attack");
 
-            playerInput = GetComponent<PlayerInput>();
-            
+            PlayerInput = GetComponent<PlayerInput>();
         }
 
         protected override void Start()
@@ -110,36 +121,36 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         protected override void OnEnable()
         {
-            playerInput.onControlsChanged += OnControlsChanged;
+            base.OnEnable();
+
+            if (PlayerInput == null)
+                PlayerInput = GetComponent<PlayerInput>();
+
+            if (PlayerInput != null)
+                PlayerInput.onControlsChanged += OnControlsChanged;
+
             Bus<WeaponEquipEvent>.OnEvent += HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent += HandleToolEquipped;
             Bus<SeedEquipEvent>.OnEvent += HandleSeedEquipped;
         }
 
-
         protected override void OnDisable()
         {
-            playerInput.onControlsChanged -= OnControlsChanged;
+            base.OnDisable();
+
+            if (PlayerInput != null)
+                PlayerInput.onControlsChanged -= OnControlsChanged;
+
             Bus<WeaponEquipEvent>.OnEvent -= HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent -= HandleToolEquipped;
             Bus<SeedEquipEvent>.OnEvent -= HandleSeedEquipped;
         }
 
-        private void HandleSeedEquipped(SeedEquipEvent evt)
+        private void OnDestroy()
         {
-            EquippedSeed = evt.Seed;
+            if (Instance == this)
+                Instance = null;
         }
-
-        private void HandleToolEquipped(ToolEquipEvent evt)
-        {
-            CurrentTool = evt.Tool;
-        }
-
-        private void HandleWeaponEquipped(WeaponEquipEvent evt)
-        {
-            EquippedWeapon = evt.Weapon;
-        }
-
 
         protected override void Update()
         {
@@ -147,19 +158,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             StateMachine.CurrentState?.Update();
 
-            if (actionInput.action.WasPressedThisFrame())
+            if (actionInput != null && actionInput.action.WasPressedThisFrame())
             {
                 UseTool();
             }
 
-            if (Keyboard.current.kKey.isPressed)
+            if (Keyboard.current != null && Keyboard.current.kKey.isPressed)
             {
                 GridInfo.Instance.GrowCrop();
             }
 
             HandleDebugInputs();
         }
-
 
         protected override void FixedUpdate()
         {
@@ -177,19 +187,19 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         #region === Input Handling ===
 
+        private void OnInteract(InputValue value)
+        {
+            TryInteract();
+        }
+
         private void OnControlsChanged(PlayerInput input)
         {
-            Debug.Log("Control scheme changed to: " + input.currentControlScheme);
         }
 
         private void HandleDebugInputs()
         {
-            if (Keyboard.current.tabKey.wasPressedThisFrame)
-            {
-                CurrentTool++;
-                if ((int)CurrentTool >= 4)
-                    CurrentTool = ToolType.Plough;
-            }
+            if (Keyboard.current == null)
+                return;
 
             if (Keyboard.current.eKey.wasPressedThisFrame)
                 UseTool();
@@ -209,6 +219,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         #endregion
 
+        #region === Event Handlers ===
+
+        private void HandleSeedEquipped(SeedEquipEvent evt)
+        {
+            EquippedSeed = evt.Seed;
+        }
+
+        private void HandleToolEquipped(ToolEquipEvent evt)
+        {
+            CurrentTool = evt.Tool;
+        }
+
+        private void HandleWeaponEquipped(WeaponEquipEvent evt)
+        {
+            EquippedWeapon = evt.Weapon;
+        }
+
+        #endregion
+
         #region === Movement ===
 
         public override void ApplyMovement(Vector2 input, bool normalized = true)
@@ -219,7 +248,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void UpdateGrowBlockCheckPosition()
         {
-            GrowBlockCheck.transform.position =
+            if (GrowBlockCheck == null)
+                return;
+
+            GrowBlockCheck.position =
                 transform.position +
                 FacingDir * GrowBlockCheckDistance +
                 Vector3.up * CheckHeight;
@@ -238,38 +270,32 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             block.UseContextAction(EquippedSeed);
         }
-        
-        // private void UseTool()
-        // {
-        //     GrowBlock block = GetBlock();
-        //     if (block == null || block.PreventUse || !block.IsActive) return;
 
-        //     if (block.IsActivationBlock || Debugging.Instance.UnlockFarmAlways) 
-        //     {
-        //         block.TriggerActivationBlock();
-        //         return;
-        //     }
+        private void TryInteract()
+        {
+            Collider[] hits = Physics.OverlapSphere(
+                transform.position,
+                interactRadius,
+                interactLayer);
 
-        //     switch (CurrentTool)
-        //     {
-        //         case ToolType.Plough:
-        //             block.PloughSoil();
-        //             break;
-        //         case ToolType.Blood:
-        //             block.WaterSoil();
-        //             break;
-        //         case ToolType.Seeds:
-        //             block.PlantCrop(EquippedSeed);
-        //             break;
-        //         case ToolType.Basket:
-        //             block.HarvestCrop();
-        //             break;
-        //     }
-        // }
+            foreach (Collider hit in hits)
+            {
+                if (hit.TryGetComponent(out IInteractable interactable))
+                {
+                    if (interactable.IsPlayerNear())
+                    {
+                        interactable.Interact(this);
+                        break;
+                    }
+                }
+            }
+        }
 
         public GrowBlock GetBlock()
         {
-            bool usingController = playerInput.currentControlScheme == "Gamepad";
+            bool usingController =
+                PlayerInput != null &&
+                PlayerInput.currentControlScheme == "Gamepad";
 
             return usingController
                 ? GridManager.Instance.GetBlockController()
@@ -284,10 +310,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         #endregion
 
         #region === Effects ===
+
         public override void DamageEffect(bool Knockback, Transform Attacker = null)
         {
-            // fx.StartCoroutine(nameof(fx.FlashFX));
-            // fx.NewFlashFX();
             base.DamageEffect(Knockback, Attacker);
         }
 

@@ -57,6 +57,8 @@ namespace ShiftedSignal.Garden.Tools
         [SerializeField] private float SurfaceOffset = 0.01f;
         #endregion
 
+        [SerializeField] private LayerMask TreeBlockers;
+
         #region Public Methods
         /// <summary>
         /// Spawns prefabs across the collider surface based on the configured density.
@@ -333,6 +335,11 @@ namespace ShiftedSignal.Garden.Tools
         private void CreateInstance(GameObject prefab, Vector3 position, Quaternion rotation, Vector3 scale)
         {
 #if UNITY_EDITOR
+            if (Physics.CheckBox(position, new Vector3(2, 2, 2), Quaternion.identity, TreeBlockers, QueryTriggerInteraction.Collide))
+            {
+                return;
+            }
+            
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, SpawnParent);
             if (instance == null)
             {

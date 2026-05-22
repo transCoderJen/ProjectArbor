@@ -1,14 +1,13 @@
 using System;
-using NUnit.Framework;
 using ShiftedSignal.Garden.Effects;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Tools;
 using ShiftedSignalGames.GOF.ItemsAndInventory;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace ShiftedSignal.Garden.GridSystem
 {
@@ -82,7 +81,7 @@ namespace ShiftedSignal.Garden.GridSystem
         {
             if (PreventUse || !IsActive) return false;
             
-            bool usingController = PlayerManager.Instance.Player.playerInput.currentControlScheme == "Gamepad";
+            bool usingController = PlayerManager.Instance.Player.PlayerInput.currentControlScheme == "Gamepad";
 
             if (!usingController)
             {
@@ -168,9 +167,14 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void SetActiveBlock(bool active)
         {
-            IsActive = active;
+            if (active && ! this.IsActive)
+            {
+                Bus<UnlockFarmingAreaEvent>.Raise(new UnlockFarmingAreaEvent());
+            }
 
-            if (!IsActive)
+            this.IsActive = active;
+
+            if (!this.IsActive)
                 Glow(false);
 
             UpdateGridInfo();

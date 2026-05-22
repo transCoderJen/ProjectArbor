@@ -86,11 +86,17 @@ namespace ShiftedSignal.Garden.UserInterface
             if (Input.GetKey(KeyCode.LeftControl))
             {
                 Inventory.Instance.RemoveItem(item.data);
+                UI.Instance.ItemToolTip.HideToolTip();
                 return;
             }
 
             if (item.data.ItemType == ItemType.Equipment)
+            {
                 Inventory.Instance.EquipItem(item.data);
+                UI.Instance.ItemToolTip.HideToolTip();
+                return;
+                
+            }
 
             if (item.data.ItemType == ItemType.Seed)
             {

@@ -1,6 +1,8 @@
 using System.Collections;
 using ShiftedSignal.Garden.EntitySpace;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
@@ -13,6 +15,7 @@ namespace ShiftedSignal.Garden.SceneManagement
         [SerializeField] TransitionType TransitionType;
         [SerializeField] CameraManager.VirtualCameraType virtualCameraType;
         [SerializeField] RotationAdjustmentDirection FacingDir;
+        [SerializeField] private bool StartInGameTimer;
 
         private static readonly int MovementXHash = Animator.StringToHash("MovementX");
         private static readonly int MovementYHash = Animator.StringToHash("MovementY");
@@ -20,6 +23,8 @@ namespace ShiftedSignal.Garden.SceneManagement
         private void Start() {
             if (TransitionName == SceneManager.Instance.SceneTransitionName)
             {
+                Bus<UpdateInGameTimerEvent>.Raise(new UpdateInGameTimerEvent(StartInGameTimer));
+                
                 SetPlayerPosition();
                 LevelLoader.Instance.StartScene(TransitionType);
                 // PlayerManager.Instance.ResetPlayer();

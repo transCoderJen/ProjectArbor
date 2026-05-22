@@ -1,5 +1,3 @@
-
-
 using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using UnityEngine;
 
@@ -8,65 +6,65 @@ namespace ShiftedSignal.Garden.Stats
     public class EnemyStats : CharacterStats
     {
         private Enemy enemy;
-        // private ItemDrop myDropSystem;
+
         public Stat soulsDropAmount;
 
         [Header("Level Details")]
         [SerializeField] private int level = 1;
-        
+
         [Range(0f, 1f)]
         [SerializeField] private float percentageModifier = .2f;
 
         protected override void Start()
         {
-
             base.Start();
 
-            soulsDropAmount.SetDefaultValue(100);
-            ApplyLevelModifiers();
             enemy = GetComponent<Enemy>();
-            // myDropSystem = GetComponent<ItemDrop>();
 
+            soulsDropAmount.SetDefaultValue(100);
+
+            ApplyLevelModifiers();
         }
 
         private void ApplyLevelModifiers()
         {
-            Modify(Power);        
-            Modify(Vitality);        
-            Modify(Defense);        
-            Modify(Speed);        
-            Modify(CritChance);        
-            Modify(CritPower);        
-            Modify(Evasion);        
-            Modify(MagicResistance);        
+            Modify(Power);
+            Modify(Vitality);
+            Modify(Defense);
+            Modify(Speed);
+            Modify(CritChance);
+            Modify(CritPower);
+            Modify(Evasion);
+            Modify(MagicResistance);
 
             Modify(soulsDropAmount);
         }
 
-        private void Modify(Stat _stat)
+        private void Modify(Stat stat)
         {
-            for (int i = 1; i < level; i++)
-            {
-                float modifier = _stat.GetValue() * percentageModifier;
+            if (level <= 1)
+                return;
 
-                _stat.AddModifier(Mathf.RoundToInt(modifier));
-            }
+            int baseValue = stat.GetValue();
+            int modifier = Mathf.RoundToInt(baseValue * percentageModifier * (level - 1));
+
+            stat.AddModifier(modifier);
         }
 
-        public override void TakeDamage(int _damage, bool _knockback, Transform _attacker)
+        public override void TakeDamage(int damage, bool knockback, Transform attacker)
         {
-            base.TakeDamage(_damage, _knockback, _attacker);
+            base.TakeDamage(damage, knockback, attacker);
         }
 
         protected override void Die()
         {
             base.Die();
-            // AudioManager.instance.PlaySFX(SFXSounds.attack3, null); TODO add SFX to enemy death
+
             enemy.Die();
 
-            // myDropSystem.GenerateDrop();  TODO drop system
-
-            // PlayerManager.Instance.currency += soulsDropAmount.GetValue(); // TODO add currency to player when enemy killed
+            // TODO: Add SFX to enemy death
+            // TODO: Generate item drops
+            // TODO: Add soulsDropAmount.GetValue() to player currency
         }
     }
 }

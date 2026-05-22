@@ -91,10 +91,14 @@ namespace ShiftedSignal.Garden.UserInterface
             {
                 if (IsMenuOpen())
                 {
+                    Time.timeScale = 1;
                     SwitchTo(inGameUI);
+                    ItemToolTip.gameObject.SetActive(false);
+
                 }
                 else
                 {
+                    Time.timeScale = 0;
                     SwitchTo(characterUI);
                     selectedMenu = MenuName.Character;
                 }

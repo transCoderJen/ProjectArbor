@@ -1,4 +1,6 @@
 using System;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -53,16 +55,16 @@ namespace ShiftedSignal.Garden.Managers
         private int lastMinute = -1;
         private bool wasDay;
 
-        #region Actions
+        // #region Actions
 
-        public event Action<int> OnHourChanged;
-        public event Action OnTimeChanged;
-        public event Action OnDayStarted;
-        public event Action OnNightStarted;
-        public event Action<int> OnDayChanged;
-        public event Action<DayPeriod> OnDayPeriodChanged;
+        // // public event Action<int> OnHourChanged;
+        // // public event Action OnTimeChanged;
+        // // public event Action OnDayStarted;
+        // // public event Action OnNightStarted;
+        // // public event Action<int> OnDayChanged;
+        // // public event Action<DayPeriod> OnDayPeriodChanged;
 
-        #endregion
+        // #endregion
 
         #region Getters
 
@@ -88,6 +90,8 @@ namespace ShiftedSignal.Garden.Managers
 
         #endregion
 
+        private bool runTimer = true;
+
         protected override void Awake()
         {
             base.Awake();
@@ -96,11 +100,18 @@ namespace ShiftedSignal.Garden.Managers
         private void OnEnable()
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
+            Bus<UpdateInGameTimerEvent>.OnEvent += HandleUpdateTimerEvent;
         }
 
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            Bus<UpdateInGameTimerEvent>.OnEvent += HandleUpdateTimerEvent;
+        }
+
+        private void HandleUpdateTimerEvent(UpdateInGameTimerEvent evt)
+        {
+            runTimer = evt.RunTimer;
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -155,6 +166,8 @@ namespace ShiftedSignal.Garden.Managers
 
         private void Update()
         {
+            if (!runTimer) return;
+            
             AdvanceTime();
             CheckTimeEvents();
         }
@@ -171,7 +184,8 @@ namespace ShiftedSignal.Garden.Managers
 
                 if (currentFive != lastFive)
                 {
-                    OnTimeChanged?.Invoke();
+                    // OnTimeChanged?.Invoke();
+                    Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());    
                 }
 
                 lastMinute = currentMinuteInt;
@@ -180,7 +194,8 @@ namespace ShiftedSignal.Garden.Managers
             if (currentHourInt != lastHour)
             {
                 lastHour = currentHourInt;
-                OnHourChanged?.Invoke(currentHourInt);
+                // OnHourChanged?.Invoke(currentHourInt);
+                Bus<HourChangedEvent>.Raise(new HourChangedEvent(currentHourInt));
             }
 
             DayPeriod newDayPeriod = GetDayPeriod();
@@ -188,7 +203,8 @@ namespace ShiftedSignal.Garden.Managers
             if (CurrentDayPeriod != newDayPeriod)
             {
                 CurrentDayPeriod = newDayPeriod;
-                OnDayPeriodChanged?.Invoke(CurrentDayPeriod);
+                // OnDayPeriodChanged?.Invoke(CurrentDayPeriod);
+                Bus<DayPeriodChangedEvent>.Raise(new DayPeriodChangedEvent(CurrentDayPeriod));
             }
 
             bool isCurrentlyDay = IsDay;
@@ -197,11 +213,14 @@ namespace ShiftedSignal.Garden.Managers
             {
                 if (isCurrentlyDay)
                 {
-                    OnDayStarted?.Invoke();
+
+                    // OnDayStarted?.Invoke();
+                    Bus<DayStartedEvent>.Raise(new DayStartedEvent());
                 }
                 else
                 {
-                    OnNightStarted?.Invoke();
+                    // OnNightStarted?.Invoke();
+                    Bus<NightStartedEvent>.Raise(new NightStartedEvent());
                 }
 
                 wasDay = isCurrentlyDay;
@@ -219,7 +238,8 @@ namespace ShiftedSignal.Garden.Managers
             {
                 currentTime -= 24f;
                 currentDay++;
-                OnDayChanged?.Invoke(currentDay);
+                // OnDayChanged?.Invoke(currentDay);
+                Bus<DayChangedEvent>.Raise(new DayChangedEvent(currentDay));
             }
         }
 
@@ -345,7 +365,8 @@ namespace ShiftedSignal.Garden.Managers
             CurrentDayPeriod = GetDayPeriod();
 
             UpdateLighting();
-            OnTimeChanged?.Invoke();
+            // OnTimeChanged?.Invoke();
+            Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());   
         }
 
         [ContextMenu("Sleep")]
