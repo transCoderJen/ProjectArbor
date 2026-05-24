@@ -1,4 +1,3 @@
-using System;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
@@ -30,6 +29,13 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private float daySecondsPerHour = 90f;
         [SerializeField] private float nightSecondsPerHour = 22.5f;
 
+        [Header("Sky Color")]
+        [SerializeField] private Camera mainCamera;
+        [SerializeField] private Color dawnSkyColor = new Color(0.95f, 0.45f, 0.35f);
+        [SerializeField] private Color daySkyColor = new Color(0.45f, 0.75f, 1f);
+        [SerializeField] private Color eveningSkyColor = new Color(0.85f, 0.35f, 0.45f);
+        [SerializeField] private Color nightSkyColor = new Color(0.04f, 0.06f, 0.12f);
+
         [Header("Fill Light")]
         [SerializeField] private Light fillLight;
         [SerializeField] private Color fillLightColor = new Color(0.45f, 0.55f, 0.75f);
@@ -54,19 +60,7 @@ namespace ShiftedSignal.Garden.Managers
         private int lastHour = -1;
         private int lastMinute = -1;
         private bool wasDay;
-
-        // #region Actions
-
-        // // public event Action<int> OnHourChanged;
-        // // public event Action OnTimeChanged;
-        // // public event Action OnDayStarted;
-        // // public event Action OnNightStarted;
-        // // public event Action<int> OnDayChanged;
-        // // public event Action<DayPeriod> OnDayPeriodChanged;
-
-        // #endregion
-
-        #region Getters
+        private bool runTimer = true;
 
         public DayPeriod CurrentDayPeriod { get; private set; }
         public float CurrentTime => currentTime;
@@ -88,10 +82,6 @@ namespace ShiftedSignal.Garden.Managers
         public bool IsNight => !IsDay;
         public string FormattedTime => GetFormattedTime();
 
-        #endregion
-
-        private bool runTimer = true;
-
         protected override void Awake()
         {
             base.Awake();
@@ -106,7 +96,28 @@ namespace ShiftedSignal.Garden.Managers
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            Bus<UpdateInGameTimerEvent>.OnEvent += HandleUpdateTimerEvent;
+            Bus<UpdateInGameTimerEvent>.OnEvent -= HandleUpdateTimerEvent;
+        }
+
+        private void Start()
+        {
+            FindSceneReferences();
+
+            lastHour = CurrentHour;
+            lastMinute = CurrentMinute;
+            wasDay = IsDay;
+            CurrentDayPeriod = GetDayPeriod();
+
+            UpdateLighting();
+        }
+
+        private void Update()
+        {
+            if (!runTimer)
+                return;
+
+            AdvanceTime();
+            CheckTimeEvents();
         }
 
         private void HandleUpdateTimerEvent(UpdateInGameTimerEvent evt)
@@ -116,13 +127,17 @@ namespace ShiftedSignal.Garden.Managers
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            FindLights();
-
+            FindSceneReferences();
             UpdateLighting();
         }
 
-        private void FindLights()
+        private void FindSceneReferences()
         {
+            if (mainCamera == null)
+            {
+                mainCamera = Camera.main;
+            }
+
             if (sun == null)
             {
                 GameObject sunObject = GameObject.FindWithTag("Sun");
@@ -154,24 +169,6 @@ namespace ShiftedSignal.Garden.Managers
             }
         }
 
-        private void Start()
-        {
-            lastHour = CurrentHour;
-            lastMinute = CurrentMinute;
-            wasDay = IsDay;
-            CurrentDayPeriod = GetDayPeriod();
-
-            UpdateLighting();
-        }
-
-        private void Update()
-        {
-            if (!runTimer) return;
-            
-            AdvanceTime();
-            CheckTimeEvents();
-        }
-
         public void CheckTimeEvents()
         {
             int currentHourInt = CurrentHour;
@@ -184,8 +181,7 @@ namespace ShiftedSignal.Garden.Managers
 
                 if (currentFive != lastFive)
                 {
-                    // OnTimeChanged?.Invoke();
-                    Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());    
+                    Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());
                 }
 
                 lastMinute = currentMinuteInt;
@@ -194,7 +190,6 @@ namespace ShiftedSignal.Garden.Managers
             if (currentHourInt != lastHour)
             {
                 lastHour = currentHourInt;
-                // OnHourChanged?.Invoke(currentHourInt);
                 Bus<HourChangedEvent>.Raise(new HourChangedEvent(currentHourInt));
             }
 
@@ -203,7 +198,6 @@ namespace ShiftedSignal.Garden.Managers
             if (CurrentDayPeriod != newDayPeriod)
             {
                 CurrentDayPeriod = newDayPeriod;
-                // OnDayPeriodChanged?.Invoke(CurrentDayPeriod);
                 Bus<DayPeriodChangedEvent>.Raise(new DayPeriodChangedEvent(CurrentDayPeriod));
             }
 
@@ -213,13 +207,10 @@ namespace ShiftedSignal.Garden.Managers
             {
                 if (isCurrentlyDay)
                 {
-
-                    // OnDayStarted?.Invoke();
                     Bus<DayStartedEvent>.Raise(new DayStartedEvent());
                 }
                 else
                 {
-                    // OnNightStarted?.Invoke();
                     Bus<NightStartedEvent>.Raise(new NightStartedEvent());
                 }
 
@@ -238,7 +229,7 @@ namespace ShiftedSignal.Garden.Managers
             {
                 currentTime -= 24f;
                 currentDay++;
-                // OnDayChanged?.Invoke(currentDay);
+
                 Bus<DayChangedEvent>.Raise(new DayChangedEvent(currentDay));
             }
         }
@@ -249,9 +240,10 @@ namespace ShiftedSignal.Garden.Managers
             float currentMoonIntensity;
 
             Color targetColor = dayColor;
+            Color targetSkyColor = daySkyColor;
             float targetTemp = dayTemperature;
 
-            if (IsWithinTimeRange(5f, 8f)) // Dawn
+            if (IsWithinTimeRange(5f, 8f))
             {
                 float t = (currentTime - 5f) / 3f;
 
@@ -259,17 +251,19 @@ namespace ShiftedSignal.Garden.Managers
                 currentMoonIntensity = Mathf.Lerp(moonIntensity, 0f, t);
 
                 targetColor = Color.Lerp(dawnColor, dayColor, t);
+                targetSkyColor = Color.Lerp(nightSkyColor, daySkyColor, t);
                 targetTemp = Mathf.Lerp(dawnTemperature, dayTemperature, t);
             }
-            else if (IsWithinTimeRange(8f, 20f)) // Day
+            else if (IsWithinTimeRange(8f, 20f))
             {
                 sunIntensity = 1f;
                 currentMoonIntensity = 0f;
 
                 targetColor = dayColor;
+                targetSkyColor = daySkyColor;
                 targetTemp = dayTemperature;
             }
-            else if (IsWithinTimeRange(20f, 23f)) // Evening
+            else if (IsWithinTimeRange(20f, 23f))
             {
                 float t = (currentTime - 20f) / 3f;
 
@@ -277,55 +271,65 @@ namespace ShiftedSignal.Garden.Managers
                 currentMoonIntensity = Mathf.Lerp(0f, moonIntensity, t);
 
                 targetColor = Color.Lerp(dayColor, dawnColor, t);
+                targetSkyColor = Color.Lerp(daySkyColor, eveningSkyColor, t);
                 targetTemp = Mathf.Lerp(dayTemperature, dawnTemperature, t);
             }
-            else // Night
+            else if (IsWithinTimeRange(23f, 24f))
+            {
+                float t = currentTime - 23f;
+
+                sunIntensity = 0f;
+                currentMoonIntensity = moonIntensity;
+
+                targetColor = Color.Lerp(dawnColor, nightColor, t);
+                targetSkyColor = Color.Lerp(eveningSkyColor, nightSkyColor, t);
+                targetTemp = Mathf.Lerp(dawnTemperature, nightTemperature, t);
+            }
+            else
             {
                 sunIntensity = 0f;
                 currentMoonIntensity = moonIntensity;
 
                 targetColor = nightColor;
+                targetSkyColor = nightSkyColor;
                 targetTemp = nightTemperature;
             }
 
-            // Prevent total darkness
             sunIntensity = Mathf.Max(sunIntensity, 0.02f);
             currentMoonIntensity = Mathf.Max(currentMoonIntensity, 0.02f);
 
             UpdateCelestialRotation();
 
-            // Sun
             if (sun != null)
             {
                 sun.intensity = sunIntensity;
                 sun.color = targetColor;
 
-        #if UNITY_2019_1_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
                 sun.colorTemperature = targetTemp;
                 sun.useColorTemperature = true;
-        #endif
+#endif
             }
 
-            // Moon
             if (moon != null)
             {
                 moon.intensity = currentMoonIntensity;
                 moon.color = moonColor;
             }
 
-            // Fill Light
             if (fillLight != null)
             {
                 fillLight.intensity = fillLightIntensity;
                 fillLight.color = fillLightColor;
-
                 fillLight.shadows = LightShadows.None;
-
-                // Always point toward camera/front
                 fillLight.transform.rotation = Quaternion.Euler(45f, 0f, 0f);
             }
 
-            // Ambient Lighting
+            if (mainCamera != null)
+            {
+                mainCamera.backgroundColor = targetSkyColor;
+            }
+
             if (RenderSettings.ambientMode == UnityEngine.Rendering.AmbientMode.Flat)
             {
                 float ambientLerp = Mathf.InverseLerp(0f, 1f, sunIntensity);
@@ -365,8 +369,8 @@ namespace ShiftedSignal.Garden.Managers
             CurrentDayPeriod = GetDayPeriod();
 
             UpdateLighting();
-            // OnTimeChanged?.Invoke();
-            Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());   
+
+            Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());
         }
 
         [ContextMenu("Sleep")]

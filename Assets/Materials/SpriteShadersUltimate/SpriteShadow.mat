@@ -25,9 +25,6 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _ENABLEFULLALPHADISSOLVE_ON
-  - _ENABLEOUTEROUTLINE_ON
-  - _ENABLEVIBRATE_ON
   - _SHADERFADING_NONE
   - _SHADERSPACE_UV
   - _TEXTURELAYER1SHEETTOGGLE_ON
@@ -275,7 +272,7 @@ Material:
     - _EnableEnchanted: 0
     - _EnableFlame: 0
     - _EnableFrozen: 0
-    - _EnableFullAlphaDissolve: 1
+    - _EnableFullAlphaDissolve: 0
     - _EnableFullDistortion: 0
     - _EnableFullGlowDissolve: 0
     - _EnableGaussianBlur: 0
@@ -287,7 +284,7 @@ Material:
     - _EnableInnerOutline: 0
     - _EnableMetal: 0
     - _EnableNegative: 0
-    - _EnableOuterOutline: 1
+    - _EnableOuterOutline: 0
     - _EnablePingPongGlow: 0
     - _EnablePixelOutline: 0
     - _EnablePixelate: 0
@@ -320,7 +317,7 @@ Material:
     - _EnableUVRotate: 0
     - _EnableUVScale: 0
     - _EnableUVScroll: 0
-    - _EnableVibrate: 1
+    - _EnableVibrate: 0
     - _EnableWiggle: 0
     - _EnableWind: 0
     - _EnableWorldTiling: 0

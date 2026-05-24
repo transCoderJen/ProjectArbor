@@ -7,8 +7,6 @@ using UnityEditor;
 
 namespace ShiftedSignal.Garden.Tools
 {
-    
-
     /// <summary>
     /// Spawns random prefabs across the top surface of a collider using editor buttons.
     /// Useful for grass clumps, rocks, trees, mushrooms, and similar scatter objects.
@@ -17,12 +15,13 @@ namespace ShiftedSignal.Garden.Tools
     public class ShapePrefabSpawner : MonoBehaviour
     {
         #region Inspector Fields
+
         [Header("References")]
         [SerializeField] private Collider TargetCollider;
         [SerializeField] private Transform SpawnParent;
 
         [Header("Prefabs")]
-        [SerializeField] private List<GameObject> PrefabsToSpawn = new List<GameObject>();
+        [SerializeField] private List<GameObject> PrefabsToSpawn = new();
 
         [Header("Spawn Settings")]
         [Tooltip("Objects per square unit. Final count is based on collider X/Z footprint.")]
@@ -37,11 +36,11 @@ namespace ShiftedSignal.Garden.Tools
         [Header("Scale")]
         [SerializeField] private bool UseHeightRange = false;
         [SerializeField] private float FixedHeight = 1f;
-        [SerializeField] private Vector2 HeightRange = new Vector2(0.75f, 1.5f);
+        [SerializeField] private Vector2 HeightRange = new(0.75f, 1.5f);
 
         [Header("Rotation")]
         [SerializeField] private bool RandomYRotation = true;
-        [SerializeField] private Vector2 YRotationRange = new Vector2(0f, 360f);
+        [SerializeField] private Vector2 YRotationRange = new(0f, 360f);
 
         [Header("Placement Rules")]
         [Tooltip("If enabled, spawned objects align their up direction to the hit normal.")]
@@ -55,11 +54,14 @@ namespace ShiftedSignal.Garden.Tools
 
         [Tooltip("Small vertical offset after placement to prevent clipping into the surface.")]
         [SerializeField] private float SurfaceOffset = 0.01f;
-        #endregion
 
+        [Header("Extra Blocking")]
         [SerializeField] private LayerMask TreeBlockers;
 
+        #endregion
+
         #region Public Methods
+
         /// <summary>
         /// Spawns prefabs across the collider surface based on the configured density.
         /// </summary>
@@ -74,19 +76,28 @@ namespace ShiftedSignal.Garden.Tools
             EnsureSpawnParent();
 
             Bounds bounds = TargetCollider.bounds;
-            float area = Mathf.Max(0f, (bounds.size.x - EdgePadding * 2f) * (bounds.size.z - EdgePadding * 2f));
+
+            float area = Mathf.Max(
+                0f,
+                (bounds.size.x - EdgePadding * 2f) *
+                (bounds.size.z - EdgePadding * 2f));
+
             int spawnCount = Mathf.RoundToInt(area * Density);
 
             if (spawnCount <= 0)
             {
-                Debug.LogWarning($"[{nameof(ShapePrefabSpawner)}] Spawn count is 0. Increase Density or use a larger collider.", this);
+                Debug.LogWarning(
+                    $"[{nameof(ShapePrefabSpawner)}] Spawn count is 0. Increase Density or use a larger collider.",
+                    this);
+
                 return;
             }
 
             int placedCount = 0;
             int attempts = 0;
 
-            while (placedCount < spawnCount && attempts < MaxPlacementAttempts)
+            while (placedCount < spawnCount &&
+                   attempts < MaxPlacementAttempts)
             {
                 attempts++;
 
@@ -96,6 +107,7 @@ namespace ShiftedSignal.Garden.Tools
                 }
 
                 float targetHeight = GetRandomHeight();
+
                 GameObject prefab = GetRandomPrefab();
 
                 if (prefab == null)
@@ -103,48 +115,124 @@ namespace ShiftedSignal.Garden.Tools
                     continue;
                 }
 
-                Vector3 spawnPosition = hit.point + hit.normal * SurfaceOffset;
-                Quaternion spawnRotation = GetSpawnRotation(hit.normal);
-                Vector3 spawnScale = GetScaledSize(prefab.transform.localScale, targetHeight);
+                Vector3 spawnPosition =
+                    hit.point + hit.normal * SurfaceOffset;
+
+                Quaternion spawnRotation =
+                    GetSpawnRotation(hit.normal);
+
+                Vector3 spawnScale =
+                    GetScaledSize(prefab.transform.localScale, targetHeight);
 
                 if (IsBlocked(spawnPosition, spawnRotation, spawnScale))
                 {
                     continue;
                 }
 
-                CreateInstance(prefab, spawnPosition, spawnRotation, spawnScale);
+                CreateInstance(
+                    prefab,
+                    spawnPosition,
+                    spawnRotation,
+                    spawnScale);
+
                 placedCount++;
             }
 
-            Debug.Log($"[{nameof(ShapePrefabSpawner)}] Spawned {placedCount}/{spawnCount} prefabs after {attempts} attempts.", this);
+            Debug.Log(
+                $"[{nameof(ShapePrefabSpawner)}] Spawned {placedCount}/{spawnCount} prefabs after {attempts} attempts.",
+                this);
         }
 
         /// <summary>
-        /// Removes all spawned children under the spawn parent.
+        /// Clears only spawned prefabs located within this spawner's target collider.
         /// </summary>
         [ContextMenu("Clear Spawned Prefabs")]
         public void ClearSpawnedPrefabs()
         {
             if (SpawnParent == null)
             {
+                Debug.LogWarning(
+                    $"[{nameof(ShapePrefabSpawner)}] No SpawnParent assigned.",
+                    this);
+
                 return;
             }
+
+            if (TargetCollider == null)
+            {
+                TargetCollider = GetComponent<Collider>();
+            }
+
+            if (TargetCollider == null)
+            {
+                Debug.LogWarning(
+                    $"[{nameof(ShapePrefabSpawner)}] Cannot clear because no TargetCollider is assigned.",
+                    this);
+
+                return;
+            }
+
+            Bounds bounds = TargetCollider.bounds;
 
 #if UNITY_EDITOR
             for (int i = SpawnParent.childCount - 1; i >= 0; i--)
             {
-                Undo.DestroyObjectImmediate(SpawnParent.GetChild(i).gameObject);
+                Transform child = SpawnParent.GetChild(i);
+
+                bool intersects = false;
+
+                Collider childCollider =
+                    child.GetComponentInChildren<Collider>();
+
+                if (childCollider != null)
+                {
+                    intersects =
+                        bounds.Intersects(childCollider.bounds);
+                }
+                else
+                {
+                    intersects =
+                        bounds.Contains(child.position);
+                }
+
+                if (intersects)
+                {
+                    Undo.DestroyObjectImmediate(child.gameObject);
+                }
             }
 #else
             for (int i = SpawnParent.childCount - 1; i >= 0; i--)
             {
-                DestroyImmediate(SpawnParent.GetChild(i).gameObject);
+                Transform child = SpawnParent.GetChild(i);
+
+                bool intersects = false;
+
+                Collider childCollider =
+                    child.GetComponentInChildren<Collider>();
+
+                if (childCollider != null)
+                {
+                    intersects =
+                        bounds.Intersects(childCollider.bounds);
+                }
+                else
+                {
+                    intersects =
+                        bounds.Contains(child.position);
+                }
+
+                if (intersects)
+                {
+                    DestroyImmediate(child.gameObject);
+                }
             }
 #endif
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Validates that all required references and values are usable.
         /// </summary>
@@ -157,13 +245,20 @@ namespace ShiftedSignal.Garden.Tools
 
             if (TargetCollider == null)
             {
-                Debug.LogError($"[{nameof(ShapePrefabSpawner)}] No Collider found. Assign a TargetCollider or place this on an object with a Collider.", this);
+                Debug.LogError(
+                    $"[{nameof(ShapePrefabSpawner)}] No Collider found. Assign a TargetCollider or place this on an object with a Collider.",
+                    this);
+
                 return false;
             }
 
-            if (PrefabsToSpawn == null || PrefabsToSpawn.Count == 0)
+            if (PrefabsToSpawn == null ||
+                PrefabsToSpawn.Count == 0)
             {
-                Debug.LogError($"[{nameof(ShapePrefabSpawner)}] No prefabs assigned.", this);
+                Debug.LogError(
+                    $"[{nameof(ShapePrefabSpawner)}] No prefabs assigned.",
+                    this);
+
                 return false;
             }
 
@@ -196,17 +291,21 @@ namespace ShiftedSignal.Garden.Tools
             }
 
             Transform existing = transform.Find("Spawned Prefabs");
+
             if (existing != null)
             {
                 SpawnParent = existing;
                 return;
             }
 
-            GameObject parent = new GameObject("Spawned Prefabs");
+            GameObject parent = new("Spawned Prefabs");
+
             parent.transform.SetParent(transform);
+
             parent.transform.localPosition = Vector3.zero;
             parent.transform.localRotation = Quaternion.identity;
             parent.transform.localScale = Vector3.one;
+
             SpawnParent = parent.transform;
         }
 
@@ -217,13 +316,25 @@ namespace ShiftedSignal.Garden.Tools
         {
             Bounds bounds = TargetCollider.bounds;
 
-            float randomX = Random.Range(bounds.min.x + EdgePadding, bounds.max.x - EdgePadding);
-            float randomZ = Random.Range(bounds.min.z + EdgePadding, bounds.max.z - EdgePadding);
+            float randomX = Random.Range(
+                bounds.min.x + EdgePadding,
+                bounds.max.x - EdgePadding);
 
-            Vector3 rayOrigin = new Vector3(randomX, bounds.max.y + 5f, randomZ);
-            Ray ray = new Ray(rayOrigin, Vector3.down);
+            float randomZ = Random.Range(
+                bounds.min.z + EdgePadding,
+                bounds.max.z - EdgePadding);
 
-            if (TargetCollider.Raycast(ray, out hit, bounds.size.y + 10f))
+            Vector3 rayOrigin = new(
+                randomX,
+                bounds.max.y + 5f,
+                randomZ);
+
+            Ray ray = new(rayOrigin, Vector3.down);
+
+            if (TargetCollider.Raycast(
+                    ray,
+                    out hit,
+                    bounds.size.y + 10f))
             {
                 return true;
             }
@@ -236,12 +347,14 @@ namespace ShiftedSignal.Garden.Tools
         /// </summary>
         private GameObject GetRandomPrefab()
         {
-            if (PrefabsToSpawn == null || PrefabsToSpawn.Count == 0)
+            if (PrefabsToSpawn == null ||
+                PrefabsToSpawn.Count == 0)
             {
                 return null;
             }
 
             int index = Random.Range(0, PrefabsToSpawn.Count);
+
             return PrefabsToSpawn[index];
         }
 
@@ -260,17 +373,22 @@ namespace ShiftedSignal.Garden.Tools
         /// </summary>
         private Quaternion GetSpawnRotation(Vector3 surfaceNormal)
         {
-            Quaternion baseRotation = AlignToSurfaceNormal
-                ? Quaternion.FromToRotation(Vector3.up, surfaceNormal)
-                : Quaternion.identity;
+            Quaternion baseRotation =
+                AlignToSurfaceNormal
+                    ? Quaternion.FromToRotation(Vector3.up, surfaceNormal)
+                    : Quaternion.identity;
 
             if (!RandomYRotation)
             {
                 return baseRotation;
             }
 
-            float yRotation = Random.Range(YRotationRange.x, YRotationRange.y);
-            Quaternion randomYaw = Quaternion.AngleAxis(yRotation, Vector3.up);
+            float yRotation = Random.Range(
+                YRotationRange.x,
+                YRotationRange.y);
+
+            Quaternion randomYaw =
+                Quaternion.AngleAxis(yRotation, Vector3.up);
 
             return randomYaw * baseRotation;
         }
@@ -279,7 +397,9 @@ namespace ShiftedSignal.Garden.Tools
         /// Scales uniformly so the resulting local Y matches the requested height.
         /// Width and depth are preserved proportionally.
         /// </summary>
-        private Vector3 GetScaledSize(Vector3 originalScale, float targetHeight)
+        private Vector3 GetScaledSize(
+            Vector3 originalScale,
+            float targetHeight)
         {
             if (Mathf.Approximately(originalScale.y, 0f))
             {
@@ -287,13 +407,17 @@ namespace ShiftedSignal.Garden.Tools
             }
 
             float multiplier = targetHeight / originalScale.y;
+
             return originalScale * multiplier;
         }
 
         /// <summary>
         /// Checks whether placement should be blocked due to overlap.
         /// </summary>
-        private bool IsBlocked(Vector3 position, Quaternion rotation, Vector3 scale)
+        private bool IsBlocked(
+            Vector3 position,
+            Quaternion rotation,
+            Vector3 scale)
         {
             if (CollisionCheckRadius <= 0f)
             {
@@ -302,7 +426,8 @@ namespace ShiftedSignal.Garden.Tools
 
             Collider[] hits = Physics.OverlapSphere(
                 position,
-                CollisionCheckRadius * Mathf.Max(scale.x, scale.z),
+                CollisionCheckRadius *
+                Mathf.Max(scale.x, scale.z),
                 OverlapBlockers,
                 QueryTriggerInteraction.Ignore);
 
@@ -320,7 +445,8 @@ namespace ShiftedSignal.Garden.Tools
                     continue;
                 }
 
-                if (SpawnParent != null && hit.transform.IsChildOf(SpawnParent))
+                if (SpawnParent != null &&
+                    hit.transform.IsChildOf(SpawnParent))
                 {
                     return true;
                 }
@@ -332,23 +458,39 @@ namespace ShiftedSignal.Garden.Tools
         /// <summary>
         /// Creates the prefab instance with editor undo support.
         /// </summary>
-        private void CreateInstance(GameObject prefab, Vector3 position, Quaternion rotation, Vector3 scale)
+        private void CreateInstance(
+            GameObject prefab,
+            Vector3 position,
+            Quaternion rotation,
+            Vector3 scale)
         {
 #if UNITY_EDITOR
-            if (Physics.CheckBox(position, new Vector3(2, 2, 2), Quaternion.identity, TreeBlockers, QueryTriggerInteraction.Collide))
+            if (Physics.CheckBox(
+                    position,
+                    new Vector3(2, 2, 2),
+                    Quaternion.identity,
+                    TreeBlockers,
+                    QueryTriggerInteraction.Collide))
             {
                 return;
             }
-            
-            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, SpawnParent);
+
+            GameObject instance =
+                (GameObject)PrefabUtility.InstantiatePrefab(
+                    prefab,
+                    SpawnParent);
+
             if (instance == null)
             {
                 instance = Instantiate(prefab, SpawnParent);
             }
 
-            Undo.RegisterCreatedObjectUndo(instance, "Spawn Prefabs");
+            Undo.RegisterCreatedObjectUndo(
+                instance,
+                "Spawn Prefabs");
 #else
-            GameObject instance = Instantiate(prefab, SpawnParent);
+            GameObject instance =
+                Instantiate(prefab, SpawnParent);
 #endif
 
             instance.transform.position = position;
@@ -369,13 +511,19 @@ namespace ShiftedSignal.Garden.Tools
             }
 
             Gizmos.color = Color.green;
+
             Bounds bounds = TargetCollider.bounds;
-            Gizmos.DrawWireCube(bounds.center, bounds.size);
+
+            Gizmos.DrawWireCube(
+                bounds.center,
+                bounds.size);
         }
+
         #endregion
     }
 
 #if UNITY_EDITOR
+
     /// <summary>
     /// Custom inspector for quick spawn and clear buttons.
     /// </summary>
@@ -388,20 +536,24 @@ namespace ShiftedSignal.Garden.Tools
 
             GUILayout.Space(10f);
 
-            ShapePrefabSpawner spawner = (ShapePrefabSpawner)target;
+            ShapePrefabSpawner spawner =
+                (ShapePrefabSpawner)target;
 
             if (GUILayout.Button("Spawn Prefabs"))
             {
                 spawner.SpawnPrefabs();
+
                 EditorUtility.SetDirty(spawner);
             }
 
             if (GUILayout.Button("Clear Spawned Prefabs"))
             {
                 spawner.ClearSpawnedPrefabs();
+
                 EditorUtility.SetDirty(spawner);
             }
         }
     }
+
 #endif
 }
