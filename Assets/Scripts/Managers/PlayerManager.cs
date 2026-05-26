@@ -3,10 +3,11 @@ using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.SaveAndLoad;
 
 namespace ShiftedSignal.Garden.Managers
 {
-    public class PlayerManager : Singleton<PlayerManager>
+    public class PlayerManager : Singleton<PlayerManager>, ISaveManager
     {
         public Player Player;
         public int Currency;
@@ -38,6 +39,18 @@ namespace ShiftedSignal.Garden.Managers
         {
             Player.gameObject.SetActive(false);
             Player.gameObject.SetActive(true);
+        }
+
+        public void LoadData(GameData data)
+        {
+            this.Currency = data.currency;
+            this.UnlockedFarmingArea = data.unlockedFarmingArea;
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            data.currency = this.Currency;
+            data.unlockedFarmingArea = this.UnlockedFarmingArea;
         }
     }
 }

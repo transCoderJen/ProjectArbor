@@ -1,6 +1,7 @@
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.SaveAndLoad;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -15,7 +16,7 @@ namespace ShiftedSignal.Garden.Managers
         Night
     }
 
-    public class TimeManger : Singleton<TimeManger>
+    public class TimeManger : Singleton<TimeManger>, ISaveManager
     {
         [Header("Current Time")]
         [SerializeField] private float currentTime = 8f;
@@ -367,10 +368,21 @@ namespace ShiftedSignal.Garden.Managers
             lastMinute = CurrentMinute;
             wasDay = IsDay;
             CurrentDayPeriod = GetDayPeriod();
-
+            
             UpdateLighting();
+            
 
             Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());
+            Bus<DayPeriodChangedEvent>.Raise(new DayPeriodChangedEvent(CurrentDayPeriod));
+
+            if (wasDay)
+            {
+                Bus<DayStartedEvent>.Raise(new DayStartedEvent());
+            }
+            else
+            {
+                Bus<NightStartedEvent>.Raise(new NightStartedEvent());
+            }
         }
 
         [ContextMenu("Sleep")]
@@ -455,6 +467,27 @@ namespace ShiftedSignal.Garden.Managers
             }
 
             return $"{hour12}:{minute:00} {amPm}";
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            data.currentTime = this.currentTime;
+            data.currentDay = this.currentDay;
+        }
+
+        public void LoadData(GameData data)
+        {
+            // Ensure we don't accidentally load a 0 if the save file is brand new
+            if (data.currentDay > 0)
+            {
+                this.currentDay = data.currentDay;
+            }
+            
+            // SetTime automatically updates lighting and raises TimeChangedEvent
+            SetTime(data.currentTime); 
+            
+            // Force the UI to refresh the day text with the newly loaded day
+            Bus<DayChangedEvent>.Raise(new DayChangedEvent(this.currentDay));
         }
     }
 }

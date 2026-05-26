@@ -98,15 +98,31 @@ namespace ShiftedSignal.Garden.Managers
                     for (int x = 0; x < gridSize.x; x++)
                     {
                         BlockInfo storedBlock = GridInfo.Instance.Grid[y].Blocks[x];
+                        GrowBlock block = BlockRows[y].Blocks[x];
+                        
+                        block.IsWatered = storedBlock.IsWatered;
+                        block.CurrentStage = storedBlock.CurrentStage;
+                        block.IsActive = storedBlock.IsActive;
+                        block.health = storedBlock.Health;
 
-                        BlockRows[y].Blocks[x].IsWatered = storedBlock.IsWatered;
-                        BlockRows[y].Blocks[x].CurrentStage = storedBlock.CurrentStage;
-
-                        BlockRows[y].Blocks[x].SetSoilSprite();
-                        BlockRows[y].Blocks[x].UpdateCropSprite();    
+                        // Look up the seed from the inventory database using the saved ItemID
+                        if (!string.IsNullOrEmpty(storedBlock.SeedItemID))
+                        {
+                            foreach(var item in ShiftedSignalGames.GOF.ItemsAndInventory.Inventory.Instance.itemDataBase)
+                            {
+                                if (item.ItemID == storedBlock.SeedItemID)
+                                {
+                                    block.Seed = item as ItemsAndInventory.ItemData_Seed;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        block.SetSoilSprite();
+                        block.UpdateCropSprite();
+                        block.Glow(false); // Reset visual selection state
                     }
                 }
-                
             }
         }
 

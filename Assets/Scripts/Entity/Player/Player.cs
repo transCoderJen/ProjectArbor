@@ -8,6 +8,7 @@ using ShiftedSignal.Garden.Interfaces;
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ShiftedSignal.Garden.SaveAndLoad;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -19,7 +20,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         Basket
     }
 
-    public class Player : Entity, IHealable
+    public class Player : Entity, IHealable, ISaveManager
     {
         public static Player Instance { get; private set; }
 
@@ -201,9 +202,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Keyboard.current == null)
                 return;
 
-            if (Keyboard.current.eKey.wasPressedThisFrame)
-                UseTool();
-
             if (Keyboard.current.numpad1Key.wasPressedThisFrame)
                 CurrentTool = ToolType.Plough;
 
@@ -324,6 +322,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             StateMachine.CurrentState.AnimationFinishedTrigger();
         }
+        
+        #endregion
 
         public void Heal(int HealAmount)
         {
@@ -331,6 +331,20 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Fx.CreatePopUpText(HealAmount.ToString(), Color.blue);
         }
 
-        #endregion
+         public void LoadData(GameData data)
+        {
+            // Check against Vector3.zero so we don't accidentally teleport the player 
+            // to (0,0,0) when starting a brand new game where the position hasn't been saved yet.
+            if (data.playerPosition != Vector3.zero)
+            {
+                transform.position = data.playerPosition;
+            }
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            // Record the player's current transform position into the save data
+            data.playerPosition = transform.position;
+        }
     }
 }

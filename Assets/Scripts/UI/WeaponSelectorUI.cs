@@ -1,6 +1,7 @@
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.SaveAndLoad;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 
 namespace ShiftedSignalGames.GOF.UISpace
 {
-    public class WeaponSelectorUI : MonoBehaviour
+    public class WeaponSelectorUI : MonoBehaviour, ISaveManager
     {
         [Header("Buttons")]
         [SerializeField] private Button[] weaponButtons = new Button[5];
@@ -167,6 +168,45 @@ namespace ShiftedSignalGames.GOF.UISpace
             }
 
             lastButtonIndex = -1;
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            data.weaponWheelIds.Clear();
+            for (int i = 0; i < wheelAssignedWeapons.Length; i++)
+            {
+                if (wheelAssignedWeapons[i] != null)
+                    data.weaponWheelIds.Add(wheelAssignedWeapons[i].ItemID);
+                else
+                    data.weaponWheelIds.Add(""); // Save an empty string for blank slots
+            }
+        }
+
+        public void LoadData(GameData data)
+        {
+            if (data.weaponWheelIds == null || data.weaponWheelIds.Count == 0) return;
+
+            for (int i = 0; i < data.weaponWheelIds.Count && i < wheelAssignedWeapons.Length; i++)
+            {
+                string id = data.weaponWheelIds[i];
+                if (string.IsNullOrEmpty(id))
+                {
+                    wheelAssignedWeapons[i] = null;
+                    continue;
+                }
+
+                // Look up weapon from the central database
+                foreach (var item in ShiftedSignalGames.GOF.ItemsAndInventory.Inventory.Instance.itemDataBase)
+                {
+                    if (item.ItemID == id)
+                    {
+                        wheelAssignedWeapons[i] = item as ShiftedSignal.Garden.ItemsAndInventory.ItemData_Equipment;
+                        break;
+                    }
+                }
+            }
+            
+            UpdateButtonIcons(); // Refresh visuals
         }
     }
 }

@@ -83,8 +83,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
 
         private List<ISaveManager> FindAllSaveManagers()
         {
-            // This finds all MonoBehaviours in the scene, including inactive ones
-            IEnumerable<ISaveManager> saveManagers = Resources.FindObjectsOfTypeAll<MonoBehaviour>().OfType<ISaveManager>();
+            // FindObjectsByType ONLY finds objects that exist in the loaded scene, ignoring prefabs.
+            IEnumerable<ISaveManager> saveManagers = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<ISaveManager>();
 
             // Convert the IEnumerable to a List and return it
             return new List<ISaveManager>(saveManagers);

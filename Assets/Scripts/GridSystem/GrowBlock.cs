@@ -280,6 +280,10 @@ namespace ShiftedSignal.Garden.GridSystem
             if (CurrentStage == GrowthStage.Barren)
             {
                 CurrentStage = GrowthStage.Ploughed;
+                
+                // Explicitly set the block to an unwatered state
+                IsWatered = false; 
+                
                 SetSoilSprite();
                 SR.material.SetFloat("_Alpha", 1f);
                 PlayerManager.Instance.Player.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
@@ -373,25 +377,29 @@ namespace ShiftedSignal.Garden.GridSystem
                 if (Seed.CropType == CropType.Resource)
                 {
                     CurrentStage = GrowthStage.Ploughed;
+                    IsWatered = false; // Reset water state upon harvesting
+                    
                     SetSoilSprite();
-                    CropSprite.sprite = null;    
+                    CropSprite.sprite = null;
                     Seed.AddResourcesToInventory();
                     Seed = null;
                 }
                 else
                 {
                     // TODO display harvest confirmation
-                        //confirm
-                        CurrentStage = GrowthStage.Ploughed;
-                        SetSoilSprite();
-                        CropSprite.sprite = null;   
-                        ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
-                        SpawnedPlant = null;
-                        Seed = null;
-                        //  TODO  add resources to inventory
+                    //confirm
+                    CurrentStage = GrowthStage.Ploughed;
+                    IsWatered = false; // Reset water state upon harvesting
+                    
+                    SetSoilSprite();
+                    CropSprite.sprite = null;
+                    ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
+                    SpawnedPlant = null;
+                    Seed = null;
+                    
+                    // TODO add resources to inventory
                     //deny - do nothing
                 }
-
             }
         }
 

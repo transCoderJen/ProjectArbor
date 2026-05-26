@@ -44,8 +44,11 @@ namespace ShiftedSignal.Garden.Stats
 
         [Header("State")]
         public int CurrentHealth;
-
         public Action OnHealthChanged = delegate { };
+
+        public int CurrentMP;
+        public Action OnMagicChanged = delegate { };
+
         public bool IsDead { get; private set; }
         public bool IsInvincible { get; private set; }
 
@@ -55,11 +58,17 @@ namespace ShiftedSignal.Garden.Stats
         protected virtual void Start()
         {
             CritPower.SetDefaultValue(150);
-
             Fx = GetComponent<EntityFX>();
             entity = GetComponent<Entity>();
 
+            // 1. Initialize both Health and MP
             CurrentHealth = GetMaxHealthValue();
+            CurrentMP = MaxMP.GetValue(); 
+
+            // 2. Force the UI (and anything else listening) to update immediately 
+            // after setting the initial values.
+            OnHealthChanged?.Invoke();
+            OnMagicChanged?.Invoke();
         }
 
         protected virtual void Update()
@@ -160,6 +169,18 @@ namespace ShiftedSignal.Garden.Stats
                  Fx.CreatePopUpText(TotalDamage.ToString());
 
             OnHealthChanged?.Invoke();
+        }
+
+        public virtual void IncreaseMagicBy(int amount)
+        {
+            CurrentMP = Math.Min(MaxMP.GetValue(), CurrentMP + amount);
+            OnMagicChanged?.Invoke();
+        }
+
+        public virtual void DecreaseMagicBy(int amount)
+        {
+            CurrentMP = Math.Max(0, CurrentMP - amount);
+            OnMagicChanged?.Invoke();
         }
 
         protected virtual void Die()

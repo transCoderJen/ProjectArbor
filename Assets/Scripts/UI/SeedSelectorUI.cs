@@ -2,13 +2,14 @@ using System;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.SaveAndLoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace ShiftedSignal.Garden.UserInterface
 {
-    public class SeedSelectorUI : MonoBehaviour
+    public class SeedSelectorUI : MonoBehaviour, ISaveManager
     {
         [Header("Buttons")]
         [SerializeField] private Button[] seedButtons;
@@ -149,6 +150,9 @@ namespace ShiftedSignal.Garden.UserInterface
             if (buttonIndex == lastButtonIndex)
                 return;
 
+            if (buttonIndex < 0 || buttonIndex >= seedButtons.Length)
+                return;
+
             if (lastButtonIndex != -1 && seedButtons[lastButtonIndex] != null)
             {
                 seedButtons[lastButtonIndex].OnDeselect(null);
@@ -159,7 +163,19 @@ namespace ShiftedSignal.Garden.UserInterface
                 seedButtons[buttonIndex].OnSelect(null);
             }
 
-            Bus<SeedEquipEvent>.Raise(new SeedEquipEvent(seedSlots[buttonIndex].item.data));
+            ItemData_Seed selectedSeed = null;
+
+            if (buttonIndex < seedSlots.Length &&
+                seedSlots[buttonIndex] != null &&
+                seedSlots[buttonIndex].item != null)
+            {
+                selectedSeed = seedSlots[buttonIndex].item.data as ItemData_Seed;
+            }
+
+            if (selectedSeed != null)
+            {
+                Bus<SeedEquipEvent>.Raise(new SeedEquipEvent(selectedSeed));
+            }
 
             lastButtonIndex = buttonIndex;
         }
@@ -172,6 +188,51 @@ namespace ShiftedSignal.Garden.UserInterface
             }
 
             lastButtonIndex = -1;
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            data.seedWheelIds.Clear();
+            for (int i = 0; i < seedSlots.Length; i++)
+            {
+                // Verify the slot and data aren't null before pulling the ID
+                if (seedSlots[i] != null && seedSlots[i].item != null && seedSlots[i].item.data != null)
+                    data.seedWheelIds.Add(seedSlots[i].item.data.ItemID);
+                else
+                    data.seedWheelIds.Add(""); 
+            }
+        }
+
+        public void LoadData(GameData data)
+        {
+            if (data.seedWheelIds == null || data.seedWheelIds.Count == 0) return;
+
+            for (int i = 0; i < data.seedWheelIds.Count && i < seedSlots.Length; i++)
+            {
+                string id = data.seedWheelIds[i];
+                if (string.IsNullOrEmpty(id))
+                {
+                    seedSlots[i].CleanUpSlot();
+                    if (seedButtons[i] != null) seedButtons[i].image.sprite = null;
+                    continue;
+                }
+
+                foreach (var item in ShiftedSignalGames.GOF.ItemsAndInventory.Inventory.Instance.itemDataBase)
+                {
+                    if (item.ItemID == id)
+                    {
+                        if (item is ItemData_Seed seed)
+                        {
+                            seedSlots[i].item = new InventoryItem(seed);
+
+                            if (seedButtons[i] != null)
+                                seedButtons[i].image.sprite = seed.Icon;
+                        }
+                        if (seedButtons[i] != null) seedButtons[i].image.sprite = item.Icon;
+                        break;
+                    }
+                }
+            }
         }
 
 #if UNITY_EDITOR

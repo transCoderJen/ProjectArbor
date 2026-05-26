@@ -847,14 +847,25 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
         public void LoadData(GameData data)
         {
             InitializeCollections();
-
             loadedItems.Clear();
             loadedEquipment.Clear();
-
             if (data == null)
                 return;
 
-            foreach (KeyValuePair<string, int> pair in data.inventory)
+            // 1. Combine all saved items into a single dictionary to easily process them
+            Dictionary<string, int> allSavedItems = new Dictionary<string, int>();
+
+            if (data.inventory != null)
+                foreach (var pair in data.inventory) allSavedItems[pair.Key] = pair.Value;
+                
+            if (data.stash != null)
+                foreach (var pair in data.stash) allSavedItems[pair.Key] = pair.Value;
+                
+            if (data.seedBank != null)
+                foreach (var pair in data.seedBank) allSavedItems[pair.Key] = pair.Value;
+
+            // 2. Load the combined list into loadedItems
+            foreach (KeyValuePair<string, int> pair in allSavedItems)
             {
                 foreach (ItemData item in itemDataBase)
                 {
@@ -864,13 +875,13 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                         {
                             stackSize = pair.Value
                         };
-
                         loadedItems.Add(itemToLoad);
                         break;
                     }
                 }
             }
 
+            // 3. Load Equipment
             foreach (string loadedItemId in data.equipmentId)
             {
                 foreach (ItemData item in itemDataBase)
@@ -878,9 +889,10 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                     if (item != null && item.ItemID == loadedItemId)
                     {
                         if (item is ItemData_Equipment equipmentItem)
+                        {
                             loadedEquipment.Add(equipmentItem);
-
-                        break;
+                            break;
+                        }
                     }
                 }
             }
@@ -889,11 +901,12 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
         public void SaveData(ref GameData data)
         {
             InitializeCollections();
-
             if (data == null)
                 return;
 
             data.inventory.Clear();
+            data.stash.Clear();
+            data.seedBank.Clear();
             data.equipmentId.Clear();
 
             foreach (KeyValuePair<ItemData, InventoryItem> pair in inventoryDictionary)
@@ -905,7 +918,13 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
             foreach (KeyValuePair<ItemData, InventoryItem> pair in stashDictionary)
             {
                 if (pair.Key != null)
-                    data.inventory[pair.Key.ItemID] = pair.Value.stackSize;
+                    data.stash[pair.Key.ItemID] = pair.Value.stackSize;
+            }
+
+            foreach (KeyValuePair<ItemData, InventoryItem> pair in seedBankDictionary)
+            {
+                if (pair.Key != null)
+                    data.seedBank[pair.Key.ItemID] = pair.Value.stackSize;
             }
 
             foreach (KeyValuePair<ItemData_Equipment, InventoryItem> pair in equipmentDictionary)
