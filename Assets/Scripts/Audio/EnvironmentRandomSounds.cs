@@ -144,24 +144,24 @@ namespace ShiftedSignal.Garden.Audio
         {
             while (true)
             {
-                float waitTime = Random.Range(
-                    randomClip.MinPlayTime,
-                    randomClip.MaxPlayTime);
+                yield return new WaitUntil(() => playerInside);
 
-                yield return new WaitForSeconds(waitTime);
+                yield return new WaitForSeconds(Random.Range(0.1f, 3f));
 
-                if (!playerInside)
-                    continue;
+                while (playerInside)
+                {
+                    lastRandomPoint = GetRandomPointOnBoundsEdge();
+                    AudioManager.Instance.PlaySFX3D(
+                        randomClip.Clip,
+                        lastRandomPoint,
+                        randomClip.Volume,
+                        Min3DDistance,
+                        Max3DDistance,
+                        RolloffMode);
 
-                lastRandomPoint = GetRandomPointOnBoundsEdge();
-
-                AudioManager.Instance.PlaySFX3D(
-                    randomClip.Clip,
-                    lastRandomPoint,
-                    randomClip.Volume,
-                    Min3DDistance,
-                    Max3DDistance,
-                    RolloffMode);
+                    float waitTime = Random.Range(randomClip.MinPlayTime, randomClip.MaxPlayTime);
+                    yield return new WaitForSeconds(waitTime);
+                }
             }
         }
 
@@ -169,49 +169,56 @@ namespace ShiftedSignal.Garden.Audio
         {
             while (true)
             {
-                float waitTime = Random.Range(
-                    randomClip.MinPlayTime,
-                    randomClip.MaxPlayTime);
+                yield return new WaitUntil(() => playerInside);
+                yield return new WaitForSeconds(Random.Range(0.1f, 3f));
 
-                yield return new WaitForSeconds(waitTime);
+                while (playerInside)
+                {
+                    // Only play if it's actually night. This prevents silent sounds 
+                    // from stealing active AudioSources from your Object Pool!
+                    if (TimeManger.Instance.IsNight)
+                    {
+                        lastRandomPoint = GetRandomPointOnBoundsEdge();
+                        AudioManager.Instance.PlaySFX3D(
+                            randomClip.Clip,
+                            lastRandomPoint,
+                            randomClip.Volume,
+                            Min3DDistance,
+                            Max3DDistance,
+                            RolloffMode);
+                    }
 
-                if (!playerInside)
-                    continue;
-
-                lastRandomPoint = GetRandomPointOnBoundsEdge();
-
-                AudioManager.Instance.PlaySFX3D(
-                    randomClip.Clip,
-                    lastRandomPoint,
-                    TimeManger.Instance.IsNight ? randomClip.Volume : 0,
-                    Min3DDistance,
-                    Max3DDistance,
-                    RolloffMode);
+                    float waitTime = Random.Range(randomClip.MinPlayTime, randomClip.MaxPlayTime);
+                    yield return new WaitForSeconds(waitTime);
+                }
             }
         }
-        
+
         private IEnumerator PlayRandomDaySoundLoop(RandomClip randomClip)
         {
             while (true)
             {
-                float waitTime = Random.Range(
-                    randomClip.MinPlayTime,
-                    randomClip.MaxPlayTime);
+                yield return new WaitUntil(() => playerInside);
+                yield return new WaitForSeconds(Random.Range(0.1f, 3f));
 
-                yield return new WaitForSeconds(waitTime);
+                while (playerInside)
+                {
+                    // Only play if it's actually day
+                    if (TimeManger.Instance.IsDay)
+                    {
+                        lastRandomPoint = GetRandomPointOnBoundsEdge();
+                        AudioManager.Instance.PlaySFX3D(
+                            randomClip.Clip,
+                            lastRandomPoint,
+                            randomClip.Volume,
+                            Min3DDistance,
+                            Max3DDistance,
+                            RolloffMode);
+                    }
 
-                if (!playerInside)
-                    continue;
-
-                lastRandomPoint = GetRandomPointOnBoundsEdge();
-
-                AudioManager.Instance.PlaySFX3D(
-                    randomClip.Clip,
-                    lastRandomPoint,
-                    TimeManger.Instance.IsDay ? randomClip.Volume : 0,
-                    Min3DDistance,
-                    Max3DDistance,
-                    RolloffMode);
+                    float waitTime = Random.Range(randomClip.MinPlayTime, randomClip.MaxPlayTime);
+                    yield return new WaitForSeconds(waitTime);
+                }
             }
         }
 
@@ -252,14 +259,10 @@ namespace ShiftedSignal.Garden.Audio
         {
             if (boundsCollider == null) return;
 
-            // Find out exactly where the player will be spawning.
-            // If it's a new game (Vector3.zero), we fall back to the Player's default scene position.
             Vector3 spawnPos = data.playerPosition != Vector3.zero 
                 ? data.playerPosition 
                 : PlayerManager.Instance.Player.transform.position;
 
-            // The ClosestPoint method returns the exact position you pass into it ONLY IF 
-            // that position is already inside the collider. This is a perfect, lightweight bounds check!
             if (boundsCollider.ClosestPoint(spawnPos) == spawnPos)
             {
                 playerInside = true;
@@ -268,9 +271,7 @@ namespace ShiftedSignal.Garden.Audio
 
         public void SaveData(ref GameData data)
         {
-            // We leave this completely blank! 
-            // We don't need to save anything; we are just using the interface 
-            // so we can read the player's position during the LoadData phase.
+            // Blank on purpose...Nothing to save!
         }
     }
 }

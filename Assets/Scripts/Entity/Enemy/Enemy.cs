@@ -7,6 +7,7 @@ using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
 {
+    [RequireComponent(typeof(NavMeshAgent))]
     public class Enemy : Entity
     {
         public LayerMask WhatIsPlayer;
@@ -146,7 +147,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
 
         protected override void OnDrawGizmosSelected()
         {
-            if (!Debugging.Instance.DrawGizmos)
+            if (!Application.isPlaying || !Debugging.Instance.DrawGizmos)
                 return;
                 
             base.OnDrawGizmosSelected();

@@ -23,6 +23,9 @@ namespace ShiftedSignal.Garden.EntitySpace
     /// <summary>
     /// Base entity class for 2.5D gameplay.
     /// </summary>
+    [RequireComponent(typeof(Rigidbody))]
+    [RequireComponent(typeof(CharacterStats))]
+    [RequireComponent(typeof(EntityFX))]
     public class Entity : MonoBehaviour
     {
         public LayerMask TerrainLayer;
@@ -311,9 +314,8 @@ namespace ShiftedSignal.Garden.EntitySpace
         #region Gizmos
         protected virtual void OnDrawGizmosSelected()
         {
-            if (!Debugging.Instance.DrawGizmos)
+            if (!Application.isPlaying || !Debugging.Instance.DrawGizmos)
             {
-                Debug.Log("Returning from gizmos draw on entity");
                 return;
             }
 

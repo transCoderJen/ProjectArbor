@@ -331,6 +331,21 @@ namespace ShiftedSignal.Garden.Managers
                 mainCamera.backgroundColor = targetSkyColor;
             }
 
+            Color fogColor = targetSkyColor;
+
+            // Desaturate toward gray
+            Color gray = new Color(fogColor.grayscale, fogColor.grayscale, fogColor.grayscale);
+            fogColor = Color.Lerp(fogColor, gray, 0.35f);
+
+            // Darken slightly
+            fogColor *= 0.65f;
+
+            // Prevent night fog from becoming pure black
+            Color nightFog = new Color(0.12f, 0.13f, 0.16f);
+            fogColor = Color.Lerp(nightFog, fogColor, sunIntensity);
+
+            RenderSettings.fogColor = fogColor;
+
             if (RenderSettings.ambientMode == UnityEngine.Rendering.AmbientMode.Flat)
             {
                 float ambientLerp = Mathf.InverseLerp(0f, 1f, sunIntensity);

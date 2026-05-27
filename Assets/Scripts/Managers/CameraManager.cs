@@ -14,11 +14,6 @@ namespace ShiftedSignal.Garden.Managers
     /// </summary>
     public class CameraManager : Singleton<CameraManager>
     {
-        void Start()
-        {
-            SyncOverlayCamera();
-        }
-
         public enum VirtualCameraType
         {
             Player,
@@ -88,6 +83,11 @@ namespace ShiftedSignal.Garden.Managers
         [Header("Free Look Movement")]
         [SerializeField] private float freeLookPanSpeed = 20f;
 
+        [Header("Distance Culling")]
+        [Tooltip("The distance at which objects on the Tree layer stop rendering")]
+        [SerializeField] private float cullDistance = 60f;
+        [SerializeField] private LayerMask cullLayers;
+
         private VCamera currentVCamera;
         private float targetFieldOfView;
         private Vector3 targetFollowOffset;
@@ -111,6 +111,12 @@ namespace ShiftedSignal.Garden.Managers
             InitializeActiveCamera();
         }
 
+        void Start()
+        {
+            SyncOverlayCamera();
+            SetupDistanceCulling();
+        }
+
         private void Update()
         {
             if (CurrentVirtualCamera == null)
@@ -124,6 +130,29 @@ namespace ShiftedSignal.Garden.Managers
 
             UpdateFieldOfView();
             UpdateFollowOffset();
+        }
+
+        private void SetupDistanceCulling()
+        {
+            if (currentCamera == null)
+                return;
+
+            float[] distances = new float[32];
+
+            for (int i = 0; i < 32; i++)
+            {
+                if ((cullLayers.value & (1 << i)) != 0)
+                {
+                    distances[i] = cullDistance;
+                }
+                else
+                {
+                    distances[i] = 0f;
+                }
+            }
+
+            currentCamera.layerCullDistances = distances;
+            currentCamera.layerCullSpherical = true;
         }
 
         /// <summary>
@@ -482,6 +511,9 @@ namespace ShiftedSignal.Garden.Managers
 
                 entry.Validate();
             }
+
+            if (Application.isPlaying)
+                SetupDistanceCulling();
         }
 
 

@@ -21,7 +21,7 @@ GameObject:
   m_TagString: Tree1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4171805874817835323
 Transform:
@@ -122,7 +122,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7367463274079047175}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bb2f5cea62789db47b77f706c90dae03, type: 3}
   m_Name: 
@@ -139,7 +139,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7367463274079047175}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a27d988a848e6f4e92e4e7268c46038, type: 3}
   m_Name: 
@@ -211,6 +211,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3551233736642144548}
   - component: {fileID: 8256983099250913563}
+  - component: {fileID: 1219221875593324619}
   m_Layer: 13
   m_Name: AirCollider
   m_TagString: Untagged
@@ -254,3 +255,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 16.89, y: 15.78, z: 5}
   m_Center: {x: 0.55, y: 22.86, z: 0}
+--- !u!65 &1219221875593324619
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7490927804086424243}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 3.47, y: 12.53, z: 5}
+  m_Center: {x: 0.54, y: 7.49, z: 0}
