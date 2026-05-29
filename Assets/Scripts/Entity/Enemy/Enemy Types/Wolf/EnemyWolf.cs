@@ -1,4 +1,6 @@
 using System.Collections;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,8 +9,12 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
     public class EnemyWolf : Enemy
     {
         #region States
+
         public WolfIdleState IdleState { get; private set; }
+        public WolfMoveState MoveState { get; private set; }
         public WolfAttackState1 AttackState1 { get; private set; }
+        public WolfChaseState ChaseState { get; private set; }
+
         #endregion
 
         [Header("Wolf Wander")]
@@ -18,11 +24,23 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         [SerializeField] private float WanderPointReachDistance = 0.35f;
         [SerializeField] private int WanderPointAttempts = 12;
 
-        [Header("Wolf Attack")]
-        [SerializeField] private float LungeDistance = 1.75f;
-        [SerializeField] private float LungeDuration = 0.18f;
-        [SerializeField] private float LungeRecoveryTime = 0.45f;
-        [SerializeField] private float AttackStopDistanceFromPlayer = 0.75f;
+        [Header("Lunge Attack")]
+        [SerializeField] private float LungeDistance = 2.25f;
+        [SerializeField] private float LungeSpeed = 18f;
+        [SerializeField] private float LungeRecoveryTime = 0.65f;
+        [SerializeField] private float AttackStopDistanceFromPlayer = 0.65f;
+        [SerializeField] private float LungeTimeout = 2f;
+
+        [Header("Lunge Recovery Circle")]
+        [SerializeField] private float RecoveryCircleRadius = 1.75f;
+        [SerializeField] private float RecoveryCircleSpeed = 4f;
+        [SerializeField] private bool CircleClockwise = true;
+
+        [Header("Lunge Randomization")]
+        [SerializeField] private Vector2 LungeDistanceRange = new Vector2(8f, 12f);
+        [SerializeField] private Vector2 LungeSpeedRange = new Vector2(20f, 30f);
+        [SerializeField] private Vector2 RecoveryCircleRadiusRange = new Vector2(7f, 13f);
+        [SerializeField] private Vector2 RecoveryCircleSpeedRange = new Vector2(10f, 20f);
 
         private Coroutine lungeCoroutine;
 
@@ -36,7 +54,9 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             Agent.speed = moveSpeed;
 
             IdleState = new WolfIdleState(this, StateMachine, "Idle", this);
+            MoveState = new WolfMoveState(this, StateMachine, "Move", this);
             AttackState1 = new WolfAttackState1(this, StateMachine, "Attack1", this);
+            ChaseState = new WolfChaseState(this, StateMachine, "Move", this);
         }
 
         protected override void Start()
@@ -120,7 +140,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 
             if (target == null)
             {
-                IsLunging = false;
+                EndLunge();
                 yield break;
             }
 
@@ -134,40 +154,148 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 
             directionToPlayer.Normalize();
 
-            Vector3 desiredEndPosition = target.position - directionToPlayer * AttackStopDistanceFromPlayer;
+            Vector3 desiredEndPosition =
+                target.position - directionToPlayer * AttackStopDistanceFromPlayer;
+
             desiredEndPosition.y = transform.position.y;
 
-            Vector3 maxLungePosition = transform.position + directionToPlayer * LungeDistance;
+            Vector3 maxLungePosition =
+                transform.position + directionToPlayer * LungeDistance;
 
-            Vector3 endPosition = Vector3.Distance(transform.position, desiredEndPosition) < LungeDistance
-                ? desiredEndPosition
-                : maxLungePosition;
+            maxLungePosition.y = transform.position.y;
+
+            Vector3 endPosition =
+                Vector3.Distance(transform.position, desiredEndPosition) < LungeDistance
+                    ? desiredEndPosition
+                    : maxLungePosition;
 
             if (NavMesh.SamplePosition(endPosition, out NavMeshHit hit, 1.25f, NavMesh.AllAreas))
                 endPosition = hit.position;
 
-            Vector3 startPosition = transform.position;
-            float timer = 0f;
+            Vector3 flatEndPosition = GetFlatPosition(endPosition);
 
-            while (timer < LungeDuration)
+            
+            float lungeTime = 0f;
+
+            while (Vector3.Distance(GetFlatPosition(transform.position), flatEndPosition) > 0.05f && lungeTime < LungeTimeout)
             {
-                timer += Time.deltaTime;
-                float t = timer / LungeDuration;
+                lungeTime += Time.deltaTime;
+                
+                Vector3 currentPosition = transform.position;
+                Vector3 nextFlatPosition = Vector3.MoveTowards(
+                    GetFlatPosition(currentPosition),
+                    flatEndPosition,
+                    LungeSpeed * Time.deltaTime);
 
-                transform.position = Vector3.Lerp(startPosition, endPosition, t);
+                transform.position = new Vector3(
+                    nextFlatPosition.x,
+                    currentPosition.y,
+                    nextFlatPosition.z);
 
+                Debug.Log("Lunging");
                 yield return null;
             }
 
-            transform.position = endPosition;
+            transform.position = new Vector3(
+                endPosition.x,
+                transform.position.y,
+                endPosition.z);
 
-            yield return new WaitForSeconds(LungeRecoveryTime);
+            yield return CircleAroundTarget(target);
 
+            EndLunge();
+
+            StateMachine.ChangeState(IdleState);
+        }
+
+        private IEnumerator CircleAroundTarget(Transform target)
+        {
+            float timer = 0f;
+
+            while (timer < LungeRecoveryTime && target != null)
+            {
+                Vector3 directionFromPlayer = transform.position - target.position;
+                directionFromPlayer.y = 0f;
+
+                if (directionFromPlayer.sqrMagnitude <= 0.01f)
+                    directionFromPlayer = -FacingDir;
+
+                directionFromPlayer.Normalize();
+
+                Vector3 tangentDirection = CircleClockwise
+                    ? new Vector3(directionFromPlayer.z, 0f, -directionFromPlayer.x)
+                    : new Vector3(-directionFromPlayer.z, 0f, directionFromPlayer.x);
+
+                Vector3 desiredPosition =
+                    target.position +
+                    directionFromPlayer * RecoveryCircleRadius +
+                    tangentDirection * RecoveryCircleSpeed * Time.deltaTime;
+
+                desiredPosition.y = transform.position.y;
+
+                if (NavMesh.SamplePosition(desiredPosition, out NavMeshHit hit, 1.25f, NavMesh.AllAreas))
+                {
+                    Vector3 flatTargetPosition = GetFlatPosition(hit.position);
+                    Vector3 flatCurrentPosition = GetFlatPosition(transform.position);
+
+                    Vector3 nextFlatPosition = Vector3.MoveTowards(
+                        flatCurrentPosition,
+                        flatTargetPosition,
+                        RecoveryCircleSpeed * Time.deltaTime);
+
+                    transform.position = new Vector3(
+                        nextFlatPosition.x,
+                        transform.position.y,
+                        nextFlatPosition.z);
+                }
+
+                FaceTarget(target);
+
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        private Vector3 GetFlatPosition(Vector3 position)
+        {
+            return new Vector3(position.x, 0f, position.z);
+        }
+
+        private void EndLunge()
+        {
             Agent.isStopped = false;
             IsLunging = false;
             lungeCoroutine = null;
+        }
 
-            StateMachine.ChangeState(IdleState);
+
+        public void RandomizeLungeAttackValues(Transform target)
+        {
+            RecoveryCircleRadius = Random.Range(
+                RecoveryCircleRadiusRange.x,
+                RecoveryCircleRadiusRange.y
+            );
+
+            RecoveryCircleSpeed = Random.Range(
+                RecoveryCircleSpeedRange.x,
+                RecoveryCircleSpeedRange.y
+            );
+
+            CircleClockwise = Random.value > 0.5f;
+
+            float distanceToTarget = Vector3.Distance(transform.position, target.position);
+
+            float randomizedExtraDistance = Random.Range(
+                LungeDistanceRange.x,
+                LungeDistanceRange.y
+            );
+
+            LungeDistance = distanceToTarget + randomizedExtraDistance;
+
+            LungeSpeed = Random.Range(
+                LungeSpeedRange.x,
+                LungeSpeedRange.y
+            );
         }
 
         protected override void OnDrawGizmosSelected()
@@ -176,6 +304,9 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, WanderRadius);
+
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position, AttackTriggerRadius);
         }
     }
 }

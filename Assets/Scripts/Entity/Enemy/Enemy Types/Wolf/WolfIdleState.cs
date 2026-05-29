@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
@@ -30,7 +31,11 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         {
             base.Update();
 
+            Debug.Log("Wolf In Idle State");
+
             Transform player = Enemy.GetPlayerInAttackRange();
+
+            bool foundPlayer = CheckIfWithinChaseRange();
 
             if (player != null)
             {
@@ -39,7 +44,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             }
 
             if (isWaiting)
-            {
+            { 
                 waitTimer -= Time.deltaTime;
 
                 Enemy.Agent.isStopped = true;
@@ -50,7 +55,15 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
                 return;
             }
 
+            
+
             Enemy.Agent.isStopped = false;
+
+            if (foundPlayer)
+            {
+                Enemy.StateMachine.ChangeState(Enemy.ChaseState);
+                return;
+            }
 
             if (Enemy.HasReachedDestination())
             {
@@ -71,6 +84,23 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 
             if (Enemy.TryGetRandomWanderPoint(out Vector3 point))
                 Enemy.Agent.SetDestination(point);
+        }
+
+        private bool CheckIfWithinChaseRange()
+        {
+            Collider[] hits = Physics.OverlapSphere(
+                Enemy.transform.position,
+                Enemy.ChaseTriggerRadius,
+                Enemy.WhatIsPlayer
+            );
+
+            foreach (Collider hit in hits)
+            {
+                if (hit.TryGetComponent(out Player _))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

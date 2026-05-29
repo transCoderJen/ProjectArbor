@@ -147,8 +147,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
 
         protected override void OnDrawGizmosSelected()
         {
-            if (!Application.isPlaying || !Debugging.Instance.DrawGizmos)
-                return;
+            
                 
             base.OnDrawGizmosSelected();
             

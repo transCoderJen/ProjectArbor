@@ -24,7 +24,7 @@ namespace ShiftedSignal.Garden.EntitySpace
     /// Base entity class for 2.5D gameplay.
     /// </summary>
     [RequireComponent(typeof(Rigidbody))]
-    [RequireComponent(typeof(CharacterStats))]
+    
     [RequireComponent(typeof(EntityFX))]
     public class Entity : MonoBehaviour
     {
@@ -95,8 +95,8 @@ namespace ShiftedSignal.Garden.EntitySpace
 
         protected virtual void Start()
         {
-            UI = FindAnyObjectByType<UI>();
-            GameObject canvas = GameObject.Find("Canvas");
+            // UI = FindAnyObjectByType<UI>();
+            // GameObject canvas = GameObject.Find("Canvas");
             // if (canvas != null)
             //     UI = canvas.GetComponent<UI>();
         }
@@ -250,24 +250,22 @@ namespace ShiftedSignal.Garden.EntitySpace
 
             FacingDir = newFacingDir;
 
-            if (FacingDir.x > 0f && !FacingRight)
-                FlipSprite();
-            else if (FacingDir.x < 0f && FacingRight)
-                FlipSprite();
+            // if (FacingDir.x > 0f && !FacingRight)
+            //     FlipSprite();
+            // else if (FacingDir.x < 0f && FacingRight)
+            //     FlipSprite();
 
             OnFacingChanged?.Invoke();
         }
 
-        protected virtual void FlipSprite()
-        {
-            return;
-            
-            FacingRight = !FacingRight;
+        // protected virtual void FlipSprite()
+        // {    
+        //     FacingRight = !FacingRight;
 
-            Vector3 scale = transform.localScale;
-            scale.x = Mathf.Abs(scale.x) * (FacingRight ? 1f : -1f);
-            transform.localScale = scale;
-        }
+        //     Vector3 scale = transform.localScale;
+        //     scale.x = Mathf.Abs(scale.x) * (FacingRight ? 1f : -1f);
+        //     transform.localScale = scale;
+        // }
         #endregion
 
         #region Damage / Knockback

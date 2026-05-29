@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using ShiftedSignal.Garden.Misc;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -10,10 +11,16 @@ namespace ShiftedSignal.Garden.SaveAndLoad
 {
     public class SaveManager : Singleton<SaveManager>
     {
+        [Header("Save Settings")]
         [SerializeField] private string fileName;
         [SerializeField] private bool encryptData;
+
+        [Header("Debug")]
+        [SerializeField] private bool LoadAsNewGame;
+
         [HideInInspector]
         public GameData gameData;
+
         private List<ISaveManager> saveManagers;
         private FileDataHandler dataHandler;
 
@@ -27,7 +34,9 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         private void Start()
         {
             dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
+
             saveManagers = FindAllSaveManagers();
+
             LoadGame();
         }
 
@@ -35,18 +44,26 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         {
             gameData = new GameData();
         }
-        
+
         public void LoadGame()
         {
-            gameData = dataHandler.Load();
-
-            if (this.gameData == null)
+            if (LoadAsNewGame)
             {
-                Debug.Log("No save data found!");
+                Debug.Log("Load As New Game enabled. Creating fresh save data.");
                 NewGame();
             }
+            else
+            {
+                gameData = dataHandler.Load();
 
-            foreach(ISaveManager saveManager in saveManagers)
+                if (gameData == null)
+                {
+                    Debug.Log("No save data found!");
+                    NewGame();
+                }
+            }
+
+            foreach (ISaveManager saveManager in saveManagers)
             {
                 saveManager.LoadData(gameData);
             }
@@ -55,7 +72,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         [ContextMenu("Save Game")]
         public void SaveGame()
         {
-            foreach(ISaveManager saveManager in saveManagers)
+            foreach (ISaveManager saveManager in saveManagers)
             {
                 saveManager.SaveData(ref gameData);
             }
@@ -68,11 +85,11 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         {
             string path = Application.persistentDataPath;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             EditorUtility.RevealInFinder(path);
-        #else
+#else
             Application.OpenURL("file://" + path);
-        #endif
+#endif
         }
 
         private void OnApplicationQuit()
@@ -83,23 +100,20 @@ namespace ShiftedSignal.Garden.SaveAndLoad
 
         private List<ISaveManager> FindAllSaveManagers()
         {
-            // FindObjectsByType ONLY finds objects that exist in the loaded scene, ignoring prefabs.
-            IEnumerable<ISaveManager> saveManagers = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<ISaveManager>();
+            IEnumerable<ISaveManager> saveManagers =
+                FindObjectsByType<MonoBehaviour>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None
+                ).OfType<ISaveManager>();
 
-            // Convert the IEnumerable to a List and return it
             return new List<ISaveManager>(saveManagers);
         }
-
 
         public bool HasSavedData()
         {
             dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
-            if (dataHandler.Load() != null)
-            {
-                return true;
-            }
-            
-            return false;
+
+            return dataHandler.Load() != null;
         }
     }
 }

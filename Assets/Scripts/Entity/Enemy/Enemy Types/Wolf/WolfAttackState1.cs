@@ -32,6 +32,8 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             Enemy.lastTimeAttacked = Time.time;
             Enemy.AttackTimer = Enemy.AttackCoolDown;
 
+            Enemy.RandomizeLungeAttackValues(target);
+
             Enemy.FaceTarget(target);
             Enemy.StartLunge(target);
         }
