@@ -31,6 +31,9 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         [SerializeField] private float AttackStopDistanceFromPlayer = 0.65f;
         [SerializeField] private float LungeTimeout = 2f;
 
+        [Header("Chase")]
+        public float LoseTargetTime = 3f;
+
         [Header("Lunge Recovery Circle")]
         [SerializeField] private float RecoveryCircleRadius = 1.75f;
         [SerializeField] private float RecoveryCircleSpeed = 4f;

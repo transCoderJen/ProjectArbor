@@ -1,11 +1,10 @@
 using UnityEngine;
-using UnityEngine.UI; // Required for Image components
+using UnityEngine.UI;
 using TMPro;
-using System;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
-using ShiftedSignal.Garden.Stats; // Required to access CharacterStats
+using ShiftedSignal.Garden.Stats;
 
 namespace ShiftedSignal.Garden.UserInterface
 {
@@ -13,8 +12,8 @@ namespace ShiftedSignal.Garden.UserInterface
     {
         [Header("Time UI")]
         [SerializeField] private TextMeshProUGUI TimeText;
-        [SerializeField] private TextMeshProUGUI DayText; 
-        
+        [SerializeField] private TextMeshProUGUI DayText;
+
         [Header("Day Period Icons")]
         [SerializeField] private Image DayPeriodIcon;
         [SerializeField] private Sprite DawnSprite;
@@ -27,38 +26,44 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private TextMeshProUGUI HealthText;
         [SerializeField] private TextMeshProUGUI MpText;
         [SerializeField] private TextMeshProUGUI CurrencyText;
-        [SerializeField] private TextMeshProUGUI LevelText; 
+        [SerializeField] private TextMeshProUGUI LevelText;
+
+        [Header("Number Scroll Settings")]
+        [SerializeField] private float NumberScrollSpeed = 75f;
 
         private CharacterStats playerStats;
 
-        void Start()
-        {
-            // Grab reference to player stats
-            if (PlayerManager.Instance != null && PlayerManager.Instance.Player != null)
-            {
-                playerStats = PlayerManager.Instance.Player.Stats;
-                
-                // Subscribe directly to the actions in CharacterStats
-                playerStats.OnHealthChanged += UpdateHealthUI;
-                playerStats.OnMagicChanged += UpdateMpUI; 
-            }
+        private float displayedHealth;
+        private float targetHealth;
 
-            AddEventHandlers();
-            
-            // Force an initial update of all UI elements to reflect current state
-            UpdateAllUI();
+        private float displayedMp;
+        private float targetMp;
+
+        private float displayedCurrency;
+        private float targetCurrency;
+
+        private float displayedDay;
+        private float targetDay;
+
+        private float displayedLevel;
+        private float targetLevel;
+
+        private void Start()
+        {
+            CachePlayerStats();
+            UpdateAllUIImmediate();
         }
 
         private void OnEnable()
         {
             AddEventHandlers();
+            CachePlayerStats();
         }
 
         private void OnDisable()
         {
             RemoveEventHandlers();
-            
-            // Unsubscribe from stat events to prevent memory leaks
+
             if (playerStats != null)
             {
                 playerStats.OnHealthChanged -= UpdateHealthUI;
@@ -66,14 +71,34 @@ namespace ShiftedSignal.Garden.UserInterface
             }
         }
 
+        private void Update()
+        {
+            ScrollHealthUI();
+            ScrollMpUI();
+            ScrollCurrencyUI();
+            ScrollDayUI();
+            ScrollLevelUI();
+        }
+
+        private void CachePlayerStats()
+        {
+            if (playerStats != null)
+                return;
+
+            if (PlayerManager.Instance == null || PlayerManager.Instance.Player == null)
+                return;
+
+            playerStats = PlayerManager.Instance.Player.Stats;
+
+            playerStats.OnHealthChanged += UpdateHealthUI;
+            playerStats.OnMagicChanged += UpdateMpUI;
+        }
+
         private void AddEventHandlers()
         {
             Bus<TimeChangedEvent>.OnEvent += UpdateTimeUI;
             Bus<DayStartedEvent>.OnEvent += UpdateDayUI;
-            
-            // Add this line to listen for day changes (Midnight & Save Loads)
-            Bus<DayChangedEvent>.OnEvent += UpdateDayUI; 
-            
+            Bus<DayChangedEvent>.OnEvent += UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent += UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent += HandleCurrencyUpdate;
             Bus<PlayerLevelUpEvent>.OnEvent += UpdateLevelUI;
@@ -83,48 +108,58 @@ namespace ShiftedSignal.Garden.UserInterface
         {
             Bus<TimeChangedEvent>.OnEvent -= UpdateTimeUI;
             Bus<DayStartedEvent>.OnEvent -= UpdateDayUI;
-            
-            // Add this line to unsubscribe cleanly
-            Bus<DayChangedEvent>.OnEvent -= UpdateDayUI; 
-            
+            Bus<DayChangedEvent>.OnEvent -= UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent -= UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent -= HandleCurrencyUpdate;
             Bus<PlayerLevelUpEvent>.OnEvent -= UpdateLevelUI;
         }
 
-        private void UpdateAllUI()
+        private void UpdateAllUIImmediate()
         {
             UpdateTimeUI();
-            UpdateDayUI(new DayStartedEvent());
-            UpdateDayPeriodUI(new DayPeriodChangedEvent(TimeManger.Instance.CurrentDayPeriod));
-            UpdateHealthUI();
-            UpdateMpUI();
-            UpdateCurrencyUI();
-            
-            if (playerStats != null && playerStats is PlayerStats pStats)
-                UpdateLevelUI(new PlayerLevelUpEvent(pStats.Level));
-        }
 
-        // --- Time & Day Methods ---
+            if (TimeManger.Instance != null)
+            {
+                SetDayImmediate(TimeManger.Instance.CurrentDay);
+                UpdateDayPeriodUI(new DayPeriodChangedEvent(TimeManger.Instance.CurrentDayPeriod));
+            }
+
+            if (playerStats != null)
+            {
+                SetHealthImmediate(playerStats.CurrentHealth);
+                SetMpImmediate(playerStats.CurrentMP);
+            }
+
+            if (PlayerManager.Instance != null)
+                SetCurrencyImmediate(PlayerManager.Instance.Currency);
+
+            if (playerStats is PlayerStats pStats)
+                SetLevelImmediate(pStats.Level);
+        }
 
         private void UpdateDayPeriodUI(DayPeriodChangedEvent evt)
         {
-            if (DayPeriodIcon == null) return;
+            if (DayPeriodIcon == null)
+                return;
 
-            switch(evt.DayPeriod)
+            switch (evt.DayPeriod)
             {
                 case DayPeriod.Dawn:
                     DayPeriodIcon.sprite = DawnSprite;
                     break;
+
                 case DayPeriod.Morning:
                     DayPeriodIcon.sprite = MorningSprite;
                     break;
+
                 case DayPeriod.Afternoon:
                     DayPeriodIcon.sprite = AfternoonSprite;
                     break;
+
                 case DayPeriod.Evening:
                     DayPeriodIcon.sprite = EveningSprite;
                     break;
+
                 case DayPeriod.Night:
                     DayPeriodIcon.sprite = NightSprite;
                     break;
@@ -133,14 +168,13 @@ namespace ShiftedSignal.Garden.UserInterface
 
         private void UpdateDayUI(DayStartedEvent args)
         {
-            if (DayText != null)
-                DayText.text = "Day " + TimeManger.Instance.CurrentDay;
+            if (TimeManger.Instance != null)
+                targetDay = TimeManger.Instance.CurrentDay;
         }
 
         private void UpdateDayUI(DayChangedEvent evt)
         {
-            if (DayText != null)
-                DayText.text = "Day " + evt.Day;
+            targetDay = evt.Day;
         }
 
         private void UpdateTimeUI(TimeChangedEvent evt)
@@ -150,49 +184,136 @@ namespace ShiftedSignal.Garden.UserInterface
 
         private void UpdateTimeUI()
         {
-            if (TimeText != null)
+            if (TimeText != null && TimeManger.Instance != null)
                 TimeText.text = TimeManger.Instance.FormattedTime;
         }
 
-        // --- Player Stat Methods ---
-
         private void UpdateHealthUI()
         {
-            if (HealthText != null && playerStats != null)
-            {
-                HealthText.text = $"{playerStats.CurrentHealth} / {playerStats.GetMaxHealthValue()}";
-            }
+            if (playerStats != null)
+                targetHealth = playerStats.CurrentHealth;
         }
 
         private void UpdateMpUI()
         {
-            if (MpText != null && playerStats != null)
-            {
-                MpText.text = $"{playerStats.CurrentMP} / {playerStats.MaxMP.GetValue()}";
-            }
+            if (playerStats != null)
+                targetMp = playerStats.CurrentMP;
         }
 
-        // We trigger an update when the CurrencyUpdatedEvent fires. 
-        // Note: evt.Coins only contains the *amount added*, so we read the total directly from the PlayerManager.
         private void HandleCurrencyUpdate(CurrencyUpdatedEvent evt)
         {
-            UpdateCurrencyUI();
-        }
-
-        private void UpdateCurrencyUI()
-        {
-            if (CurrencyText != null && PlayerManager.Instance != null)
-            {
-                CurrencyText.text = PlayerManager.Instance.Currency.ToString();
-            }
+            if (PlayerManager.Instance != null)
+                targetCurrency = PlayerManager.Instance.Currency;
         }
 
         private void UpdateLevelUI(PlayerLevelUpEvent evt)
         {
+            targetLevel = evt.Level;
+        }
+
+        private void ScrollHealthUI()
+        {
+            if (HealthText == null || playerStats == null)
+                return;
+
+            displayedHealth = ScrollNumber(displayedHealth, targetHealth);
+
+            HealthText.text =
+                $"{Mathf.RoundToInt(displayedHealth)} / {playerStats.GetMaxHealthValue()}";
+        }
+
+        private void ScrollMpUI()
+        {
+            if (MpText == null || playerStats == null)
+                return;
+
+            displayedMp = ScrollNumber(displayedMp, targetMp);
+
+            MpText.text =
+                $"{Mathf.RoundToInt(displayedMp)} / {playerStats.MaxMP.GetValue()}";
+        }
+
+        private void ScrollCurrencyUI()
+        {
+            if (CurrencyText == null)
+                return;
+
+            displayedCurrency = ScrollNumber(displayedCurrency, targetCurrency);
+            CurrencyText.text = Mathf.RoundToInt(displayedCurrency).ToString();
+        }
+
+        private void ScrollDayUI()
+        {
+            if (DayText == null)
+                return;
+
+            displayedDay = ScrollNumber(displayedDay, targetDay);
+            DayText.text = "Day " + Mathf.RoundToInt(displayedDay);
+        }
+
+        private void ScrollLevelUI()
+        {
+            if (LevelText == null)
+                return;
+
+            displayedLevel = ScrollNumber(displayedLevel, targetLevel);
+            LevelText.text = "Lvl " + Mathf.RoundToInt(displayedLevel);
+        }
+
+        private float ScrollNumber(float current, float target)
+        {
+            if (Mathf.Approximately(current, target))
+                return target;
+
+            return Mathf.MoveTowards(
+                current,
+                target,
+                NumberScrollSpeed * Time.unscaledDeltaTime);
+        }
+
+        private void SetHealthImmediate(int value)
+        {
+            displayedHealth = value;
+            targetHealth = value;
+
+            if (HealthText != null && playerStats != null)
+                HealthText.text = $"{value} / {playerStats.GetMaxHealthValue()}";
+        }
+
+        private void SetMpImmediate(int value)
+        {
+            displayedMp = value;
+            targetMp = value;
+
+            if (MpText != null && playerStats != null)
+                MpText.text = $"{value} / {playerStats.MaxMP.GetValue()}";
+        }
+
+        private void SetCurrencyImmediate(int value)
+        {
+            displayedCurrency = value;
+            targetCurrency = value;
+
+            if (CurrencyText != null)
+                CurrencyText.text = value.ToString();
+        }
+
+        private void SetDayImmediate(int value)
+        {
+            displayedDay = value;
+            targetDay = value;
+
+            if (DayText != null)
+                DayText.text = "Day " + value;
+        }
+
+        private void SetLevelImmediate(int value)
+        {
+            displayedLevel = value;
+            targetLevel = value;
+
             if (LevelText != null)
-            {
-                LevelText.text = "Lvl " + evt.Level;
-            }
+                LevelText.text = "Lvl " + value;
         }
     }
 }

@@ -15,9 +15,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public override void Enter()
         {
             base.Enter();
+            Time.timeScale = 0;
             CameraManager.Instance.SwitchCamera(CameraManager.VirtualCameraType.FreeLook);
             CameraManager.Instance.ResetOffsets();
             Player.StopMovement();
+            Player.InManagementState = true;
             
         }
         public override void Update()
@@ -29,25 +31,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Player.StateMachine.ChangeState(Player.IdleState);
                 return;
             }
-
-            // ToggleToolTipVisibility();
-
-            // Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            // if (Physics.Raycast(ray, out RaycastHit hit))
-            // {
-            //     Vector3 worldPosition = hit.point; // This is the exact world position
-            //     worldPosition.y = .27f;
-
-            //     var cellSize = GridManager.Instance.CellSize;
-
-            //     worldPosition = new Vector3(
-            //         Mathf.Floor(worldPosition.x / cellSize) * cellSize + (cellSize / 2),
-            //         worldPosition.y,
-            //         Mathf.Floor(worldPosition.z / cellSize) * cellSize + (cellSize / 2)
-            //     );
-            //     player.toolIndicator.position = worldPosition;
-            // }
-
         }
         
         public override void FixedUpdate()
@@ -58,9 +41,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public override void Exit()
         {
             base.Exit();
-            CameraManager.Instance.ResetOffsetsAndSwitchCamera(CameraManager.VirtualCameraType.Player);
-            // player.ToolIndicator.gameObject.SetActive(false);
-            
+            Player.InManagementState = false;
+            Time.timeScale = 1;
+            CameraManager.Instance.ResetOffsetsAndSwitchCamera(CameraManager.VirtualCameraType.Player);         
         }
     }
 }

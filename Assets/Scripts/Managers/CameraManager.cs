@@ -65,6 +65,7 @@ namespace ShiftedSignal.Garden.Managers
         [Header("Main Camera")]
         [SerializeField] private Camera currentCamera;
         public Camera CurrentCamera => currentCamera;
+
         [SerializeField] private Camera OverlayCamera;
 
         [Header("Virtual Cameras")]
@@ -96,6 +97,11 @@ namespace ShiftedSignal.Garden.Managers
         private bool isTransitioning;
 
         /// <summary>
+        /// Uses unscaled time so camera movement still works while the game is paused.
+        /// </summary>
+        private float CameraDeltaTime => Time.unscaledDeltaTime;
+
+        /// <summary>
         /// The currently active camera entry.
         /// </summary>
         public VCamera CurrentVCamera => currentVCamera;
@@ -111,7 +117,7 @@ namespace ShiftedSignal.Garden.Managers
             InitializeActiveCamera();
         }
 
-        void Start()
+        private void Start()
         {
             SyncOverlayCamera();
             SetupDistanceCulling();
@@ -158,7 +164,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Switches to a virtual camera by type immediately.
         /// </summary>
-        /// <param name="cameraType">The camera type to activate.</param>
         public void SwitchCamera(VirtualCameraType cameraType)
         {
             VCamera cameraEntry = GetCameraEntry(cameraType);
@@ -175,7 +180,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Smoothly resets the current camera offset, then switches to the target camera.
         /// </summary>
-        /// <param name="cameraType">The camera type to switch to after reset.</param>
         public void ResetOffsetsAndSwitchCamera(VirtualCameraType cameraType)
         {
             VCamera nextCameraEntry = GetCameraEntry(cameraType);
@@ -215,7 +219,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Sets the active virtual camera entry.
         /// </summary>
-        /// <param name="cameraEntry">The camera entry to activate.</param>
         public void SetActiveCamera(VCamera cameraEntry)
         {
             if (cameraEntry == null || cameraEntry.VirtualCamera == null)
@@ -255,7 +258,6 @@ namespace ShiftedSignal.Garden.Managers
         /// Adjusts the current camera's target field of view within its configured range.
         /// Smaller FOV means more zoomed in.
         /// </summary>
-        /// <param name="sizeChange">The amount to add to the target field of view.</param>
         public void ChangeFieldOfView(float sizeChange)
         {
             if (currentVCamera == null || CurrentVirtualCamera == null)
@@ -270,7 +272,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Adjusts the current camera's target follow offset Y within its configured range.
         /// </summary>
-        /// <param name="scrollInput">The scroll input amount.</param>
         public void ChangeFollowOffsetY(float scrollInput)
         {
             if (currentVCamera == null || CurrentVirtualCamera == null)
@@ -286,7 +287,6 @@ namespace ShiftedSignal.Garden.Managers
         /// Adjusts the current camera's target follow offset X and Z.
         /// Intended for the FreeLook camera. Bounds are handled externally.
         /// </summary>
-        /// <param name="movement">Input movement on X and Z axes.</param>
         public void ChangeFreeLookOffsetXZ(Vector2 movement)
         {
             if (currentVCamera == null || CurrentVirtualCamera == null)
@@ -298,7 +298,7 @@ namespace ShiftedSignal.Garden.Managers
             Vector3 moveDelta = new Vector3(
                 movement.x,
                 0f,
-                movement.y) * (freeLookPanSpeed * Time.deltaTime);
+                movement.y) * (freeLookPanSpeed * CameraDeltaTime);
 
             targetFollowOffset += moveDelta;
         }
@@ -306,8 +306,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Sets the follow target for a specific virtual camera.
         /// </summary>
-        /// <param name="cameraType">The target camera type.</param>
-        /// <param name="target">The transform to follow.</param>
         public void SetCameraFollow(VirtualCameraType cameraType, Transform target)
         {
             VCamera cameraEntry = GetCameraEntry(cameraType);
@@ -324,8 +322,6 @@ namespace ShiftedSignal.Garden.Managers
         /// <summary>
         /// Sets the look at target for a specific virtual camera.
         /// </summary>
-        /// <param name="cameraType">The target camera type.</param>
-        /// <param name="target">The transform to look at.</param>
         public void SetCameraLookAt(VirtualCameraType cameraType, Transform target)
         {
             VCamera cameraEntry = GetCameraEntry(cameraType);
@@ -368,7 +364,7 @@ namespace ShiftedSignal.Garden.Managers
 
                 while (Vector3.Distance(follow.FollowOffset, targetFollowOffset) > followOffsetSwitchThreshold)
                 {
-                    elapsedTime += Time.deltaTime;
+                    elapsedTime += CameraDeltaTime;
 
                     if (elapsedTime >= maxResetWaitTime)
                         break;
@@ -444,7 +440,7 @@ namespace ShiftedSignal.Garden.Managers
             lens.FieldOfView = Mathf.Lerp(
                 lens.FieldOfView,
                 targetFieldOfView,
-                Time.deltaTime * fieldOfViewLerpSpeed);
+                CameraDeltaTime * fieldOfViewLerpSpeed);
 
             CurrentVirtualCamera.Lens = lens;
         }
@@ -456,9 +452,9 @@ namespace ShiftedSignal.Garden.Managers
                 return;
 
             Vector3 offset = follow.FollowOffset;
-            offset.x = Mathf.Lerp(offset.x, targetFollowOffset.x, Time.deltaTime * followOffsetLerpSpeed);
-            offset.y = Mathf.Lerp(offset.y, targetFollowOffset.y, Time.deltaTime * followOffsetLerpSpeed);
-            offset.z = Mathf.Lerp(offset.z, targetFollowOffset.z, Time.deltaTime * followOffsetLerpSpeed);
+            offset.x = Mathf.Lerp(offset.x, targetFollowOffset.x, CameraDeltaTime * followOffsetLerpSpeed);
+            offset.y = Mathf.Lerp(offset.y, targetFollowOffset.y, CameraDeltaTime * followOffsetLerpSpeed);
+            offset.z = Mathf.Lerp(offset.z, targetFollowOffset.z, CameraDeltaTime * followOffsetLerpSpeed);
             follow.FollowOffset = offset;
         }
 
@@ -516,16 +512,15 @@ namespace ShiftedSignal.Garden.Managers
                 SetupDistanceCulling();
         }
 
-
         [ContextMenu("SyncOverlayCamera")]
         private void SyncOverlayCamera()
         {
+            if (OverlayCamera == null || currentCamera == null)
+                return;
 
-            // Sync transform
             OverlayCamera.transform.position = currentCamera.transform.position;
             OverlayCamera.transform.rotation = currentCamera.transform.rotation;
 
-            // Sync lens properties
             OverlayCamera.fieldOfView = currentCamera.fieldOfView;
             OverlayCamera.nearClipPlane = currentCamera.nearClipPlane;
             OverlayCamera.farClipPlane = currentCamera.farClipPlane;

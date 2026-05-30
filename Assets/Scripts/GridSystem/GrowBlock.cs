@@ -26,6 +26,7 @@ namespace ShiftedSignal.Garden.GridSystem
         public GrowthStage CurrentStage;
 
         public SpriteRenderer SR;
+        public Sprite GridIndicator;
         public Sprite BlockActiveSprite;
         public Sprite SoilTilledSprite;
         public Sprite SoilWateredSprite;
@@ -52,6 +53,7 @@ namespace ShiftedSignal.Garden.GridSystem
         private bool isHovered;
         public int health = 100;
         public GameObject SpawnedPlant;
+        public bool HasBuildable;
 
 
         private void Awake()
@@ -167,7 +169,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void SetActiveBlock(bool active)
         {
-            if (active && ! this.IsActive)
+            if (active && ! this.IsActive && !PreventUse)
             {
                 Bus<UnlockFarmingAreaEvent>.Raise(new UnlockFarmingAreaEvent());
             }
@@ -192,6 +194,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void SetSoilSprite()
         {
+            
             if (CurrentStage == GrowthStage.Barren)
             {
                 if (IsActive)
@@ -221,7 +224,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void UseContextAction(ItemData_Seed equippedSeed)
         {
-            if (PreventUse || !IsActive)
+            if (PreventUse || !IsActive || HasBuildable)
                 return;
 
             if (IsActivationBlock || Debugging.Instance.UnlockFarmAlways)
@@ -427,6 +430,50 @@ namespace ShiftedSignal.Garden.GridSystem
                 CurrentStage = GrowthStage.Ploughed;
             }
             UpdateCropSprite();
+            UpdateGridInfo();
+        }
+
+        /// <summary>
+        /// Completely resets this grow block back to its default state.
+        /// </summary>
+        public void ResetBlock()
+        {
+            // Remove any spawned ripe plant
+            if (SpawnedPlant != null)
+            {
+                ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
+                SpawnedPlant = null;
+            }
+
+            // Reset crop data
+            Seed = null;
+            CropSprite.sprite = null;
+
+            // Reset growth state
+            CurrentStage = GrowthStage.Barren;
+            IsWatered = false;
+
+            // Reset flags
+            PreventUse = false;
+            HasBuildable = false;
+            IsActivationBlock = false;
+            IsActive = false;
+
+            // Reset health
+            health = 100;
+
+            // Reset visuals
+            SR.sprite = GridIndicator;
+
+            if (SR.material != null)
+            {
+                SR.material.SetFloat("_Alpha", 1f);
+            }
+
+            // Remove selection glow
+            Glow(false);
+
+            // Save updated state
             UpdateGridInfo();
         }
     }

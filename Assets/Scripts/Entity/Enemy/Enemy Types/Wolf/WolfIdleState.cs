@@ -8,7 +8,6 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         protected EnemyWolf Enemy;
 
         private float waitTimer;
-        private bool isWaiting;
 
         public WolfIdleState(
             Enemy enemyBase,
@@ -23,19 +22,17 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         {
             base.Enter();
 
-            Enemy.Agent.isStopped = false;
-            PickNewWanderPoint();
+            Enemy.Agent.isStopped = true;
+            Enemy.Agent.ResetPath();
+
+            waitTimer = Random.Range(Enemy.idleTime * 0.5f, Enemy.idleTime * 1.5f);
         }
 
         public override void Update()
         {
             base.Update();
 
-            Debug.Log("Wolf In Idle State");
-
             Transform player = Enemy.GetPlayerInAttackRange();
-
-            bool foundPlayer = CheckIfWithinChaseRange();
 
             if (player != null)
             {
@@ -43,47 +40,25 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
                 return;
             }
 
-            if (isWaiting)
-            { 
-                waitTimer -= Time.deltaTime;
-
-                Enemy.Agent.isStopped = true;
-
-                if (waitTimer <= 0f)
-                    PickNewWanderPoint();
-
+            if (CheckIfWithinChaseRange())
+            {
+                StateMachine.ChangeState(Enemy.ChaseState);
                 return;
             }
 
-            
+            waitTimer -= Time.deltaTime;
 
-            Enemy.Agent.isStopped = false;
-
-            if (foundPlayer)
+            if (waitTimer <= 0f)
             {
-                Enemy.StateMachine.ChangeState(Enemy.ChaseState);
-                return;
-            }
-
-            if (Enemy.HasReachedDestination())
-            {
-                isWaiting = true;
-                waitTimer = Random.Range(Enemy.idleTime * 0.5f, Enemy.idleTime * 1.5f);
+                StateMachine.ChangeState(Enemy.MoveState);
             }
         }
 
         public override void Exit()
         {
             base.Exit();
-            Enemy.Agent.ResetPath();
-        }
 
-        private void PickNewWanderPoint()
-        {
-            isWaiting = false;
-
-            if (Enemy.TryGetRandomWanderPoint(out Vector3 point))
-                Enemy.Agent.SetDestination(point);
+            Enemy.Agent.isStopped = false;
         }
 
         private bool CheckIfWithinChaseRange()

@@ -9,6 +9,8 @@ using ShiftedSignal.Garden.Interfaces;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ShiftedSignal.Garden.SaveAndLoad;
+using System;
+using Unity.Mathematics;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -76,7 +78,12 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public ToolType CurrentTool;
 
+        [SerializeField] private BuildableData EquippedBuildable;
         #endregion
+
+        [Header("Farming")]
+        [SerializeField] private float blockInteractRadius = 3f;
+        public bool InManagementState = false;
 
         #region === State Machine ===
 
@@ -261,12 +268,34 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void UseTool()
         {
+            if (InManagementState)
+            {
+                Build();
+                return;
+            }
+
             GrowBlock block = GetBlock();
 
             if (block == null)
                 return;
 
             block.UseContextAction(EquippedSeed);
+        }
+
+        private void Build()
+        {
+            GrowBlock block = GetBlock();
+
+            if (block == null || !block.IsActive)
+                return;
+            
+            Debug.Log("About to try build");
+            if (EquippedBuildable.CanAfford())
+            {
+                Instantiate(EquippedBuildable.BuildablePrefab, block.transform.position, Quaternion.identity);
+                block.ResetBlock();
+                block.HasBuildable = true;
+            }    
         }
 
         private void TryInteract()

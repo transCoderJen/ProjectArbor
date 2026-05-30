@@ -51,8 +51,8 @@ Material:
     - _QueueOffset: 0
     - _ScrollSpeed: -1
     m_Colors:
-    - _FresnelColor: {r: 0, g: 1, b: 0, a: 0}
-    - _Tint: {r: 0.61414, g: 0.3199092, b: 0.745283, a: 0}
+    - _FresnelColor: {r: 0, g: 0.0625, b: 0, a: 0}
+    - _Tint: {r: 0.0767675, g: 0.03998865, b: 0.093160376, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &4870685259160817282

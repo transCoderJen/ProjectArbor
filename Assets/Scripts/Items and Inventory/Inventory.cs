@@ -683,6 +683,25 @@ namespace ShiftedSignalGames.GOF.ItemsAndInventory
                     seedBankDictionary.ContainsKey(item);
         }
 
+        public bool HasItem(ItemData item, int amount)
+        {
+            if (item == null || amount <= 0)
+                return false;
+
+            int count = 0;
+
+            if (inventoryDictionary.TryGetValue(item, out InventoryItem inv))
+                count += inv.stackSize;
+
+            if (stashDictionary.TryGetValue(item, out InventoryItem stash))
+                count += stash.stackSize;
+
+            if (seedBankDictionary.TryGetValue(item, out InventoryItem seeds))
+                count += seeds.stackSize;
+
+            return count >= amount;
+        }
+
         public void RemoveItem(ItemData item, bool updateUI = true)
         {
             InitializeCollections();
