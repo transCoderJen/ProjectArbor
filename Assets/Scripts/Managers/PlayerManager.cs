@@ -4,6 +4,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
+using UnityEngine;
 
 namespace ShiftedSignal.Garden.Managers
 {
@@ -43,6 +44,7 @@ namespace ShiftedSignal.Garden.Managers
 
         public void LoadData(GameData data)
         {
+            Debug.Log("Loading currency and farming area");
             this.Currency = data.currency;
             this.UnlockedFarmingArea = data.unlockedFarmingArea;
         }

@@ -28,14 +28,16 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         public bool CanAfford()
         {
             if (PlayerManager.Instance.Currency < Cost)
+            {
+                Debug.Log("Not Enough Gold to Build " + BuildableName);
                 return false;
+            }
 
             if (!HasRequiredMaterials())
+            {
+                Debug.Log("Not Enough Materials to Build " + BuildableName);
                 return false;
-            
-
-            Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(-Cost));
-            RemoveRequiredMaterials();
+            }
 
             return true;
         }
@@ -59,7 +61,7 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             return true;
         }
 
-        private void RemoveRequiredMaterials()
+        public void RemoveRequiredMaterials()
         {
             if (Inventory.Instance == null)
                 return;

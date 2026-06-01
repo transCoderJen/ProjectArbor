@@ -42,6 +42,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.Exit();
             Player.InManagementState = false;
+            Player.DestroyGhost();
             Time.timeScale = 1;
             CameraManager.Instance.ResetOffsetsAndSwitchCamera(CameraManager.VirtualCameraType.Player);         
         }

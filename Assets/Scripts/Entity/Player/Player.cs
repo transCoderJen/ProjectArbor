@@ -9,8 +9,8 @@ using ShiftedSignal.Garden.Interfaces;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ShiftedSignal.Garden.SaveAndLoad;
-using System;
-using Unity.Mathematics;
+using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Misc;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -73,6 +73,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [Header("Interact")]
         [SerializeField] private float interactRadius = 2f;
         [SerializeField] private LayerMask interactLayer;
+        [SerializeField] private LayerMask floorLayer;
 
         [HideInInspector] public bool AttackBuffered = false;
 
@@ -97,6 +98,22 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public Vector2 CachedMoveInput;
 
         #endregion
+
+        [Header("Building Placement Colors")]
+        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)] 
+        private Color errorTintColor = Color.red;
+        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)] 
+        private Color errorFresnelColor = new (4, 1.7f, 0, 2);
+        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)] 
+        private Color availableToPlaceTintColor = new (0.2f, 0.65f, 1, 2);
+        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
+        private Color availableToPlaceFresnelColor = new (.02f, 0.65f, 1, 2);
+
+
+        private GameObject ghostInstance;
+        private MeshRenderer ghostRenderer;
+        private static readonly int TINT = Shader.PropertyToID("_Tint");
+        private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
 
         #region === Unity Lifecycle ===
 
@@ -177,6 +194,59 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             }
 
             HandleDebugInputs();
+            CreateGhost();
+            HandleGhost();
+        }
+
+        private void CreateGhost()
+        {
+            if (InManagementState)
+            {
+                if (ghostInstance == null)
+                {
+                    ghostInstance = Instantiate(EquippedBuildable.BuildablePrefab);
+                    ghostRenderer = ghostInstance.GetComponentInChildren<MeshRenderer>();
+                }
+            }
+        }
+
+        private void HandleGhost()
+        {
+            if (ghostInstance == null) return;
+
+            if (Keyboard.current.escapeKey.wasReleasedThisFrame)
+            {
+                Destroy(ghostInstance);
+                ghostInstance = null;
+                return;
+            }
+
+            Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayer))
+            {
+                if (hit.collider.TryGetComponent<GrowBlock>(out GrowBlock growBlock))
+                {
+                    Debug.Log("Found GrowBlock");
+                    ghostInstance.transform.position = growBlock.transform.position;
+                }
+                else
+                {
+                    ghostInstance.transform.position = hit.point;
+                }
+
+                
+                bool allRestrictionsPass = EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>().AllRestrictionsPass();
+                       
+                ghostRenderer.material.SetColor(TINT, allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
+                ghostRenderer.material.SetColor(FRESNEL, allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
+            }
+        }
+
+        public void DestroyGhost()
+        {
+            Destroy(ghostInstance);
+            ghostInstance = null;
         }
 
         protected override void FixedUpdate()
@@ -292,9 +362,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Debug.Log("About to try build");
             if (EquippedBuildable.CanAfford())
             {
-                Instantiate(EquippedBuildable.BuildablePrefab, block.transform.position, Quaternion.identity);
+                GameObject BuiltObject = Instantiate(EquippedBuildable.BuildablePrefab, block.transform.position, Quaternion.identity);
+                BuiltObject.GetComponent<BaseBuildable>().Build();
+                
                 block.ResetBlock();
                 block.HasBuildable = true;
+                EquippedBuildable.RemoveRequiredMaterials();
+                Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(-EquippedBuildable.Cost));
             }    
         }
 

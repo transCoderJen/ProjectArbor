@@ -32,7 +32,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
 
         public GameData()
         {
-            currency = 0;
+            currency = 100;
             skillTree = new SerializableDictionary<string, bool>();
             inventory = new SerializableDictionary<string, int>();
             stash = new SerializableDictionary<string, int>();

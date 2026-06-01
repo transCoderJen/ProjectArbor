@@ -166,7 +166,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
             
         }
-
+        
         public void SetActiveBlock(bool active)
         {
             if (active && ! this.IsActive && !PreventUse)
