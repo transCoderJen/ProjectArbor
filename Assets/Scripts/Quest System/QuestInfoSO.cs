@@ -1,8 +1,16 @@
+using System;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.QuestSystem
 {    
+    [Serializable]
+    public struct ItemReward
+    {
+        public ItemData Data;
+        public int Amount;
+    }
+
     [CreateAssetMenu(fileName = "QuestInfoSO", menuName = "Data/QuestInfoSO")]
     public class QuestInfoSO : ScriptableObject
     {
@@ -21,7 +29,7 @@ namespace ShiftedSignal.Garden.QuestSystem
         [Header("Rewards")]
         public int GoldReward;
         public int ExperienceReward;
-        public ItemData[] ItemRewards;
+        public ItemReward[] ItemRewards;
 
         void OnValidate()
         {

@@ -5,14 +5,19 @@ using UnityEngine;
 public class QuestStepState
 {
     public String State;
+    public string Status;
 
-    public QuestStepState(string state)
+    public QuestStepState(string state, string status)
     {
-        State = state;
+        this.State = state;
+        this.Status = status;
+
     }
 
     public QuestStepState()
     {
-        State = "";
+        this.State = "";
+        this.Status = "";
+
     }
 }

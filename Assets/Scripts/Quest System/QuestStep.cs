@@ -32,13 +32,13 @@ namespace ShiftedSignal.Garden.QuestSystem
             }
         }
 
-        protected void ChangeState(string newState)
+        protected void ChangeState(string newState, string newStatus)
         {
             Bus<QuestStepStateChangedEvent>.Raise(
                 new QuestStepStateChangedEvent(
                     questId, 
                     stepIndex, 
-                    new QuestStepState(newState)));
+                    new QuestStepState(newState, newStatus)));
         }
 
         protected abstract void SetQuestStepState(string state);

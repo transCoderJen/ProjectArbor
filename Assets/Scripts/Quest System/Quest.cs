@@ -79,6 +79,7 @@ namespace ShiftedSignal.Garden.QuestSystem
             if (stepIndex < questStepStates.Length)
             {
                 questStepStates[stepIndex].State = questStepState.State;
+                questStepStates[stepIndex].Status = questStepState.Status;
             }
             else
             {
@@ -105,6 +106,44 @@ namespace ShiftedSignal.Garden.QuestSystem
                     + "out of sync. Resetting the data is recommended. "
                     + "QuestID: " + Info.ID);
             }
+        }
+
+        public string GetFullStatusText()
+        {
+            string fullStatus = "";
+
+            if (State == QuestState.REQUIREMENTS_NOT_MET)
+            {
+                fullStatus = "Requirments are not yet met to start this quest";
+            }
+            else if (State == QuestState.CAN_START)
+            {
+                fullStatus = "This quest can be started!";
+            }
+            else
+            {
+                // display all previous quest steps with strikethroughs
+                for (int i = 0; i < currentQuestStepIndex; i++)
+                {
+                    fullStatus += "<s>" + questStepStates[i].Status + "</s>\n";
+                }
+                if (CurrentStepExists())
+                {
+                    fullStatus += questStepStates[currentQuestStepIndex].Status;
+                }
+
+                if (State == QuestState.CAN_FINISH)
+                {
+                    fullStatus += "The quest is ready to be turned in.";
+                }
+                else if (State == QuestState.FINISHED)
+                {
+                    fullStatus += "The quest has been completed!";
+                }      
+            }
+
+            return fullStatus;
+
         }
     }
 }

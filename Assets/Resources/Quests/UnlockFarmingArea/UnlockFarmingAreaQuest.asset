@@ -15,8 +15,10 @@ MonoBehaviour:
   <ID>k__BackingField: UnlockFarmingAreaQuest
   DisplayName: Unlock 5 Blocks of Farming Area
   LevelRequirement: 1
-  QuestPrerequisites: []
-  QuestStepPrefabs: []
-  GoldReward: 0
-  ExperienceReward: 0
+  QuestPrerequisites:
+  - {fileID: 11400000, guid: 33436107a68ed3c4d9b030519e96df76, type: 2}
+  QuestStepPrefabs:
+  - {fileID: 4211970213920092272, guid: c8ce265b7a2203245840daacd2161c2d, type: 3}
+  GoldReward: 100
+  ExperienceReward: 100
   ItemRewards: []

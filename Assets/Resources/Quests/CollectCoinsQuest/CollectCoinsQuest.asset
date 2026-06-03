@@ -21,8 +21,5 @@ MonoBehaviour:
   GoldReward: 50
   ExperienceReward: 250
   ItemRewards:
-  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
-  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
-  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
-  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
-  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
+  - Data: {fileID: 11400000, guid: f1e297163b7c2de44a978a13be17c457, type: 2}
+    Amount: 10

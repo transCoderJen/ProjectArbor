@@ -36,6 +36,7 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
             }
 
             Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
+            Debug.Log("Rereshing QuestData");
         }
     }
 
@@ -191,9 +192,14 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         PlayerStats playerStats = (PlayerStats)PlayerManager.Instance.Player.Stats;
         playerStats.AddExperience(quest.Info.ExperienceReward);
 
-        foreach (ItemData data in quest.Info.ItemRewards)
+        if (quest.Info.ItemRewards == null) return;
+
+        foreach (ItemReward reward in quest.Info.ItemRewards)
         {
-            Inventory.Instance.AddItem(data);
+            for (int i = 0; i < reward.Amount; i++)
+            {
+                Inventory.Instance.AddItem(reward.Data);
+            }
         }
     }
 

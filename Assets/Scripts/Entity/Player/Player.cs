@@ -227,7 +227,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             {
                 if (hit.collider.TryGetComponent<GrowBlock>(out GrowBlock growBlock))
                 {
-                    Debug.Log("Found GrowBlock");
                     ghostInstance.transform.position = growBlock.transform.position;
                 }
                 else

@@ -485,11 +485,6 @@ namespace ShiftedSignal.Garden.Effects
 
         private void OnDrawGizmosSelected()
         {
-            if (!Debugging.Instance.DrawGizmos)
-            {
-                return;
-            }
-
             if (TerrainRef == null)
             {
                 return;
