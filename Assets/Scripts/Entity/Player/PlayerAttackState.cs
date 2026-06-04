@@ -91,7 +91,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             base.Exit();
 
             comboCounter++;
-            Debug.Log("Combo Counter at: " + comboCounter);
             lastTimeAttacked = Time.time;
         }
 

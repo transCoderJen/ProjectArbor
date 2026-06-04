@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.QuestSystem
@@ -8,6 +10,7 @@ namespace ShiftedSignal.Garden.QuestSystem
         public QuestState State;
         private int currentQuestStepIndex;
         private QuestStepState[] questStepStates;
+        public bool IsReceived { get; private set; }
 
         public Quest(QuestInfoSO questInfo)
         {
@@ -37,6 +40,12 @@ namespace ShiftedSignal.Garden.QuestSystem
             }
         }
 
+        public void ReceiveQuest()
+        {
+            Debug.Log("Recieveing quest in the quest");
+            IsReceived = true;
+        }
+
         public void MoveToNextStep()
         {
             currentQuestStepIndex++;
@@ -44,7 +53,9 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         public bool CurrentStepExists()
         {
-            return currentQuestStepIndex < Info.QuestStepPrefabs.Length;
+            return currentQuestStepIndex >= 0 &&
+                currentQuestStepIndex < Info.QuestStepPrefabs.Length &&
+                currentQuestStepIndex < questStepStates.Length;
         }
 
         public void InstantiateCurrentQuestStep(Transform parentTransform)
@@ -90,7 +101,12 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         public QuestData GetQuestData()
         {
-            return new QuestData(State, currentQuestStepIndex, questStepStates);
+            return new QuestData(
+                State,
+                currentQuestStepIndex,
+                questStepStates,
+                IsReceived
+            );
         }
 
         public void LoadQuestData(QuestData questData)
@@ -98,6 +114,7 @@ namespace ShiftedSignal.Garden.QuestSystem
             State = questData.State;
             currentQuestStepIndex = questData.QuestStepIndex;
             questStepStates = questData.QuestStepStates;
+            IsReceived = questData.IsReceived;
 
             if (questStepStates.Length != Info.QuestStepPrefabs.Length)
             {
@@ -114,36 +131,36 @@ namespace ShiftedSignal.Garden.QuestSystem
 
             if (State == QuestState.REQUIREMENTS_NOT_MET)
             {
-                fullStatus = "Requirments are not yet met to start this quest";
+                return "Requirements are not yet met to start this quest";
             }
-            else if (State == QuestState.CAN_START)
-            {
-                fullStatus = "This quest can be started!";
-            }
-            else
-            {
-                // display all previous quest steps with strikethroughs
-                for (int i = 0; i < currentQuestStepIndex; i++)
-                {
-                    fullStatus += "<s>" + questStepStates[i].Status + "</s>\n";
-                }
-                if (CurrentStepExists())
-                {
-                    fullStatus += questStepStates[currentQuestStepIndex].Status;
-                }
 
-                if (State == QuestState.CAN_FINISH)
-                {
-                    fullStatus += "The quest is ready to be turned in.";
-                }
-                else if (State == QuestState.FINISHED)
-                {
-                    fullStatus += "The quest has been completed!";
-                }      
+            if (State == QuestState.CAN_START)
+            {
+                return "This quest can be started!";
+            }
+
+            int completedStepCount = Mathf.Min(currentQuestStepIndex, questStepStates.Length);
+
+            for (int i = 0; i < completedStepCount; i++)
+            {
+                fullStatus += "<s>" + questStepStates[i].Status + "</s>\n";
+            }
+
+            if (CurrentStepExists() && currentQuestStepIndex < questStepStates.Length)
+            {
+                fullStatus += questStepStates[currentQuestStepIndex].Status + "\n";
+            }
+
+            if (State == QuestState.CAN_FINISH)
+            {
+                fullStatus += "The quest is ready to be turned in.";
+            }
+            else if (State == QuestState.FINISHED)
+            {
+                fullStatus += "The quest has been completed!";
             }
 
             return fullStatus;
-
         }
     }
 }

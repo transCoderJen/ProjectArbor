@@ -29,19 +29,20 @@ public class QuestLogUI : MonoBehaviour
         Bus<QuestStateChangedEvent>.OnEvent -= HandleQuestStateChanged;
         Bus<QuestStateChangedEvent>.OnEvent += HandleQuestStateChanged;
 
-        // Select the first quest and populate the info panel.
-        if (firstSelectedButton != null)
-        {
-            firstSelectedButton.Select();
+        RefreshQuestLog();
+        // // Select the first quest and populate the info panel.
+        // if (firstSelectedButton != null)
+        // {
+        //     firstSelectedButton.Select();
 
-            QuestLogButton button =
-                firstSelectedButton.GetComponent<QuestLogButton>();
+        //     QuestLogButton button =
+        //         firstSelectedButton.GetComponent<QuestLogButton>();
 
-            if (button != null)
-            {
-                SetQuestLogInfo(button.Quest);
-            }
-        }
+        //     if (button != null)
+        //     {
+        //         SetQuestLogInfo(button.Quest);
+        //     }
+        // }
     }
 
 
@@ -89,6 +90,43 @@ public class QuestLogUI : MonoBehaviour
         foreach (ItemReward reward in quest.Info.ItemRewards)
         {
             MaterialRewardsText.text += reward.Amount + reward.Data.ItemName;
+        }
+    }
+
+    public void RefreshQuestLog()
+    {
+        if (QuestManager.Instance == null || ScrollingList == null)
+        {
+            return;
+        }
+
+        firstSelectedButton = null;
+
+        foreach (Quest quest in QuestManager.Instance.GetReceivedQuests())
+        {
+            QuestLogButton questLogButton = ScrollingList.CreateButtonIfNotExists(quest, () =>
+            {
+                SetQuestLogInfo(quest);
+            });
+
+            questLogButton.SetState(quest.State);
+
+            if (firstSelectedButton == null)
+            {
+                firstSelectedButton = questLogButton.button;
+            }
+        }
+
+        if (firstSelectedButton != null)
+        {
+            firstSelectedButton.Select();
+
+            QuestLogButton button = firstSelectedButton.GetComponent<QuestLogButton>();
+
+            if (button != null)
+            {
+                SetQuestLogInfo(button.Quest);
+            }
         }
     }
 }

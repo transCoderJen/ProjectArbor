@@ -1,5 +1,4 @@
 using ShiftedSignal.Garden.QuestSystem;
-using UnityEngine;
 
 [System.Serializable]
 public class QuestData
@@ -7,12 +6,17 @@ public class QuestData
     public QuestState State;
     public int QuestStepIndex;
     public QuestStepState[] QuestStepStates;
+    public bool IsReceived;
 
-    public QuestData(QuestState state, int questStepIndex, QuestStepState[] queueStepStates)
+    public QuestData(
+        QuestState state,
+        int questStepIndex,
+        QuestStepState[] questStepStates,
+        bool isReceived)
     {
         State = state;
         QuestStepIndex = questStepIndex;
-        QuestStepStates = queueStepStates;
+        QuestStepStates = questStepStates;
+        IsReceived = isReceived;
     }
-
 }

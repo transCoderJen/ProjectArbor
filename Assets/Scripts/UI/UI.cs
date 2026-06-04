@@ -53,7 +53,7 @@ namespace ShiftedSignal.Garden.UserInterface
         
         void Start()
         {
-            
+            SwitchTo(inGameUI);
         }
 
         public void SwitchTo(GameObject _menu)

@@ -13,6 +13,9 @@ namespace ShiftedSignal.Garden.QuestSystem
     [RequireComponent(typeof(SphereCollider))]
     public class QuestPoint : MonoBehaviour, IInteractable
     {
+        [Header("Dialogue")]
+        [SerializeField] private string DialogueKnotName;
+
         [Header("Quest")]
         [SerializeField] private QuestInfoSO QuestInfoForPoint;
 
@@ -75,14 +78,28 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         public void Interact(Player player)
         {
-            if (currentQuestState.Equals(QuestState.CAN_START) && StartPoint)
+            if (!IsPlayerNear)
             {
-                Bus<StartQuestEvent>.Raise(new StartQuestEvent(questId));
+                return;
             }
-            else if (currentQuestState.Equals(QuestState.CAN_FINISH) && FinishPoint)
+
+            if (!DialogueKnotName.Equals(""))
             {
-                Bus<FinishQuestEvent>.Raise(new FinishQuestEvent(questId));
+                Bus<EnterDialogueEvent>.Raise(new EnterDialogueEvent(DialogueKnotName));
             }
+            else
+            {
+                if (currentQuestState.Equals(QuestState.CAN_START) && StartPoint)
+                {
+                    Bus<StartQuestEvent>.Raise(new StartQuestEvent(questId));
+                }
+                else if (currentQuestState.Equals(QuestState.CAN_FINISH) && FinishPoint)
+                {
+                    Bus<FinishQuestEvent>.Raise(new FinishQuestEvent(questId));
+                }
+            }
+
+            
         }
 
         public void Highlight(bool highlight)

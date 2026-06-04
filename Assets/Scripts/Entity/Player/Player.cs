@@ -115,6 +115,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         private static readonly int TINT = Shader.PropertyToID("_Tint");
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
 
+        private bool controlsEnabled = true;
+
         #region === Unity Lifecycle ===
 
         protected override void Awake()
@@ -157,6 +159,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<WeaponEquipEvent>.OnEvent += HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent += HandleToolEquipped;
             Bus<SeedEquipEvent>.OnEvent += HandleSeedEquipped;
+            Bus<EnablePlayerMovementEvent>.OnEvent += HandleEnablePlayerMovement;
         }
 
         protected override void OnDisable()
@@ -169,6 +172,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<WeaponEquipEvent>.OnEvent -= HandleWeaponEquipped;
             Bus<ToolEquipEvent>.OnEvent -= HandleToolEquipped;
             Bus<SeedEquipEvent>.OnEvent -= HandleSeedEquipped;
+            Bus<EnablePlayerMovementEvent>.OnEvent -= HandleEnablePlayerMovement;
         }
 
         private void OnDestroy()
@@ -177,10 +181,24 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Instance = null;
         }
 
+        private void HandleEnablePlayerMovement(EnablePlayerMovementEvent evt)
+        {
+            controlsEnabled = evt.EnableMovement;
+
+            if (!controlsEnabled)
+            {
+                StopMovement();
+                CachedMoveInput = Vector2.zero;
+            }
+        }
+
         protected override void Update()
         {
             base.Update();
 
+            if (!controlsEnabled)
+                return;
+            
             StateMachine.CurrentState?.Update();
 
             if (actionInput != null && actionInput.action.WasPressedThisFrame())
@@ -264,7 +282,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         #region === Input Handling ===
 
-        private void OnInteract(InputValue value)
+        public void OnInteract(InputValue value)
         {
             TryInteract();
         }
@@ -382,11 +400,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             {
                 if (hit.TryGetComponent(out IInteractable interactable))
                 {
-                    if (interactable.IsPlayerNear())
-                    {
-                        interactable.Interact(this);
-                        break;
-                    }
+
+                    interactable.Interact(this);
+                    break;
+                    
                 }
             }
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
@@ -9,6 +10,7 @@ using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignalGames.GOF.ItemsAndInventory;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 public class QuestManager : Singleton<QuestManager>, ISaveManager
@@ -36,7 +38,6 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
             }
 
             Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
-            Debug.Log("Rereshing QuestData");
         }
     }
 
@@ -47,7 +48,9 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<FinishQuestEvent>.OnEvent += FinishQuest;
         Bus<PlayerLevelUpEvent>.OnEvent += HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent += HandleQuestStepStateChanged;
+        Bus<QuestRecievedEvent>.OnEvent += RecieveQuest;
     }
+
 
     private void OnDisable()
     {
@@ -56,6 +59,23 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<FinishQuestEvent>.OnEvent -= FinishQuest;
         Bus<PlayerLevelUpEvent>.OnEvent -= HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent -= HandleQuestStepStateChanged;
+        Bus<QuestRecievedEvent>.OnEvent -= RecieveQuest;
+    }
+
+    private void RecieveQuest(QuestRecievedEvent evt)
+    {
+        Quest quest = GetQuestById(evt.Id);
+
+        if (quest == null)
+        {
+            return;
+        }
+
+        quest.ReceiveQuest();
+
+        Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
+
+        Debug.Log($"Received quest: {quest.Info.ID}");
     }
 
     private void Update()
@@ -232,5 +252,18 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         }
 
         return quest;
+    }
+
+    public IEnumerable<Quest> GetReceivedQuests()
+    {
+        foreach (Quest quest in questMap.Values)
+        {
+            Debug.Log(quest.Info.ID + " " + quest.IsReceived);
+            if (quest.IsReceived)
+            {
+                Debug.Log(quest.Info.ID + " has been recieved");
+                yield return quest;
+            }
+        }
     }
 }
