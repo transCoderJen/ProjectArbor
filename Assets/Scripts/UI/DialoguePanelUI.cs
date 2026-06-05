@@ -24,6 +24,10 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private DialogueSpeakerDatabase SpeakerDatabase;
         [SerializeField] private Sprite DefaultPortrait;
 
+        [SerializeField] private float submitLockDuration = 0.15f;
+
+        private bool canSubmitDialogue;
+
         private bool isTyping;
         private string currentDialogueLine = string.Empty;
         private DisplayDialogueEvent currentDisplayEvent;
@@ -58,10 +62,20 @@ namespace ShiftedSignal.Garden.UserInterface
         private void DialogueStarted(DialogueStartedEvent _)
         {
             ContentParent.SetActive(true);
+            canSubmitDialogue = false;
+            Invoke(nameof(UnlockDialogueSubmit), submitLockDuration);
+        }
+
+        private void UnlockDialogueSubmit()
+        {
+            canSubmitDialogue = true;
         }
 
         private void DialogueFinished(DialogueFinishedEvent _)
         {
+            CancelInvoke(nameof(UnlockDialogueSubmit));
+            canSubmitDialogue = false;
+
             ContentParent.SetActive(false);
             ResetPanel();
         }
@@ -121,6 +135,9 @@ namespace ShiftedSignal.Garden.UserInterface
 
         private void HandleSubmit(DialogueSubmitEvent _)
         {
+            if (!canSubmitDialogue)
+                return;
+
             if (isTyping)
             {
                 DialogueTypeWriter.SkipTypewriter();

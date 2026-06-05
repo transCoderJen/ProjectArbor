@@ -70,6 +70,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public ItemData_Equipment EquippedWeapon;
         public ItemData_Seed EquippedSeed;
 
+        [Header("Water Blocking")]
+        [SerializeField] private Terrain terrain;
+        [SerializeField] private float waterLevelY = 0f;
+        [SerializeField] private float waterBorderPadding = 0.25f;
+
         [Header("Interact")]
         [SerializeField] private float interactRadius = 2f;
         [SerializeField] private LayerMask interactLayer;
@@ -269,6 +274,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         protected override void FixedUpdate()
         {
             base.FixedUpdate();
+
+            if (!controlsEnabled)
+            {
+                StateMachine.ChangeState(IdleState);
+                StopMovement();
+                return;
+            }
+
             StateMachine.CurrentState?.FixedUpdate();
         }
 
@@ -334,8 +347,44 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public override void ApplyMovement(Vector2 input, bool normalized = true)
         {
+            if (WouldMoveIntoWater(input, normalized))
+            {
+                StopMovement();
+                return;
+            }
+
             base.ApplyMovement(input, normalized);
             UpdateGrowBlockCheckPosition();
+        }
+
+        public void SetFacingDirection(Vector3 direction)
+        {
+            if (direction == Vector3.zero)
+                return;
+
+            LastFacingDir = direction.normalized;
+            FacingDir = direction.normalized;
+        }
+
+        private bool WouldMoveIntoWater(Vector2 input, bool normalized)
+        {
+            if (terrain == null)
+                return false;
+
+            if (input == Vector2.zero)
+                return false;
+
+            Vector2 moveInput = normalized ? input.normalized : input;
+
+            Vector3 moveDirection = new Vector3(moveInput.x, 0f, moveInput.y);
+
+            // Estimate where the player is trying to move next.
+            Vector3 checkPosition = transform.position + moveDirection * waterBorderPadding;
+
+            float terrainWorldHeight =
+                terrain.SampleHeight(checkPosition) + terrain.transform.position.y;
+
+            return terrainWorldHeight <= waterLevelY;
         }
 
         private void UpdateGrowBlockCheckPosition()

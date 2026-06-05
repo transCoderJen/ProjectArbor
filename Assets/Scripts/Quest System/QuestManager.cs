@@ -192,7 +192,14 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         }
         else
         {
-            ChangeQuestState(quest.Info.ID, QuestState.CAN_FINISH);
+            if (quest.Info.RequiresTurnIn)
+            {
+                ChangeQuestState(quest.Info.ID, QuestState.CAN_FINISH);
+            }
+            else
+            {
+                FinishQuest(new FinishQuestEvent(quest.Info.ID));
+            }
         }
     }
 
@@ -243,7 +250,7 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         return idToQuestMap;
     }
 
-    private Quest GetQuestById(string id)
+    public Quest GetQuestById(string id)
     {
         if (!questMap.TryGetValue(id, out Quest quest))
         {

@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ID>k__BackingField: UnlockFarmingAreaQuest
   DisplayName: Unlock 5 Blocks of Farming Area
+  RequiresTurnIn: 1
   LevelRequirement: 1
   QuestPrerequisites:
   - {fileID: 11400000, guid: 33436107a68ed3c4d9b030519e96df76, type: 2}

@@ -18,6 +18,9 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         [Header("General")]
         public string DisplayName;
+
+        [Header("Completion")]
+        public bool RequiresTurnIn = true;
         
         [Header("Requirements")]
         public int LevelRequirement;

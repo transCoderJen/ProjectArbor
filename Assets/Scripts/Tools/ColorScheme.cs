@@ -42,6 +42,7 @@ namespace ShiftedSignal.Garden.Tools
     public enum TerrainLayerName
     {
         Ground,
-        Path
+        Path,
+        DirtRoad    
     }
 }
