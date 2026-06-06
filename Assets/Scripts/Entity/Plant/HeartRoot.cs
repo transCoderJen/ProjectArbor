@@ -171,8 +171,6 @@ namespace Assets.Scripts.Entity.Plant
 
         private void OnDrawGizmosSelected()
         {
-            if (!Debugging.Instance.DrawGizmos)
-                return;
             Gizmos.DrawWireSphere(transform.position, ScanRange);
         }
     }

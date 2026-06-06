@@ -5,9 +5,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using UnityEngine;
 
 public class Bush : MonoBehaviour, IInteractable

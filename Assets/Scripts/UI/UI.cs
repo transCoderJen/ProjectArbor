@@ -75,7 +75,14 @@ namespace ShiftedSignal.Garden.UserInterface
             return false;
         }
 
-        private void DeactivateAllMenus()
+        public void SwitchToInGameUI()
+        {
+            DeactivateAllMenus();
+
+            inGameUI.SetActive(true);
+        }
+
+        public void DeactivateAllMenus()
         {
             foreach (GameObject menu in menuItems)
             {

@@ -38,6 +38,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public virtual void Update()
         {
+
+            if (!Player.Instance.ControlsEnabled)
+                return;
+            
             StateTimer -= Time.deltaTime;
             AfterImageTimer += Time.deltaTime;
 

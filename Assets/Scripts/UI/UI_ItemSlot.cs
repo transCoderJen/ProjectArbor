@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 

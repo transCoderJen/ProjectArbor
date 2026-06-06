@@ -44,9 +44,6 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 
             Enemy.Hover();
 
-            if (!Debugging.Instance.EnableBugs)
-                return;
-
             bool foundPlayer = CheckIfWithinChaseRange();
             bool foundCrop = CheckIfWithinCropRange();
 

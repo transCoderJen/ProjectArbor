@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
@@ -9,8 +8,7 @@ using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.Stats;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
-using UnityEditor.Rendering;
+
 using UnityEngine;
 
 public class QuestManager : Singleton<QuestManager>, ISaveManager
@@ -48,7 +46,7 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<FinishQuestEvent>.OnEvent += FinishQuest;
         Bus<PlayerLevelUpEvent>.OnEvent += HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent += HandleQuestStepStateChanged;
-        Bus<QuestRecievedEvent>.OnEvent += RecieveQuest;
+        Bus<QuestReceivedEvent>.OnEvent += RecieveQuest;
     }
 
 
@@ -59,10 +57,10 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<FinishQuestEvent>.OnEvent -= FinishQuest;
         Bus<PlayerLevelUpEvent>.OnEvent -= HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent -= HandleQuestStepStateChanged;
-        Bus<QuestRecievedEvent>.OnEvent -= RecieveQuest;
+        Bus<QuestReceivedEvent>.OnEvent -= RecieveQuest;
     }
 
-    private void RecieveQuest(QuestRecievedEvent evt)
+    private void RecieveQuest(QuestReceivedEvent evt)
     {
         Quest quest = GetQuestById(evt.Id);
 
@@ -252,13 +250,27 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
     public Quest GetQuestById(string id)
     {
-        if (!questMap.TryGetValue(id, out Quest quest))
-        {
-            Debug.LogError("ID not found in the Quest Map: " + id);
+        if (string.IsNullOrWhiteSpace(id))
             return null;
+
+        // Fast lookup first
+        if (questMap.TryGetValue(id, out Quest quest))
+            return quest;
+
+        // Case-insensitive fallback
+        foreach (KeyValuePair<string, Quest> pair in questMap)
+        {
+            if (string.Equals(
+                    pair.Key,
+                    id,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return pair.Value;
+            }
         }
 
-        return quest;
+        Debug.Log($"ID not found in Quest Map: {id}");
+        return null;
     }
 
     public IEnumerable<Quest> GetReceivedQuests()

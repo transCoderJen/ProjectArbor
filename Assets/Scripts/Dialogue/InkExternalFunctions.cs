@@ -31,8 +31,8 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private void AcceptQuest(string questId)
         {
-            Bus<QuestRecievedEvent>.Raise(
-                new QuestRecievedEvent(questId));
+            Bus<QuestReceivedEvent>.Raise(
+                new QuestReceivedEvent(questId));
 
             Bus<StartQuestEvent>.Raise(
                 new StartQuestEvent(questId));

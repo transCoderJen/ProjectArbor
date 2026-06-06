@@ -58,13 +58,48 @@ namespace ShiftedSignal.Garden.QuestSystem
                 currentQuestStepIndex < questStepStates.Length;
         }
 
+        
+        ////// OLD CODE THAT CREATED DUPLICATE QUEST STEPS
+        
+        // public void InstantiateCurrentQuestStep(Transform parentTransform)
+        // {
+        //     GameObject questStepPrefab = GetCurrentQuestStepPrefab();
+        //     if (questStepPrefab != null)
+        //     {
+        //         QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
+        //             .GetComponent<QuestStep>();
+        //         questStep.InitializeQuestStep(Info.ID, currentQuestStepIndex, questStepStates[currentQuestStepIndex].State);
+        //     }
+        // }
+
         public void InstantiateCurrentQuestStep(Transform parentTransform)
         {
-            GameObject questStepPrefab = GetCurrentQuestStepPrefab();
-            if (questStepPrefab != null)
+            if (!CurrentStepExists())
+                return;
+
+            GameObject questStepPrefab = Info.QuestStepPrefabs[currentQuestStepIndex];
+
+            string stepObjectName = $"{Info.ID}_Step_{currentQuestStepIndex}";
+
+            Transform existingStep = parentTransform.Find(stepObjectName);
+
+            if (existingStep != null)
             {
-                QuestStep questStep = Object.Instantiate<GameObject>(questStepPrefab, parentTransform)
-                    .GetComponent<QuestStep>();
+                Debug.Log($"Quest step already active: {stepObjectName}");
+                return;
+            }
+
+            GameObject questStepInstance = GameObject.Instantiate(
+                questStepPrefab,
+                parentTransform
+            );
+
+            questStepInstance.name = stepObjectName;
+
+            QuestStep questStep = questStepInstance.GetComponent<QuestStep>();
+
+            if (questStep != null)
+            {
                 questStep.InitializeQuestStep(Info.ID, currentQuestStepIndex, questStepStates[currentQuestStepIndex].State);
             }
         }

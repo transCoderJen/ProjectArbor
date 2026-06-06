@@ -5,8 +5,6 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
-using ShiftedSignal.Garden.Tools;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.GridSystem
@@ -227,7 +225,7 @@ namespace ShiftedSignal.Garden.GridSystem
             if (PreventUse || !IsActive || HasBuildable)
                 return;
 
-            if (IsActivationBlock || Debugging.Instance.UnlockFarmAlways)
+            if (IsActivationBlock)
             {
                 TriggerActivationBlock();
                 return;

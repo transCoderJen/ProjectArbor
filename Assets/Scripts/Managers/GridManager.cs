@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ShiftedSignal.Garden.GridSystem;
+using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -108,7 +109,7 @@ namespace ShiftedSignal.Garden.Managers
                         // Look up the seed from the inventory database using the saved ItemID
                         if (!string.IsNullOrEmpty(storedBlock.SeedItemID))
                         {
-                            foreach(var item in ShiftedSignalGames.GOF.ItemsAndInventory.Inventory.Instance.itemDataBase)
+                            foreach(var item in Inventory.Instance.itemDataBase)
                             {
                                 if (item.ItemID == storedBlock.SeedItemID)
                                 {

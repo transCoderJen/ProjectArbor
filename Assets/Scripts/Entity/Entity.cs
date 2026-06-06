@@ -312,7 +312,7 @@ namespace ShiftedSignal.Garden.EntitySpace
         #region Gizmos
         protected virtual void OnDrawGizmosSelected()
         {
-            if (!Application.isPlaying || !Debugging.Instance.DrawGizmos)
+            if (!Application.isPlaying)
             {
                 return;
             }

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.ItemsAndInventory

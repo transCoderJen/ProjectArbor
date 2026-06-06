@@ -1,12 +1,8 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.Stats;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.Misc;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
@@ -23,7 +19,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void AttackTrigger()
         {
-            if (Debugging.Instance.DisableAttackDamage) return;
             // // AudioManager.instance.PlaySFX(SFXSounds.attack3, null);
         
             int enemyCount = Physics.OverlapSphereNonAlloc(

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Misc;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -125,7 +126,7 @@ namespace ShiftedSignal.Garden.Managers
 
         private void Update()
         {
-            if (CurrentVirtualCamera == null)
+            if (CurrentVirtualCamera == null || !Player.Instance.ControlsEnabled)
                 return;
 
             if (!isTransitioning)

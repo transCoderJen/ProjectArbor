@@ -4,9 +4,7 @@ using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using UnityEngine;
-using UnityEngine.Android;
 
 public class Trees : MonoBehaviour, IInteractable
 {

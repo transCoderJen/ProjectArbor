@@ -217,7 +217,7 @@ namespace ShiftedSignal.Garden.UserInterface
                     continue;
                 }
 
-                foreach (var item in ShiftedSignalGames.GOF.ItemsAndInventory.Inventory.Instance.itemDataBase)
+                foreach (var item in Inventory.Instance.itemDataBase)
                 {
                     if (item.ItemID == id)
                     {

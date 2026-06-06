@@ -121,6 +121,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
 
         private bool controlsEnabled = true;
+        public bool ControlsEnabled => controlsEnabled;
 
         #region === Unity Lifecycle ===
 

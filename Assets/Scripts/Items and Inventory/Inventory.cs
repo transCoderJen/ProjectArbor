@@ -17,7 +17,7 @@ using TMPro;
 using UnityEditor;
 #endif
 
-namespace ShiftedSignalGames.GOF.ItemsAndInventory
+namespace ShiftedSignal.Garden.ItemsAndInventory
 {
     public enum InventorySortMode
     {

@@ -1,5 +1,4 @@
 using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
 using UnityEngine.EventSystems;
 
 namespace ShiftedSignal.Garden.UserInterface

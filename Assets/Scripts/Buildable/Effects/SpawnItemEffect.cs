@@ -1,6 +1,4 @@
 using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignalGames.GOF.ItemsAndInventory;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable.Effects

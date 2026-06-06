@@ -58,9 +58,9 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _Deep_Color: {r: 0.10377358, g: 0.41509432, b: 0.40632468, a: 0.6039216}
+    - _Deep_Color: {r: 0.10377354, g: 0.4150943, b: 0.40632465, a: 0.25490198}
     - _FoamColor: {r: 1, g: 1, b: 1, a: 0.18431373}
     - _FoamSpeed: {r: 0.02, g: 0.02, b: 0, a: 0}
-    - _Shallow_Color: {r: 0.447757, g: 0.735849, b: 0.7251789, a: 0.49411765}
+    - _Shallow_Color: {r: 0.44775695, g: 0.735849, b: 0.7251789, a: 0.09803922}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
