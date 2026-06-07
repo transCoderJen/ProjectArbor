@@ -1,3 +1,4 @@
+using Mono.Cecil;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.QuestSystem;
@@ -42,7 +43,11 @@ public class CollectCoinsQuestStep : QuestStep
         string status = "Collected " + coinsCollected + " / " + coinsToComplete + " coins.";
         ChangeState(state, status);
     }
-    
+
+    public override string GetStepDescription()
+    {
+        return "Collected " + coinsCollected + " / " + coinsToComplete + " coins.";
+    }
     protected override void SetQuestStepState(string state)
     {
         this.coinsCollected = System.Int32.Parse(state);

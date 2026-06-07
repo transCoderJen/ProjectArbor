@@ -1,3 +1,4 @@
+using System;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using UnityEngine;
@@ -40,6 +41,8 @@ namespace ShiftedSignal.Garden.QuestSystem
                     stepIndex, 
                     new QuestStepState(newState, newStatus)));
         }
+
+        public abstract string GetStepDescription();
 
         protected abstract void SetQuestStepState(string state);
 

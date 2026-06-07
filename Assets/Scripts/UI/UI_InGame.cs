@@ -5,6 +5,8 @@ using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Stats;
+using ShiftedSignal.Garden.QuestSystem;
+using System;
 
 namespace ShiftedSignal.Garden.UserInterface
 {
@@ -13,6 +15,9 @@ namespace ShiftedSignal.Garden.UserInterface
         [Header("Time UI")]
         [SerializeField] private TextMeshProUGUI TimeText;
         [SerializeField] private TextMeshProUGUI DayText;
+
+        [Header("Quest UI")]
+        [SerializeField] private TextMeshProUGUI CurrentQuestStep;
 
         [Header("Day Period Icons")]
         [SerializeField] private Image DayPeriodIcon;
@@ -32,6 +37,7 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private float NumberScrollSpeed = 75f;
 
         private CharacterStats playerStats;
+        private Quest trackedQuest;
 
         private float displayedHealth;
         private float targetHealth;
@@ -52,12 +58,14 @@ namespace ShiftedSignal.Garden.UserInterface
         {
             CachePlayerStats();
             UpdateAllUIImmediate();
+            CacheTrackedQuest();
         }
 
         private void OnEnable()
         {
             AddEventHandlers();
             CachePlayerStats();
+            CacheTrackedQuest();
         }
 
         private void OnDisable()
@@ -94,6 +102,18 @@ namespace ShiftedSignal.Garden.UserInterface
             playerStats.OnMagicChanged += UpdateMpUI;
         }
 
+        private void CacheTrackedQuest()
+        {
+            if (QuestManager.Instance == null)
+            {
+                RefreshTrackedQuestUI();
+                return;
+            }
+
+            trackedQuest = QuestManager.Instance.TrackedQuest;
+            RefreshTrackedQuestUI();
+        }
+
         private void AddEventHandlers()
         {
             Bus<TimeChangedEvent>.OnEvent += UpdateTimeUI;
@@ -102,7 +122,13 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DayPeriodChangedEvent>.OnEvent += UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent += HandleCurrencyUpdate;
             Bus<PlayerLevelUpEvent>.OnEvent += UpdateLevelUI;
+            Bus<QuestStepStateChangedEvent>.OnEvent += UpdateQuestStepUI;
+            Bus<TrackedQuestChangedEvent>.OnEvent += HandleTrackedQuestChanged;
+            Bus<QuestStepAdvancedEvent>.OnEvent += UpdateQuestStepUI;
+
         }
+
+        
 
         private void RemoveEventHandlers()
         {
@@ -112,6 +138,67 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DayPeriodChangedEvent>.OnEvent -= UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent -= HandleCurrencyUpdate;
             Bus<PlayerLevelUpEvent>.OnEvent -= UpdateLevelUI;
+            Bus<QuestStepStateChangedEvent>.OnEvent -= UpdateQuestStepUI;          
+            Bus<TrackedQuestChangedEvent>.OnEvent -= HandleTrackedQuestChanged;
+            Bus<QuestStepAdvancedEvent>.OnEvent -= UpdateQuestStepUI;
+        }
+
+        private void HandleTrackedQuestChanged(TrackedQuestChangedEvent evt)
+        {
+            trackedQuest = evt.Quest;
+            RefreshTrackedQuestUI();
+        }
+
+        private void UpdateQuestStepUI(QuestStepAdvancedEvent evt)
+        {
+            if (trackedQuest == null)
+                return;
+
+            if (evt.Quest != trackedQuest)
+                return;
+
+            RefreshTrackedQuestUI();
+        }
+
+        private void UpdateQuestStepUI(QuestStepStateChangedEvent evt)
+        {
+            if (trackedQuest == null)
+                return;
+
+            if (evt.ID != trackedQuest.Info.ID)
+                return;
+
+            RefreshTrackedQuestUI();
+        }
+
+        private void RefreshTrackedQuestUI()
+        {
+            if (CurrentQuestStep == null)
+                return;
+
+            if (trackedQuest == null)
+            {
+                CurrentQuestStep.text = "";
+                return;
+            }
+
+            // Only show active quests
+            if (trackedQuest.State == QuestState.CAN_FINISH)
+            {
+                CurrentQuestStep.text =
+                    $"{trackedQuest.Info.DisplayName}\nReturn to quest giver";
+                return;
+            }
+
+            if (trackedQuest.State != QuestState.IN_PROGRESS)
+            {
+                CurrentQuestStep.text = "";
+                return;
+            }
+
+            CurrentQuestStep.text =
+                $"{trackedQuest.Info.DisplayName}\n" +
+                trackedQuest.GetCurrentStepStatusText();
         }
 
         private void UpdateAllUIImmediate()

@@ -4,9 +4,6 @@ using TMPro;
 using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
-using System;
-using UnityEngine.EventSystems;
-using System.Reflection;
 
 public class QuestLogUI : MonoBehaviour
 {
@@ -21,7 +18,9 @@ public class QuestLogUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI MaterialRewardsText;
     [SerializeField] private TextMeshProUGUI LevelRequirmentsText;
     [SerializeField] private TextMeshProUGUI QuestRequirementsText;
+    [SerializeField] private Button SetActiveQuestButton;
 
+    private Quest selectedQuest;
     private Button firstSelectedButton;
 
     private void OnEnable()
@@ -29,76 +28,101 @@ public class QuestLogUI : MonoBehaviour
         Bus<QuestStateChangedEvent>.OnEvent -= HandleQuestStateChanged;
         Bus<QuestStateChangedEvent>.OnEvent += HandleQuestStateChanged;
 
+        if (SetActiveQuestButton != null)
+        {
+            SetActiveQuestButton.onClick.RemoveListener(SetSelectedQuestAsActive);
+            SetActiveQuestButton.onClick.AddListener(SetSelectedQuestAsActive);
+        }
+
         RefreshQuestLog();
-        // // Select the first quest and populate the info panel.
-        // if (firstSelectedButton != null)
-        // {
-        //     firstSelectedButton.Select();
-
-        //     QuestLogButton button =
-        //         firstSelectedButton.GetComponent<QuestLogButton>();
-
-        //     if (button != null)
-        //     {
-        //         SetQuestLogInfo(button.Quest);
-        //     }
-        // }
     }
 
+    private void OnDisable()
+    {
+        Bus<QuestStateChangedEvent>.OnEvent -= HandleQuestStateChanged;
+        
+        if (SetActiveQuestButton != null)
+        {
+            SetActiveQuestButton.onClick.RemoveListener(SetSelectedQuestAsActive);
+        }
+    }
+
+    private void SelectQuest(Quest quest)
+    {
+        if (quest == null)
+            return;
+
+        selectedQuest = quest;
+        SetQuestLogInfo(quest);
+
+        if (SetActiveQuestButton != null)
+        {
+            SetActiveQuestButton.interactable =
+                quest.IsReceived && quest.State != QuestState.FINISHED;
+        }
+    }
+
+    private void SetSelectedQuestAsActive()
+    {
+        if (selectedQuest == null)
+            return;
+
+        if (QuestManager.Instance == null)
+            return;
+
+        QuestManager.Instance.SetTrackedQuest(selectedQuest);
+    }
 
     private void HandleQuestStateChanged(QuestStateChangedEvent evt)
     {
         QuestLogButton questLogButton = ScrollingList.CreateButtonIfNotExists(evt.Quest, () =>
         {
-            SetQuestLogInfo(evt.Quest);
+            SelectQuest(evt.Quest);
         });
 
-        // initialize the first selected button if not already so that it's always at the top button
         if (firstSelectedButton == null)
         {
             firstSelectedButton = questLogButton.button;
-            firstSelectedButton.Select();
         }
 
-
         questLogButton.SetState(evt.Quest.State);
-        questLogButton.button.Select();
     }
 
     private void SetQuestLogInfo(Quest quest)
     {
-        // Quest Name
-        QuestDisplayNameText.text = quest.Info.DisplayName;
+        if (quest == null)
+            return;
 
-        // Status
+        QuestDisplayNameText.text = quest.Info.DisplayName;
         QuestStatusText.text = quest.GetFullStatusText();
 
-        // Requirements
         LevelRequirmentsText.text = "Level " + quest.Info.LevelRequirement;
+
         QuestRequirementsText.text = "";
+
         foreach (QuestInfoSO prerequisiteQuestInfo in quest.Info.QuestPrerequisites)
         {
             QuestRequirementsText.text += prerequisiteQuestInfo.DisplayName + "\n";
         }
 
-        // Rewards
         GoldRewardsText.text = quest.Info.GoldReward + " Gold";
         ExperienceRewardsText.text = quest.Info.ExperienceReward + " XP";
+
         MaterialRewardsText.text = "";
+
         if (quest.Info.ItemRewards == null)
             return;
+
         foreach (ItemReward reward in quest.Info.ItemRewards)
         {
-            MaterialRewardsText.text += reward.Amount + reward.Data.ItemName;
+            MaterialRewardsText.text += reward.Amount + " " + reward.Data.ItemName + "\n";
         }
     }
 
     public void RefreshQuestLog()
     {
         if (QuestManager.Instance == null || ScrollingList == null)
-        {
             return;
-        }
 
         firstSelectedButton = null;
 
@@ -106,7 +130,7 @@ public class QuestLogUI : MonoBehaviour
         {
             QuestLogButton questLogButton = ScrollingList.CreateButtonIfNotExists(quest, () =>
             {
-                SetQuestLogInfo(quest);
+                SelectQuest(quest);
             });
 
             questLogButton.SetState(quest.State);
@@ -125,7 +149,7 @@ public class QuestLogUI : MonoBehaviour
 
             if (button != null)
             {
-                SetQuestLogInfo(button.Quest);
+                SelectQuest(button.Quest);
             }
         }
     }

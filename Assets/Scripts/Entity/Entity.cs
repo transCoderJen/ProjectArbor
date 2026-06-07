@@ -115,6 +115,12 @@ namespace ShiftedSignal.Garden.EntitySpace
 
         protected virtual void Update()
         {
+            
+
+        }
+
+        protected virtual void FixedUpdate()
+        {
             Vector3 castPos = transform.position + Vector3.up * 1f;
 
             if (Physics.Raycast(castPos, Vector3.down, out RaycastHit hit , Mathf.Infinity, TerrainLayer))
@@ -123,13 +129,6 @@ namespace ShiftedSignal.Garden.EntitySpace
                 movePos.y = hit.point.y + GroundDist;
                 transform.position = movePos;
             }
-            
-        
-        }
-
-        protected virtual void FixedUpdate()
-        {
-
         }
 
         #region Movement

@@ -41,6 +41,11 @@ public class ReachTheFarmGateStep : QuestStep
         ChangeState(state, status);
     }
 
+    public override string GetStepDescription()
+    {
+        return "Walk to the front gate";
+    }
+
     protected override void SetQuestStepState(string state)
     {
         reachedGate = bool.Parse(state);

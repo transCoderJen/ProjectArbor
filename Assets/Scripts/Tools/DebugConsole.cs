@@ -600,6 +600,7 @@ namespace ShiftedSignal.Garden.Debugging
                     break;
 
                 case "quest.start":
+                    Bus<QuestReceivedEvent>.Raise(new QuestReceivedEvent(questID));
                     Bus<StartQuestEvent>.Raise(new StartQuestEvent(questID));
                     Log($"Started quest: {questID}");
                     break;

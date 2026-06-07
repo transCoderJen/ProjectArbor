@@ -34,6 +34,9 @@ namespace ShiftedSignal.Garden.QuestSystem
         public int ExperienceReward;
         public ItemReward[] ItemRewards;
 
+        [Header("UI")]
+        public Sprite QuestIcon;
+
         void OnValidate()
         {
     #if  UNITY_EDITOR

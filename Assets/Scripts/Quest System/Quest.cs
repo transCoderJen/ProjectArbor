@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.QuestSystem
@@ -58,6 +56,23 @@ namespace ShiftedSignal.Garden.QuestSystem
                 currentQuestStepIndex < questStepStates.Length;
         }
 
+        public string GetCurrentStepDescription()
+        {
+            if (State == QuestState.FINISHED)
+                return "Quest complete";
+
+            if (!CurrentStepExists())
+                return "Return to quest giver";
+
+            QuestStep questStep =
+                Info.QuestStepPrefabs[currentQuestStepIndex].GetComponent<QuestStep>();
+
+            if (questStep == null)
+                return "";
+
+            return questStep.GetStepDescription();
+        }
+
         
         ////// OLD CODE THAT CREATED DUPLICATE QUEST STEPS
         
@@ -89,7 +104,7 @@ namespace ShiftedSignal.Garden.QuestSystem
                 return;
             }
 
-            GameObject questStepInstance = GameObject.Instantiate(
+            GameObject questStepInstance = Object.Instantiate(
                 questStepPrefab,
                 parentTransform
             );
@@ -102,6 +117,17 @@ namespace ShiftedSignal.Garden.QuestSystem
             {
                 questStep.InitializeQuestStep(Info.ID, currentQuestStepIndex, questStepStates[currentQuestStepIndex].State);
             }
+        }
+
+        public string GetCurrentStepStatusText()
+        {
+            if (questStepStates == null || questStepStates.Length == 0)
+                return "";
+
+            if (currentQuestStepIndex < 0 || currentQuestStepIndex >= questStepStates.Length)
+                return "";
+
+            return questStepStates[currentQuestStepIndex].Status;
         }
 
         private GameObject GetCurrentQuestStepPrefab()

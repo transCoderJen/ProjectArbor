@@ -126,7 +126,11 @@ namespace ShiftedSignal.Garden.Managers
 
         private void Update()
         {
-            if (CurrentVirtualCamera == null || !Player.Instance.ControlsEnabled)
+
+            // if (CurrentVirtualCamera == null || !Player.Instance.ControlsEnabled)
+            //     return;
+
+            if (CurrentVirtualCamera == null)
                 return;
 
             if (!isTransitioning)
@@ -138,6 +142,36 @@ namespace ShiftedSignal.Garden.Managers
             UpdateFieldOfView();
             UpdateFollowOffset();
         }
+
+        private void LateUpdate()
+        {
+            if (CurrentVirtualCamera == null)
+                return;
+        }
+
+        private void UpdateFollowOffset()
+        {
+            CinemachineFollow follow = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
+            if (follow == null)
+                return;
+
+            Vector3 offset = follow.FollowOffset;
+
+            offset = Vector3.Lerp(
+                offset,
+                targetFollowOffset,
+                Time.unscaledDeltaTime * followOffsetLerpSpeed
+            );
+
+            if (Vector3.Distance(offset, targetFollowOffset) <= 0.01f)
+            {
+                offset = targetFollowOffset;
+            }
+
+            follow.FollowOffset = offset;
+        }
+
+
 
         private void SetupDistanceCulling()
         {
@@ -252,6 +286,8 @@ namespace ShiftedSignal.Garden.Managers
                     targetFollowOffset.y,
                     currentVCamera.MinFollowOffsetY,
                     currentVCamera.MaxFollowOffsetY);
+
+                follow.FollowOffset = targetFollowOffset;
             }
         }
 
@@ -446,18 +482,18 @@ namespace ShiftedSignal.Garden.Managers
             CurrentVirtualCamera.Lens = lens;
         }
 
-        private void UpdateFollowOffset()
-        {
-            CinemachineFollow follow = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
-            if (follow == null)
-                return;
+        // private void UpdateFollowOffset()
+        // {
+        //     CinemachineFollow follow = CurrentVirtualCamera.GetComponent<CinemachineFollow>();
+        //     if (follow == null)
+        //         return;
 
-            Vector3 offset = follow.FollowOffset;
-            offset.x = Mathf.Lerp(offset.x, targetFollowOffset.x, CameraDeltaTime * followOffsetLerpSpeed);
-            offset.y = Mathf.Lerp(offset.y, targetFollowOffset.y, CameraDeltaTime * followOffsetLerpSpeed);
-            offset.z = Mathf.Lerp(offset.z, targetFollowOffset.z, CameraDeltaTime * followOffsetLerpSpeed);
-            follow.FollowOffset = offset;
-        }
+        //     Vector3 offset = follow.FollowOffset;
+        //     offset.x = Mathf.Lerp(offset.x, targetFollowOffset.x, CameraDeltaTime * followOffsetLerpSpeed);
+        //     offset.y = Mathf.Lerp(offset.y, targetFollowOffset.y, CameraDeltaTime * followOffsetLerpSpeed);
+        //     offset.z = Mathf.Lerp(offset.z, targetFollowOffset.z, CameraDeltaTime * followOffsetLerpSpeed);
+        //     follow.FollowOffset = offset;
+        // }
 
         private VCamera GetCameraEntry(VirtualCameraType cameraType)
         {

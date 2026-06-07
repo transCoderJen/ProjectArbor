@@ -48,6 +48,15 @@ public class UnlockFarmingAreaStep : QuestStep
         ChangeState(state, status);
     }
 
+    public override string GetStepDescription()
+    {
+        return "Unlocked " +
+            farmingBlocksUnlocked +
+            " / " +
+            farmingBlocksToComplete +
+            " farming blocks.";
+    }
+
     protected override void SetQuestStepState(string state)
     {
         farmingBlocksUnlocked = System.Int32.Parse(state);

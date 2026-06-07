@@ -23,3 +23,4 @@ MonoBehaviour:
   GoldReward: 100
   ExperienceReward: 100
   ItemRewards: []
+  QuestIcon: {fileID: 0}
