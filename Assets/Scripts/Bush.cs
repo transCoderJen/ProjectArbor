@@ -6,6 +6,7 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.UserInterface;
 using UnityEngine;
 
 public class Bush : MonoBehaviour, IInteractable
@@ -20,7 +21,7 @@ public class Bush : MonoBehaviour, IInteractable
     [SerializeField] private GameObject BerriesParent;
     [SerializeField] private Sprite BerriesSprite;
     [SerializeField] private bool HasBerries = true;
-    [SerializeField] private ItemData Berries;
+    [SerializeField] private ItemData Berry;
 
     [Header("Berry Generation")]
     [SerializeField] private int MinBerryCount = 4;
@@ -177,7 +178,16 @@ public class Bush : MonoBehaviour, IInteractable
 
         StartCoroutine(Wiggle());
 
-        Inventory.Instance.AddItem(Berries);
+        Inventory.Instance.AddItem(Berry);
+
+        if (PickupPopupManager.Instance != null)
+        {
+                PickupPopupManager.Instance.Show(
+                transform.position,
+                Berry.Icon,
+                1);
+        }
+        
         RemoveOneBerry();
 
         HasBerries = activeBerries.Count > 0;

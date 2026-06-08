@@ -1,4 +1,5 @@
 EXTERNAL AcceptQuest(questID)
+EXTERNAL ReceiveQuestAndStart(questID)
 EXTERNAL StartQuest(questID)
 EXTERNAL AdvanceQuest(questID)
 EXTERNAL FinishQuest(questID)

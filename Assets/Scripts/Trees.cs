@@ -3,6 +3,7 @@ using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.UserInterface;
 using UnityEngine;
 
 public class Trees : MonoBehaviour, IInteractable
@@ -46,6 +47,16 @@ public class Trees : MonoBehaviour, IInteractable
 
         if (WoodAvailable <= 0)
             return;
+        
+        Inventory.Instance.AddItem(WoodMaterial);
+
+        if (PickupPopupManager.Instance != null)
+        {
+            PickupPopupManager.Instance.Show(
+                transform.position,
+                WoodMaterial.Icon,
+                1);
+        }
 
         StartCoroutine(Wiggle());
 

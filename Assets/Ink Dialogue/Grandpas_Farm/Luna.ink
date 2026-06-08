@@ -6,8 +6,8 @@ Well...
 
 No turning back now.
 
-~ AcceptQuest("GrandpasFarmQuest")
-// ~ StartQuest("GrandpasFarmQuest")
+~ ReceiveQuestAndStart("GrandpasFarmQuest")
+
 
 -> END
 

@@ -22,4 +22,4 @@ MonoBehaviour:
   GoldReward: 0
   ExperienceReward: 0
   ItemRewards: []
-  QuestIcon: {fileID: 0}
+  QuestIcon: {fileID: 1079930780, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
