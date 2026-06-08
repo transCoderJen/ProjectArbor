@@ -122,6 +122,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private bool controlsEnabled = true;
         public bool ControlsEnabled => controlsEnabled;
+        private IInteractable currentHighlightedInteractable;
 
         #region === Unity Lifecycle ===
 
@@ -217,9 +218,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 GridInfo.Instance.GrowCrop();
             }
 
+            UpdateInteractableHighlight();
+
             HandleDebugInputs();
             CreateGhost();
             HandleGhost();
+        }
+
+        private void UpdateInteractableHighlight()
+        {
+            IInteractable closestInteractable = GetClosestInteractable();
+
+            if (closestInteractable == currentHighlightedInteractable)
+                return;
+
+            currentHighlightedInteractable?.Highlight(false);
+
+            currentHighlightedInteractable = closestInteractable;
+
+            currentHighlightedInteractable?.Highlight(true);
         }
 
         private void CreateGhost()
@@ -441,22 +458,60 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void TryInteract()
         {
+            IInteractable closestInteractable = GetClosestInteractable();
+
+            if (closestInteractable == null)
+                return;
+
+            closestInteractable.Interact(this);
+        }
+
+        private IInteractable GetClosestInteractable()
+        {
             Collider[] hits = Physics.OverlapSphere(
                 transform.position,
                 interactRadius,
                 interactLayer);
 
+            IInteractable closestInteractable = null;
+            float closestDistance = float.MaxValue;
+
             foreach (Collider hit in hits)
             {
-                if (hit.TryGetComponent(out IInteractable interactable))
-                {
+                if (!hit.TryGetComponent(out IInteractable interactable))
+                    continue;
 
-                    interactable.Interact(this);
-                    break;
-                    
+                float distance = 
+                    (hit.transform.position - transform.position).sqrMagnitude;
+
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestInteractable = interactable;
                 }
             }
+
+            return closestInteractable;
         }
+
+        // private void TryInteract()
+        // {
+        //     Collider[] hits = Physics.OverlapSphere(
+        //         transform.position,
+        //         interactRadius,
+        //         interactLayer);
+
+        //     foreach (Collider hit in hits)
+        //     {
+        //         if (hit.TryGetComponent(out IInteractable interactable))
+        //         {
+
+        //             interactable.Interact(this);
+        //             break;
+                    
+        //         }
+        //     }
+        // }
 
         public GrowBlock GetBlock()
         {

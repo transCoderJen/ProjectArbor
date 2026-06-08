@@ -29,6 +29,7 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("AcceptQuest");
         }
 
+        
         private void AcceptQuest(string questId)
         {
             Bus<QuestReceivedEvent>.Raise(

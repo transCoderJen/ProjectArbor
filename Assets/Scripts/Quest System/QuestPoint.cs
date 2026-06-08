@@ -1,18 +1,16 @@
-using System;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
-using ShiftedSignal.Garden.Managers;
-using ShiftedSignal.Garden.QuestSystem;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace ShiftedSignal.Garden.QuestSystem
 {    
     [RequireComponent(typeof(SphereCollider))]
     public class QuestPoint : MonoBehaviour, IInteractable
     {
+        private static readonly int OuterOutlineColorId = Shader.PropertyToID("_OuterOutlineColor");
+
         [Header("Dialogue")]
         [SerializeField] private string DialogueKnotName;
 
@@ -30,13 +28,16 @@ namespace ShiftedSignal.Garden.QuestSystem
         private QuestState currentQuestState;
         private QuestIcon questIcon;
         private SpriteRenderer sr;
-        public bool IsPlayerNear { get; private set; } = false;
+        private MaterialPropertyBlock propertyBlock;
 
         private void Awake()
         {
             questId = QuestInfoForPoint.ID;
             questIcon = GetComponentInChildren<QuestIcon>();
             sr = GetComponentInChildren<SpriteRenderer>();
+            propertyBlock = new MaterialPropertyBlock();
+
+            SetOutlineColor(Color.black);
         }
 
         private void OnEnable()
@@ -47,24 +48,6 @@ namespace ShiftedSignal.Garden.QuestSystem
         private void OnDisable()
         {
             Bus<QuestStateChangedEvent>.OnEvent -= HandleQuestStateChanged;
-        }
-
-        void OnTriggerEnter(Collider other)
-        {
-            if (other.GetComponent<Player>() != null)
-            {
-                IsPlayerNear = true;
-                Highlight(true);
-            }
-        }
-
-        void OnTriggerExit(Collider other)
-        {
-            if (other.GetComponent<Player>() != null)
-            {
-                IsPlayerNear = true;
-                Highlight(false);
-            }
         }
 
         private void HandleQuestStateChanged(QuestStateChangedEvent evt)
@@ -78,38 +61,35 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         public void Interact(Player player)
         {
-            if (!IsPlayerNear)
+            if (!string.IsNullOrEmpty(DialogueKnotName))
             {
+                Bus<EnterDialogueEvent>.Raise(new EnterDialogueEvent(DialogueKnotName));
                 return;
             }
 
-            if (!DialogueKnotName.Equals(""))
+            if (currentQuestState.Equals(QuestState.CAN_START) && StartPoint)
             {
-                Bus<EnterDialogueEvent>.Raise(new EnterDialogueEvent(DialogueKnotName));
+                Bus<StartQuestEvent>.Raise(new StartQuestEvent(questId));
             }
-            else
+            else if (currentQuestState.Equals(QuestState.CAN_FINISH) && FinishPoint)
             {
-                if (currentQuestState.Equals(QuestState.CAN_START) && StartPoint)
-                {
-                    Bus<StartQuestEvent>.Raise(new StartQuestEvent(questId));
-                }
-                else if (currentQuestState.Equals(QuestState.CAN_FINISH) && FinishPoint)
-                {
-                    Bus<FinishQuestEvent>.Raise(new FinishQuestEvent(questId));
-                }
+                Bus<FinishQuestEvent>.Raise(new FinishQuestEvent(questId));
             }
-
-            
         }
 
         public void Highlight(bool highlight)
         {
-            if (highlight)
-                sr.material.SetColor("_OuterOutlineColor", HighlightColor);
-            else 
-                sr.material.SetColor("_OuterOutlineColor", Color.black);
+            SetOutlineColor(highlight ? HighlightColor : Color.black);
         }
 
-        bool IInteractable.IsPlayerNear() => IsPlayerNear;
+        private void SetOutlineColor(Color color)
+        {
+            if (sr == null)
+                return;
+
+            sr.GetPropertyBlock(propertyBlock);
+            propertyBlock.SetColor(OuterOutlineColorId, color);
+            sr.SetPropertyBlock(propertyBlock);
+        }
     }
 }

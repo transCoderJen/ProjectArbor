@@ -10,8 +10,11 @@ using UnityEngine;
 
 public class Bush : MonoBehaviour, IInteractable
 {
+    private static readonly int OuterOutlineColorId = Shader.PropertyToID("_OuterOutlineColor");
+    private static readonly int VibrateFadeId = Shader.PropertyToID("_VibrateFade");
+
     [ColorUsage(false, true)]
-    [SerializeField] private Color HighlightColor;
+    [SerializeField] private Color HighlightColor = Color.white;
 
     [Header("Berries")]
     [SerializeField] private GameObject BerriesParent;
@@ -24,18 +27,25 @@ public class Bush : MonoBehaviour, IInteractable
     [SerializeField] private int MaxBerryCount = 9;
     [SerializeField] private float MinBerryScale = 0.15f;
     [SerializeField] private float MaxBerryScale = 0.35f;
-    [SerializeField] private Vector2 BerryAreaPadding = new Vector2(0.15f, 0.15f);
+    [SerializeField] private Vector2 BerryAreaPadding = new(0.15f, 0.15f);
 
     private readonly List<GameObject> activeBerries = new();
 
     private SpriteRenderer sr;
     private SpriteMask berryMask;
+    private MaterialPropertyBlock propertyBlock;
 
-    public bool IsPlayerNear { get; private set; } = false;
+    private Color currentOutlineColor;
+    private float currentVibrateFade;
 
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+        propertyBlock = new MaterialPropertyBlock();
+
+        currentOutlineColor = Color.black;
+        currentVibrateFade = 0f;
+        ApplyPropertyBlock();
 
         EnsureBerriesParent();
         EnsureBerryMask();
@@ -69,9 +79,7 @@ public class Bush : MonoBehaviour, IInteractable
         Transform existingMask = transform.Find("Berry Sprite Mask");
 
         if (existingMask != null)
-        {
             berryMask = existingMask.GetComponent<SpriteMask>();
-        }
 
         if (berryMask == null)
         {
@@ -109,7 +117,7 @@ public class Bush : MonoBehaviour, IInteractable
 
         for (int i = 0; i < berryCount; i++)
         {
-            GameObject berryObject = new GameObject($"Berry {i + 1}");
+            GameObject berryObject = new($"Berry {i + 1}");
             berryObject.transform.SetParent(BerriesParent.transform);
 
             float randomX = Random.Range(minX, maxX);
@@ -151,33 +159,15 @@ public class Bush : MonoBehaviour, IInteractable
     {
         HasBerries = true;
         GenerateBerries();
-        BerriesParent.SetActive(true);
+
+        if (BerriesParent != null)
+            BerriesParent.SetActive(true);
     }
 
     public void Highlight(bool highlight)
     {
-        if (highlight)
-            sr.material.SetColor("_OuterOutlineColor", HighlightColor);
-        else
-            sr.material.SetColor("_OuterOutlineColor", Color.black);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.GetComponent<Player>() != null)
-        {
-            IsPlayerNear = true;
-            Highlight(true);
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.GetComponent<Player>() != null)
-        {
-            IsPlayerNear = false;
-            Highlight(false);
-        }
+        currentOutlineColor = highlight ? HighlightColor : Color.black;
+        ApplyPropertyBlock();
     }
 
     public void Interact(Player player)
@@ -185,17 +175,15 @@ public class Bush : MonoBehaviour, IInteractable
         if (!HasBerries || activeBerries.Count <= 0)
             return;
 
-        StartCoroutine(nameof(Wiggle));
+        StartCoroutine(Wiggle());
 
         Inventory.Instance.AddItem(Berries);
         RemoveOneBerry();
 
         HasBerries = activeBerries.Count > 0;
 
-        if (!HasBerries)
-        {
+        if (!HasBerries && BerriesParent != null)
             BerriesParent.SetActive(false);
-        }
     }
 
     private void RemoveOneBerry()
@@ -209,17 +197,30 @@ public class Bush : MonoBehaviour, IInteractable
         activeBerries.RemoveAt(randomIndex);
 
         if (berryToRemove != null)
-        {
             Destroy(berryToRemove);
-        }
     }
-
-    bool IInteractable.IsPlayerNear() => IsPlayerNear;
 
     private IEnumerator Wiggle()
     {
-        sr.material.SetFloat("_VibrateFade", 1);
-        yield return Helpers.GetWait(.2f);
-        sr.material.SetFloat("_VibrateFade", 0);
+        currentVibrateFade = 1f;
+        ApplyPropertyBlock();
+
+        yield return Helpers.GetWait(0.2f);
+
+        currentVibrateFade = 0f;
+        ApplyPropertyBlock();
+    }
+
+    private void ApplyPropertyBlock()
+    {
+        if (sr == null)
+            return;
+
+        sr.GetPropertyBlock(propertyBlock);
+
+        propertyBlock.SetColor(OuterOutlineColorId, currentOutlineColor);
+        propertyBlock.SetFloat(VibrateFadeId, currentVibrateFade);
+
+        sr.SetPropertyBlock(propertyBlock);
     }
 }

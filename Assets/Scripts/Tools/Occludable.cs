@@ -9,7 +9,6 @@ namespace ShiftedSignal.Garden.Tools
     {
         private static readonly int FadeAlphaId = Shader.PropertyToID("_Alpha");
         private static readonly int FullAlphaDissolveFadeId = Shader.PropertyToID("_FullAlphaDissolveFade");
-        // private static readonly int ShadowClipThresholdId = Shader.PropertyToID("_ShadowClipThreshold");
 
         [Header("Fade Settings")]
         [Range(0f, 1f)]
@@ -27,22 +26,20 @@ namespace ShiftedSignal.Garden.Tools
         [Header("Visuals")]
         [SerializeField] private Renderer[] TargetRenderers;
 
-        private Material[] materials;
+        private MaterialPropertyBlock propertyBlock;
         private Coroutine fadeCoroutine;
 
+        private float currentAlpha = 1f;
         private float currentTargetAlpha = 1f;
-        // private float currentTargetShadowClipThreshold = 0.5f;
 
         private void Awake()
         {
             if (TargetRenderers == null || TargetRenderers.Length == 0)
                 TargetRenderers = GetComponentsInChildren<Renderer>();
 
-            CacheMaterials();
+            propertyBlock = new MaterialPropertyBlock();
 
-            // currentTargetShadowClipThreshold = VisibleShadowClipThreshold;
-
-            ApplyImmediateValues(1f, VisibleShadowClipThreshold);
+            ApplyAlphaImmediate(1f);
         }
 
         public void SetOccluded(bool isOccluded)
@@ -55,8 +52,12 @@ namespace ShiftedSignal.Garden.Tools
             {
                 Vector3 worldPoint = transform.position;
 
-                if (TargetRenderers != null && TargetRenderers.Length > 0 && TargetRenderers[0] != null)
+                if (TargetRenderers != null &&
+                    TargetRenderers.Length > 0 &&
+                    TargetRenderers[0] != null)
+                {
                     worldPoint = TargetRenderers[0].bounds.center;
+                }
 
                 Vector3 localPos = cam.transform.InverseTransformPoint(worldPoint);
                 float depthToScreen = localPos.z;
@@ -71,146 +72,44 @@ namespace ShiftedSignal.Garden.Tools
                     ? TransparentAlpha
                     : 1f;
 
-            float targetShadowClipThreshold = forceInvisible
-                ? 1f
-                : isOccluded
-                    ? OccludedShadowClipThreshold
-                    : VisibleShadowClipThreshold;
-
-            bool alphaUnchanged = Mathf.Approximately(currentTargetAlpha, targetAlpha);
-            // bool shadowUnchanged = Mathf.Approximately(currentTargetShadowClipThreshold, targetSh
-
-// 
-            if (alphaUnchanged)
-            // if (alphaUnchanged && shadowUnchanged)
+            if (Mathf.Approximately(currentTargetAlpha, targetAlpha))
                 return;
 
             currentTargetAlpha = targetAlpha;
-            // currentTargetShadowClipThreshold = targetShadowClipThreshold;
 
             if (fadeCoroutine != null)
                 StopCoroutine(fadeCoroutine);
 
-            fadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha, targetShadowClipThreshold));
+            fadeCoroutine = StartCoroutine(FadeRoutine(targetAlpha));
         }
 
-        private IEnumerator FadeRoutine(float targetAlpha, float targetShadowClipThreshold)
+        private IEnumerator FadeRoutine(float targetAlpha)
         {
-            if (materials == null || materials.Length == 0)
-                yield break;
-
+            float startAlpha = currentAlpha;
             float elapsed = 0f;
-
-            float[] startAlphas = new float[materials.Length];
-            float[] startShadowThresholds = new float[materials.Length];
-
-            for (int i = 0; i < materials.Length; i++)
-            {
-                Material material = materials[i];
-
-                if (material == null)
-                    continue;
-
-                startAlphas[i] = GetFadeAlpha(material);
-                // startShadowThresholds[i] = GetShadowClipThreshold(material);
-            }
 
             while (elapsed < FadeDuration)
             {
                 elapsed += Time.deltaTime;
+
                 float t = Mathf.Clamp01(elapsed / FadeDuration);
+                float alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
 
-                for (int i = 0; i < materials.Length; i++)
-                {
-                    Material material = materials[i];
-
-                    if (material == null)
-                        continue;
-
-                    float alpha = Mathf.Lerp(startAlphas[i], targetAlpha, t);
-                    float shadowThreshold = Mathf.Lerp(startShadowThresholds[i], targetShadowClipThreshold, t);
-
-                    SetFadeAlpha(material, alpha);
-                    // SetShadowClipThreshold(material, shadowThreshold);
-                }
+                ApplyAlphaImmediate(alpha);
 
                 yield return null;
             }
 
-            for (int i = 0; i < materials.Length; i++)
-            {
-                Material material = materials[i];
-
-                if (material == null)
-                    continue;
-
-                SetFadeAlpha(material, targetAlpha);
-                // SetShadowClipThreshold(material, targetShadowClipThreshold);
-            }
-
+            ApplyAlphaImmediate(targetAlpha);
             fadeCoroutine = null;
         }
 
-        private float GetFadeAlpha(Material material)
+        private void ApplyAlphaImmediate(float alpha)
         {
-            if (material.HasProperty(FullAlphaDissolveFadeId))
-                return material.GetFloat(FullAlphaDissolveFadeId);
+            currentAlpha = alpha;
 
-            if (material.HasProperty(FadeAlphaId))
-                return material.GetFloat(FadeAlphaId);
-
-            return 1f;
-        }
-
-        private void SetFadeAlpha(Material material, float alpha)
-        {
-            if (material.HasProperty(FullAlphaDissolveFadeId))
-                material.SetFloat(FullAlphaDissolveFadeId, alpha);
-
-            if (material.HasProperty(FadeAlphaId))
-                material.SetFloat(FadeAlphaId, alpha);
-        }
-
-        // private float GetShadowClipThreshold(Material material)
-        // {
-        //     if (material.HasProperty(ShadowClipThresholdId))
-        //         return material.GetFloat(ShadowClipThresholdId);
-
-        //     return 0f;
-        // }
-
-        // private void SetShadowClipThreshold(Material material, float threshold)
-        // {
-        //     if (material.HasProperty(ShadowClipThresholdId))
-        //         material.SetFloat(ShadowClipThresholdId, threshold);
-        // }
-
-        private void ApplyImmediateValues(float alpha, float shadowClipThreshold)
-        {
-            if (materials == null)
+            if (TargetRenderers == null)
                 return;
-
-            for (int i = 0; i < materials.Length; i++)
-            {
-                Material material = materials[i];
-
-                if (material == null)
-                    continue;
-
-                SetFadeAlpha(material, alpha);
-                // SetShadowClipThreshold(material, shadowClipThreshold);
-            }
-        }
-
-        private void CacheMaterials()
-        {
-            if (TargetRenderers == null || TargetRenderers.Length == 0)
-            {
-                materials = System.Array.Empty<Material>();
-                return;
-            }
-
-            int materialCount = 0;
 
             for (int i = 0; i < TargetRenderers.Length; i++)
             {
@@ -219,27 +118,12 @@ namespace ShiftedSignal.Garden.Tools
                 if (rendererComponent == null)
                     continue;
 
-                materialCount += rendererComponent.materials.Length;
-            }
+                rendererComponent.GetPropertyBlock(propertyBlock);
 
-            materials = new Material[materialCount];
+                propertyBlock.SetFloat(FullAlphaDissolveFadeId, alpha);
+                propertyBlock.SetFloat(FadeAlphaId, alpha);
 
-            int materialIndex = 0;
-
-            for (int i = 0; i < TargetRenderers.Length; i++)
-            {
-                Renderer rendererComponent = TargetRenderers[i];
-
-                if (rendererComponent == null)
-                    continue;
-
-                Material[] rendererMaterials = rendererComponent.materials;
-
-                for (int j = 0; j < rendererMaterials.Length; j++)
-                {
-                    materials[materialIndex] = rendererMaterials[j];
-                    materialIndex++;
-                }
+                rendererComponent.SetPropertyBlock(propertyBlock);
             }
         }
     }

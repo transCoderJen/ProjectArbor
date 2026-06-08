@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Interfaces;
@@ -8,45 +7,57 @@ using UnityEngine;
 
 public class Trees : MonoBehaviour, IInteractable
 {
+    private static readonly int OuterOutlineColorId = Shader.PropertyToID("_OuterOutlineColor");
+    private static readonly int VibrateFadeId = Shader.PropertyToID("_VibrateFade");
+
     [ColorUsage(false, true)]
-    [SerializeField] private Color HighlightColor;
+    [SerializeField] private Color HighlightColor = Color.white;
+
     [SerializeField] private ItemData WoodMaterial;
-    [SerializeField] private int WoodAvailable;
+    [SerializeField] private int WoodAvailable = 3;
     [SerializeField] private ParticleSystem FallingLeavesVFX;
+
     private SpriteRenderer sr;
-    public bool IsPlayerNear { get; private set; } = false;
+    private MaterialPropertyBlock propertyBlock;
+
+    private Color currentOutlineColor;
+    private float currentVibrateFade;
 
     private void Awake()
     {
         sr = GetComponentInParent<SpriteRenderer>();
-    }
+        propertyBlock = new MaterialPropertyBlock();
 
+        currentOutlineColor = Color.black;
+        currentVibrateFade = 0f;
+
+        ApplyPropertyBlock();
+    }
 
     public void Highlight(bool highlight)
     {
-        if (highlight)
-            sr.material.SetColor("_OuterOutlineColor", HighlightColor);
-        else
-            sr.material.SetColor("_OuterOutlineColor", Color.black);
+        currentOutlineColor = highlight ? HighlightColor : Color.black;
+        ApplyPropertyBlock();
     }
 
     public void Interact(Player player)
     {
         Debug.Log("Trying to interact with wood");
-        if (WoodAvailable > 0)
-        {
-            StartCoroutine(nameof(Wiggle));
+
+        if (WoodAvailable <= 0)
+            return;
+
+        StartCoroutine(Wiggle());
+
+        if (FallingLeavesVFX != null)
             FallingLeavesVFX.Play();
-            // TODO Add Audio For shaking tree
-            WoodAvailable--;
-            Inventory.Instance.AddItem(WoodMaterial);
-            if (WoodAvailable == 0)
-            {
-                // TODO Destroy tree vfx
-                StartCoroutine(nameof(DestroyTree));
-                
-            }
-        }
+
+        WoodAvailable--;
+
+        Inventory.Instance.AddItem(WoodMaterial);
+
+        if (WoodAvailable == 0)
+            StartCoroutine(DestroyTree());
     }
 
     private IEnumerator DestroyTree()
@@ -55,30 +66,27 @@ public class Trees : MonoBehaviour, IInteractable
         Destroy(transform.parent.gameObject);
     }
 
-    bool IInteractable.IsPlayerNear() => IsPlayerNear;
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.GetComponent<Player>() != null)
-        {
-            IsPlayerNear = true;
-            Highlight(true);
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.GetComponent<Player>() != null)
-        {
-            IsPlayerNear = false;
-            Highlight(false);
-        }
-    }
-
     private IEnumerator Wiggle()
     {
-        sr.material.SetFloat("_VibrateFade", 1);
-        yield return Helpers.GetWait(.2f);
-        sr.material.SetFloat("_VibrateFade", 0);
+        currentVibrateFade = 1f;
+        ApplyPropertyBlock();
+
+        yield return Helpers.GetWait(0.2f);
+
+        currentVibrateFade = 0f;
+        ApplyPropertyBlock();
+    }
+
+    private void ApplyPropertyBlock()
+    {
+        if (sr == null)
+            return;
+
+        sr.GetPropertyBlock(propertyBlock);
+
+        propertyBlock.SetColor(OuterOutlineColorId, currentOutlineColor);
+        propertyBlock.SetFloat(VibrateFadeId, currentVibrateFade);
+
+        sr.SetPropertyBlock(propertyBlock);
     }
 }

@@ -42,6 +42,7 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private float PopScale = 1.12f;
 
         private Coroutine toastRoutine;
+        private bool hasShownFirstQuestToast;
 
         private void Awake()
         {
@@ -74,11 +75,25 @@ namespace ShiftedSignal.Garden.UserInterface
             if (quest == null)
                 return;
 
+            hasShownFirstQuestToast = true;
+
             ShowToast(
                 "<bounce>New Quest</bounce>",
                 quest.Info.DisplayName,
-                NewQuestIcon,
+                GetQuestIcon(quest, NewQuestIcon),
                 NewQuestClip);
+        }
+
+        private Sprite GetQuestIcon(Quest quest, Sprite fallbackIcon)
+        {
+            if (quest != null &&
+                quest.Info != null &&
+                quest.Info.QuestIcon != null)
+            {
+                return quest.Info.QuestIcon;
+            }
+
+            return fallbackIcon;
         }
         
         private void HandleTrackedQuestChanged(TrackedQuestChangedEvent evt)
@@ -86,10 +101,16 @@ namespace ShiftedSignal.Garden.UserInterface
             if (evt.Quest == null)
                 return;
 
+            if (hasShownFirstQuestToast)
+            {
+                hasShownFirstQuestToast = false;
+                return;
+            }
+
             ShowToast(
                 "<wave>Active Quest</wave>",
                 evt.Quest.Info.DisplayName,
-                ActiveQuestIcon,
+                GetQuestIcon(evt.Quest, ActiveQuestIcon),
                 ActiveQuestClip);
         }
 
@@ -104,7 +125,7 @@ namespace ShiftedSignal.Garden.UserInterface
             ShowToast(
                 "<bounce>Objective Complete</bounce>",
                 evt.Quest.Info.DisplayName,
-                ObjectiveCompleteIcon,
+                GetQuestIcon(evt.Quest, ObjectiveCompleteIcon),
                 ObjectiveCompleteClip);
         }
 
@@ -119,7 +140,7 @@ namespace ShiftedSignal.Garden.UserInterface
             ShowToast(
                 "<bounce>Quest Complete</bounce>",
                 evt.Quest.Info.DisplayName,
-                QuestCompleteIcon,
+                GetQuestIcon(evt.Quest, QuestCompleteIcon),
                 QuestCompleteClip);
         }
 

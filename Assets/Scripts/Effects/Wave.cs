@@ -10,29 +10,27 @@ namespace ShiftedSignal.Garden.Effects
 
         private Quaternion startRotation;
         private float waveOffset;
-
         private bool isVisible;
 
-        private void Start()
+        public bool IsVisible => isVisible;
+        public float Speed => WaveSpeed;
+        public float Amount => WaveAmount;
+        public float Offset => waveOffset;
+
+        private void Awake()
         {
             startRotation = transform.rotation;
-
-            // Randomize the wave start point
             waveOffset = Random.Range(0f, Mathf.PI * 2f);
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            if (!isVisible)
-                return;
-
-            WaveMotion();
+            WaveManager.Register(this);
         }
 
-        private void WaveMotion()
+        private void OnDisable()
         {
-            float angle = Mathf.Sin(Time.time * WaveSpeed + waveOffset) * WaveAmount;
-            transform.rotation = startRotation * Quaternion.Euler(0f, 0f, angle);
+            WaveManager.Unregister(this);
         }
 
         private void OnBecameVisible()
@@ -43,6 +41,17 @@ namespace ShiftedSignal.Garden.Effects
         private void OnBecameInvisible()
         {
             isVisible = false;
+        }
+
+        public void ApplyWave(float time)
+        {
+            float angle = Mathf.Sin(time * WaveSpeed + waveOffset) * WaveAmount;
+            transform.rotation = startRotation * Quaternion.Euler(0f, 0f, angle);
+        }
+
+        public void ResetWave()
+        {
+            transform.rotation = startRotation;
         }
     }
 }
