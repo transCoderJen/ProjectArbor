@@ -1,19 +1,21 @@
-using Unity.VisualScripting;
 using UnityEngine;
-using ShiftedSignal.Garden.Managers;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
-{    
+{
     public class PlayerIdleState : PlayerState
     {
-        public PlayerIdleState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
+        public PlayerIdleState(
+            Player _player,
+            PlayerStateMachine _stateMachine,
+            string _animBoolName)
+            : base(_player, _stateMachine, _animBoolName)
         {
         }
 
         public override void Enter()
         {
             base.Enter();
-            
+
             Player.StopMovement();
         }
 
@@ -23,19 +25,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             if (Player.AttackBuffered)
             {
+                Player.AttackBuffered = false;
                 Player.StateMachine.ChangeState(Player.AttackState);
+                return;
             }
 
-            if (Player.AttackInput.action.WasPressedThisFrame())
-            {
-                Player.StateMachine.ChangeState(Player.AttackState);   
-            }
-            
             if (CachedMoveInput != Vector2.zero)
             {
                 Player.StateMachine.ChangeState(Player.MoveState);
             }
-
         }
     }
 }

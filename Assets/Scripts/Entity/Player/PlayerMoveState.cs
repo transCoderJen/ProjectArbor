@@ -1,12 +1,14 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
-    
     public class PlayerMoveState : PlayerState
     {
-        public PlayerMoveState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
+        public PlayerMoveState(
+            Player _player,
+            PlayerStateMachine _stateMachine,
+            string _animBoolName)
+            : base(_player, _stateMachine, _animBoolName)
         {
         }
 
@@ -19,7 +21,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.FixedUpdate();
 
-            
             Player.ApplyMovement(CachedMoveInput);
         }
 
@@ -27,9 +28,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.Update();
 
-            if (Player.AttackInput.action.WasPressedThisFrame())
+            if (Player.AttackBuffered)
             {
-                Player.StateMachine.ChangeState(Player.AttackState);   
+                Player.AttackBuffered = false;
+                Player.StateMachine.ChangeState(Player.AttackState);
+                return;
             }
 
             if (CachedMoveInput == Vector2.zero)
@@ -38,10 +41,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             }
         }
 
-        public override void Exit() 
+        public override void Exit()
         {
             base.Exit();
-            
         }
     }
 }

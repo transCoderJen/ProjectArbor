@@ -825,7 +825,7 @@ PlayerSettings:
     PS5: SORTIFY
     QNX: SORTIFY
     ReservedCFE: SORTIFY
-    Standalone: SORTIFY
+    Standalone: SORTIFY;MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED
     VisionOS: SORTIFY
     WebGL: SORTIFY
     XboxOne: SORTIFY

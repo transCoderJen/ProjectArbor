@@ -1,5 +1,6 @@
 using System;
 using ShiftedSignal.Garden.Effects;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
@@ -30,12 +31,6 @@ namespace ShiftedSignal.Garden.GridSystem
         public Sprite SoilWateredSprite;
 
         public SpriteRenderer CropSprite;
-        // public Sprite CropPlantedSprite, 
-        //                 CropGrowing1Sprite, 
-        //                 CropGrowing2Sprite, 
-        //                 CropRipeSprite;
-
-        // public GameObject RipePlant;
 
         public ItemData_Seed Seed;
         public bool IsWatered;
@@ -52,12 +47,6 @@ namespace ShiftedSignal.Garden.GridSystem
         public int health = 100;
         public GameObject SpawnedPlant;
         public bool HasBuildable;
-
-
-        private void Awake()
-        {
-            // UpdateSelectionBoxColor();
-        }
 
         public void UpdateSelectionBoxColor()
         {
@@ -81,7 +70,7 @@ namespace ShiftedSignal.Garden.GridSystem
         {
             if (PreventUse || !IsActive) return false;
             
-            bool usingController = PlayerManager.Instance.Player.PlayerInput.currentControlScheme == "Gamepad";
+            bool usingController = PlayerManager.Instance.Player.UsingController;
 
             if (!usingController)
             {
@@ -287,7 +276,7 @@ namespace ShiftedSignal.Garden.GridSystem
                 
                 SetSoilSprite();
                 SR.material.SetFloat("_Alpha", 1f);
-                PlayerManager.Instance.Player.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
+                Player.Instance.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
             }
         }
 

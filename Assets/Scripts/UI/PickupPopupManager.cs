@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 
@@ -5,42 +6,29 @@ namespace ShiftedSignal.Garden.UserInterface
 {
     public class PickupPopupManager : Singleton<PickupPopupManager>
     {
-        [Header("Popup")]
-        [SerializeField] private PickupPopupUI PopupPrefab;
+        [SerializeField] private PickupPopupUI PickupPopupPrefab;
+        [SerializeField] private RectTransform PopupParent;
+        
+        private readonly Dictionary<string, PickupPopupUI> activePopups = new();
 
-        [Header("Defaults")]
-        [SerializeField] private Vector3 DefaultOffset = new Vector3(0f, 0.75f, 0f);
-
-        public void Show(Vector3 worldPosition, Sprite icon, int amount)
+        public void Show(Sprite icon, int amount, string itemName)
         {
-            if (PopupPrefab == null)
+            if (activePopups.TryGetValue(itemName, out PickupPopupUI popup) && popup != null)
             {
-                Debug.LogWarning("PickupPopupManager is missing a PopupPrefab.");
+                popup.AddAmount(amount);
                 return;
             }
+            
+            popup = Instantiate(PickupPopupPrefab, PopupParent);
+            popup.transform.localScale = Vector3.one;
+            popup.Setup(icon, amount, itemName);
 
-            PickupPopupUI popup = Instantiate(
-                PopupPrefab,
-                worldPosition + DefaultOffset,
-                Quaternion.identity);
-
-            popup.Setup(icon, amount);
+            activePopups[itemName] = popup;
         }
 
-        public void Show(Vector3 worldPosition, Sprite icon, string text)
+        public void RemovePopup(string itemName)
         {
-            if (PopupPrefab == null)
-            {
-                Debug.LogWarning("PickupPopupManager is missing a PopupPrefab.");
-                return;
-            }
-
-            PickupPopupUI popup = Instantiate(
-                PopupPrefab,
-                worldPosition + DefaultOffset,
-                Quaternion.identity);
-
-            popup.Setup(icon, text);
+            activePopups.Remove(itemName);
         }
     }
 }

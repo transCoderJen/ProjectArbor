@@ -28,7 +28,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             Vector3 AttackDir = Player.FacingDir;
 
-            Vector2 moveInput = Player.MoveInput.action.ReadValue<Vector2>().normalized;
+            Vector2 moveInput = Player.CachedMoveInput.normalized;
 
             if (moveInput != Vector2.zero)
             {
@@ -39,7 +39,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Player.ApplyMovement(new Vector2(Player.AttackMovement[comboCounter].x * AttackDir.x,
                                                 Player.AttackMovement[comboCounter].x * AttackDir.z), normalized: false);
             
-            Player.TryCutGrass(Player.LastFacingDir);
+            // Player.TryCutGrass(Player.LastFacingDir);
 
             SpawnSlashFX();
 
@@ -65,6 +65,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 rotation = new Vector3(90, -90, 0);
                 scale = 2.5f;
             }
+            
             ObjectPoolManager.SpawnObject(Player.EquippedWeapon.SlashFX,
                                             Player.transform.position + new Vector3(0, Player.CheckHeight, 0),
                                             Quaternion.LookRotation(Player.FacingDir) * Quaternion.Euler(rotation.x, rotation.y, rotation.z),
@@ -75,10 +76,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.Update();
 
-            if (Player.AttackInput.action.WasPressedThisFrame())
-            {
-                Player.AttackBuffered = true;
-            }
             if (StateTimer < 0)
                 Player.StopMovement();
             

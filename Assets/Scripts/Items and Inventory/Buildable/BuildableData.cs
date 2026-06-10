@@ -29,13 +29,13 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         {
             if (PlayerManager.Instance.Currency < Cost)
             {
-                Debug.Log("Not Enough Gold to Build " + BuildableName);
+                // Debug.Log("Not Enough Gold to Build " + BuildableName);
                 return false;
             }
 
             if (!HasRequiredMaterials())
             {
-                Debug.Log("Not Enough Materials to Build " + BuildableName);
+                // Debug.Log("Not Enough Materials to Build " + BuildableName);
                 return false;
             }
 

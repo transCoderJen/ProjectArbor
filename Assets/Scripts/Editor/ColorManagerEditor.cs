@@ -2,33 +2,37 @@ using ShiftedSignal.Garden.Managers;
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(ColorManager))]
-public class ColorManagerEditor : Editor
+namespace ShiftedSignal.Garden.Buildable.Editor
 {
-    public override void OnInspectorGUI()
+
+    [CustomEditor(typeof(ColorManager))]
+    public class ColorManagerEditor : UnityEditor.Editor
     {
-        DrawDefaultInspector();
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Color Scheme Tools", EditorStyles.boldLabel);
-
-        ColorManager colorManager = (ColorManager)target;
-
-        GUI.enabled = !Application.isPlaying;
-
-        if (GUILayout.Button("Overwrite Existing Color Scheme"))
+        public override void OnInspectorGUI()
         {
-            colorManager.OverwriteExistingColorScheme();
-            EditorUtility.SetDirty(colorManager);
+            DrawDefaultInspector();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Color Scheme Tools", EditorStyles.boldLabel);
+
+            ColorManager colorManager = (ColorManager)target;
+
+            GUI.enabled = !Application.isPlaying;
+
+            if (GUILayout.Button("Overwrite Existing Color Scheme"))
+            {
+                colorManager.OverwriteExistingColorScheme();
+                EditorUtility.SetDirty(colorManager);
+            }
+
+            if (GUILayout.Button("Save New Color Scheme"))
+            {
+                colorManager.SaveNewColorScheme();
+                EditorUtility.SetDirty(colorManager);
+            }
+
+
+            GUI.enabled = true;
         }
-
-        if (GUILayout.Button("Save New Color Scheme"))
-        {
-            colorManager.SaveNewColorScheme();
-            EditorUtility.SetDirty(colorManager);
-        }
-
-
-        GUI.enabled = true;
     }
 }

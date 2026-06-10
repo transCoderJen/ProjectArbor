@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using Ink.Runtime;
 using ShiftedSignal.Garden.EventBus;
@@ -41,9 +40,7 @@ namespace ShiftedSignal.Garden.Dialogue
             Bus<UpdateDialogueChoiceIndexEvent>.OnEvent += UpdateChoiceIndex;
             Bus<UpdateInkDialogueVariableEvent>.OnEvent += UpdateInkDialogueVariable;
             Bus<QuestStateChangedEvent>.OnEvent += QuestStateChange;
-        }
-
-        
+        }  
 
         private void OnDisable()
         {
@@ -69,6 +66,15 @@ namespace ShiftedSignal.Garden.Dialogue
         private void UpdateChoiceIndex(UpdateDialogueChoiceIndexEvent evt)
         {
             this.currentChoiceIndex = evt.ChoiceIndex;
+        }
+
+        private void Update()
+        {
+            if (!dialoguePlaying)
+                return;
+
+            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+                SubmitPressed();
         }
 
         public void OnInteract(InputValue value)

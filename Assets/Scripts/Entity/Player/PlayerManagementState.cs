@@ -26,11 +26,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.Update();
 
-            if (Keyboard.current.fKey.wasPressedThisFrame)
-            {
-                Player.StateMachine.ChangeState(Player.IdleState);
-                return;
-            }
         }
         
         public override void FixedUpdate()

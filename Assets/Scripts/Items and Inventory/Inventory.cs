@@ -645,6 +645,20 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                 UpdateSlotUI();
         }
 
+        public void AddItem(ItemData item, int amount, bool updateUI = true)
+        {
+            if (amount <= 0)
+                return;
+
+            for (int i = 0; i < amount; i++)
+            {
+                AddItem(item, false);
+            }
+
+            if (updateUI)
+                UpdateSlotUI();
+        }
+
         private void AddToStash(ItemData item)
         {
             if (stashDictionary.TryGetValue(item, out InventoryItem value))

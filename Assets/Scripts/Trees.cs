@@ -1,4 +1,5 @@
 using System.Collections;
+using MoreMountains.Feedbacks;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
@@ -14,8 +15,17 @@ public class Trees : MonoBehaviour, IInteractable
     [ColorUsage(false, true)]
     [SerializeField] private Color HighlightColor = Color.white;
 
+    [Header("Wood")]
     [SerializeField] private ItemData WoodMaterial;
-    [SerializeField] private int WoodAvailable = 3;
+    [SerializeField] private int WoodBundlesAvailable = 3;
+    [SerializeField] private int WoodAmountPerBundle = 5;
+
+    [Header("Hits Per Wood")]
+    [SerializeField] private int MinHitsPerWood = 2;
+    [SerializeField] private int MaxHitsPerWood = 4;
+
+    [Header("Feedback")]
+    [SerializeField] private MMF_Player InteractFeedback;
     [SerializeField] private ParticleSystem FallingLeavesVFX;
 
     private SpriteRenderer sr;
@@ -23,6 +33,10 @@ public class Trees : MonoBehaviour, IInteractable
 
     private Color currentOutlineColor;
     private float currentVibrateFade;
+
+    private int currentHits;
+    private int hitsRequiredForNextWood;
+    private Coroutine wiggleRoutine;
 
     private void Awake()
     {
@@ -32,6 +46,7 @@ public class Trees : MonoBehaviour, IInteractable
         currentOutlineColor = Color.black;
         currentVibrateFade = 0f;
 
+        RollHitsRequired();
         ApplyPropertyBlock();
     }
 
@@ -43,32 +58,59 @@ public class Trees : MonoBehaviour, IInteractable
 
     public void Interact(Player player)
     {
-        Debug.Log("Trying to interact with wood");
+        Debug.Log("Trying to interact with tree");
 
-        if (WoodAvailable <= 0)
+        if (WoodBundlesAvailable <= 0)
             return;
-        
-        Inventory.Instance.AddItem(WoodMaterial);
 
-        if (PickupPopupManager.Instance != null)
-        {
-            PickupPopupManager.Instance.Show(
-                transform.position,
-                WoodMaterial.Icon,
-                1);
-        }
+        InteractFeedback?.PlayFeedbacks();
 
-        StartCoroutine(Wiggle());
+        if (wiggleRoutine != null)
+            StopCoroutine(wiggleRoutine);
+
+        wiggleRoutine = StartCoroutine(Wiggle());
 
         if (FallingLeavesVFX != null)
             FallingLeavesVFX.Play();
 
-        WoodAvailable--;
+        currentHits++;
 
-        Inventory.Instance.AddItem(WoodMaterial);
+        if (currentHits < hitsRequiredForNextWood)
+            return;
 
-        if (WoodAvailable == 0)
+        GiveWood();
+
+        WoodBundlesAvailable--;
+
+        if (WoodBundlesAvailable <= 0)
+        {
             StartCoroutine(DestroyTree());
+            return;
+        }
+
+        RollHitsRequired();
+    }
+
+    private void GiveWood()
+    {
+        Inventory.Instance.AddItem(WoodMaterial, WoodAmountPerBundle);
+
+        if (PickupPopupManager.Instance != null)
+        {
+            PickupPopupManager.Instance.Show(
+                WoodMaterial.Icon,
+                WoodAmountPerBundle,
+                WoodMaterial.name);
+        }
+    }
+
+    private void RollHitsRequired()
+    {
+        int min = Mathf.Max(1, MinHitsPerWood);
+        int max = Mathf.Max(min, MaxHitsPerWood);
+
+        hitsRequiredForNextWood = Random.Range(min, max + 1);
+        currentHits = 0;
     }
 
     private IEnumerator DestroyTree()
@@ -86,6 +128,8 @@ public class Trees : MonoBehaviour, IInteractable
 
         currentVibrateFade = 0f;
         ApplyPropertyBlock();
+
+        wiggleRoutine = null;
     }
 
     private void ApplyPropertyBlock()

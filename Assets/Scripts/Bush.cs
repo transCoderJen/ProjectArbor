@@ -183,9 +183,9 @@ public class Bush : MonoBehaviour, IInteractable
         if (PickupPopupManager.Instance != null)
         {
                 PickupPopupManager.Instance.Show(
-                transform.position,
                 Berry.Icon,
-                1);
+                1,
+                Berry.name);
         }
         
         RemoveOneBerry();
