@@ -12,13 +12,18 @@ namespace ShiftedSignal.Garden.UserInterface
     
     public class DialoguePanelUI : MonoBehaviour
     {
-        [Header("Components")]
-        [SerializeField] private GameObject ContentParent;
+        [Header("Dialogue Components")]
+        [SerializeField] private GameObject DialogueContentParent;
         [SerializeField] private TypewriterComponent DialogueTypeWriter;
         [SerializeField] private TMP_Text DialogueText;
         [SerializeField] private Image SpeakerPortraitImage;
         [SerializeField] private TMP_Text SpeakerNameText;
         [SerializeField] private DialogueChoiceButton[] ChoiceButtons;
+
+        [Header("Note Components")]
+        [SerializeField] private GameObject NoteContentParent;
+        [SerializeField] private TypewriterComponent NoteTypeWriter;
+        [SerializeField] private TMP_Text NoteText;
 
         [Header("Speaker Data")]
         [SerializeField] private DialogueSpeakerDatabase SpeakerDatabase;
@@ -32,10 +37,13 @@ namespace ShiftedSignal.Garden.UserInterface
         private string currentDialogueLine = string.Empty;
         private DisplayDialogueEvent currentDisplayEvent;
         private bool hasPendingChoices;
+        private TypewriterComponent currentTypeWriter;
+        private string currentNoteText = string.Empty;
 
         private void Awake()
         {
-            ContentParent.SetActive(false);
+            DialogueContentParent.SetActive(false);
+            NoteContentParent.SetActive(false);
             ResetPanel();
         }
 
@@ -47,6 +55,7 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DialogueSubmitEvent>.OnEvent += HandleSubmit;
 
             DialogueTypeWriter.onTextShowed.AddListener(HandleTextFinished);
+            NoteTypeWriter.onTextShowed.AddListener(HandleTextFinished);
         }
 
         private void OnDisable()
@@ -57,11 +66,12 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DialogueSubmitEvent>.OnEvent -= HandleSubmit;
 
             DialogueTypeWriter.onTextShowed.RemoveListener(HandleTextFinished);
+            NoteTypeWriter.onTextShowed.RemoveListener(HandleTextFinished);
         }
 
         private void DialogueStarted(DialogueStartedEvent _)
         {
-            ContentParent.SetActive(true);
+            DialogueContentParent.SetActive(true);
             canSubmitDialogue = false;
             Invoke(nameof(UnlockDialogueSubmit), submitLockDuration);
         }
@@ -76,7 +86,7 @@ namespace ShiftedSignal.Garden.UserInterface
             CancelInvoke(nameof(UnlockDialogueSubmit));
             canSubmitDialogue = false;
 
-            ContentParent.SetActive(false);
+            DialogueContentParent.SetActive(false);
             ResetPanel();
         }
 
@@ -88,16 +98,42 @@ namespace ShiftedSignal.Garden.UserInterface
             currentDialogueLine = evt.DialogueLine;
             isTyping = true;
 
-            UpdateSpeakerVisuals(evt.SpeakerID);
-
             HideChoiceButtons();
 
-            DialogueTypeWriter.ShowText(currentDialogueLine);
+            DialogueContentParent.SetActive(!evt.IsNote);
+            NoteContentParent.SetActive(evt.IsNote);
+
+            currentTypeWriter = evt.IsNote ? NoteTypeWriter : DialogueTypeWriter;
+
+            if (evt.IsNote)
+            {
+                DialogueContentParent.SetActive(false);
+                NoteContentParent.SetActive(true);
+
+                if (!string.IsNullOrWhiteSpace(currentNoteText))
+                    currentNoteText += "\n\n";
+
+                currentNoteText += currentDialogueLine;
+
+                NoteTypeWriter.ShowText(currentNoteText);
+                currentTypeWriter = NoteTypeWriter;
+            }
+            else
+            {
+                DialogueContentParent.SetActive(true);
+                NoteContentParent.SetActive(false);
+
+                DialogueText.text = string.Empty;
+                UpdateSpeakerVisuals(evt.SpeakerID);
+
+                DialogueTypeWriter.ShowText(currentDialogueLine);
+                currentTypeWriter = DialogueTypeWriter;
+            }
+
+            currentTypeWriter.ShowText(currentDialogueLine);
 
             if (evt.DialogueChoices.Count > ChoiceButtons.Length)
-            {
                 Debug.LogError("More dialogue choices than buttons available");
-            }
         }
 
         private void UpdateSpeakerVisuals(string speakerId)
@@ -140,15 +176,26 @@ namespace ShiftedSignal.Garden.UserInterface
 
             if (isTyping)
             {
-                DialogueTypeWriter.SkipTypewriter();
+                currentTypeWriter.SkipTypewriter();
                 isTyping = false;
                 ShowPendingChoices();
+
+                LockSubmitBriefly();
                 return;
             }
 
             Bus<DialogueAdvanceRequestedEvent>.Raise(new DialogueAdvanceRequestedEvent());
+
+            LockSubmitBriefly();
         }
 
+        private void LockSubmitBriefly()
+        {
+            canSubmitDialogue = false;
+            CancelInvoke(nameof(UnlockDialogueSubmit));
+            Invoke(nameof(UnlockDialogueSubmit), submitLockDuration);
+        }
+        
         private void HandleTextFinished()
         {
             isTyping = false;
@@ -158,13 +205,22 @@ namespace ShiftedSignal.Garden.UserInterface
         private void ResetPanel()
         {
             currentDialogueLine = string.Empty;
+            currentNoteText = string.Empty;
             isTyping = false;
 
             DialogueTypeWriter.StopShowingText();
+            NoteTypeWriter.StopShowingText();
+
             DialogueText.text = string.Empty;
+            NoteText.text = string.Empty;
+
+            DialogueContentParent.SetActive(false);
+            NoteContentParent.SetActive(false);
 
             UpdatePortrait(DefaultPortrait);
             UpdateSpeakerName(string.Empty, Color.white);
+
+            currentTypeWriter = DialogueTypeWriter;
         }
 
         private void HideChoiceButtons()

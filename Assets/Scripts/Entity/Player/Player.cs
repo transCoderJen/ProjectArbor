@@ -406,6 +406,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
             }
 
+            Debug.Log("Use tool");
+
+
             GrowBlock block = GetBlock();
 
             if (block == null)

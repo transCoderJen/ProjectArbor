@@ -1,13 +1,11 @@
 === luna_bus_arrival ===
 
 # speaker: Luna
-
 Well...
 
 No turning back now.
 
 ~ ReceiveQuestAndStart("GrandpasFarmQuest")
-
 
 -> END
 

@@ -37,7 +37,6 @@ public class InkDialogueVariables
         }
 
         variables[name] = value;
-
     }
 
     private void SyncVariablesToStory(Story story)

@@ -25,7 +25,6 @@ namespace ShiftedSignal.Garden.Dialogue
             inkExternalFunctions = new InkExternalFunctions();
             inkExternalFunctions.Bind(story);
             inkDialogueVariables = new InkDialogueVariables(story);
-            
         }
 
         private void OnDestroy()
@@ -146,7 +145,7 @@ namespace ShiftedSignal.Garden.Dialogue
                 else
                 {
                     Bus<DisplayDialogueEvent>.Raise(
-                        new DisplayDialogueEvent(speakerId, dialogueLine, story.currentChoices)
+                        new DisplayDialogueEvent(CheckIfNote(), speakerId, dialogueLine, story.currentChoices)
                     );
                 }
 
@@ -156,6 +155,17 @@ namespace ShiftedSignal.Garden.Dialogue
             {
                 StartCoroutine(ExitDialogue());
             }
+        }
+
+        private bool CheckIfNote()
+        {
+            foreach (string tag in story.currentTags)
+            {
+                if (tag.Equals("note"))
+                    return true;
+            }
+
+            return false;
         }
 
         private string GetSpeakerId()

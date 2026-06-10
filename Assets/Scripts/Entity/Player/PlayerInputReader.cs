@@ -37,6 +37,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             InteractPressed?.Invoke();
+            ActionPressed?.Invoke();
         }
 
         public void OnAction(InputValue value)

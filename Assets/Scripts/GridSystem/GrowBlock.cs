@@ -43,7 +43,6 @@ namespace ShiftedSignal.Garden.GridSystem
 
         [SerializeField] private SpriteRenderer SelectionBox;
         [SerializeField] private LayerMask InteractionMask;
-        private bool isHovered;
         public int health = 100;
         public GameObject SpawnedPlant;
         public bool HasBuildable;
@@ -56,72 +55,6 @@ namespace ShiftedSignal.Garden.GridSystem
         public void InstantiateBlock(ItemData_Seed seed)
         {
             Seed = seed;
-        }
-
-        void Update()
-        {
-            if (Helpers.EveryXFrames(2))
-            {
-                CustomMouseOver();
-            }
-        }
-
-        private bool CustomMouseOver()
-        {
-            if (PreventUse || !IsActive) return false;
-            
-            bool usingController = PlayerManager.Instance.Player.UsingController;
-
-            if (!usingController)
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-                if (Physics.Raycast(ray, out RaycastHit hit, float.MaxValue, InteractionMask))
-                {
-                    if (hit.collider.gameObject == gameObject)
-                    {
-                        if (!isHovered)
-                        {
-                            isHovered = true;
-                            Glow(true);
-                        }
-                        return false;
-                    }
-                }
-
-                if (isHovered)
-                {
-                    isHovered = false;
-                    Glow(false);
-                }
-
-                return true;
-            }
-            else
-            {
-                Ray downRay = new Ray(PlayerManager.Instance.Player.GrowBlockCheck.position, Vector3.down);
-
-                if (Physics.Raycast(downRay, out RaycastHit downHit, float.MaxValue, InteractionMask))
-                {
-                    if (downHit.collider.gameObject == gameObject)
-                    {
-                        if (!isHovered)
-                        {
-                            isHovered = true;
-                            Glow(true);
-                        }
-                        return false;
-                    }
-                }
-
-                if (isHovered)
-                {
-                    isHovered = false;
-                    Glow(false);
-                }
-
-                return true;
-            }
         }
 
         public void TriggerActivationBlock()
@@ -168,7 +101,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
             UpdateGridInfo();
         }
-
+        
         public void AdvanceStage()
         {
             CurrentStage ++;
@@ -179,34 +112,15 @@ namespace ShiftedSignal.Garden.GridSystem
             }
         }
 
-        public void SetSoilSprite()
+        public void SetSoilSprite(bool saveInfo = true)
         {
-            
             if (CurrentStage == GrowthStage.Barren)
-            {
-                if (IsActive)
-                {
-                    SR.sprite = BlockActiveSprite;
-                }
-                else
-                {
-                    SR.sprite = null;
-                }   
-            }
+                SR.sprite = IsActive ? BlockActiveSprite : null;
             else
-            {
-                if (IsWatered)
-                {
-                    SR.sprite = SoilWateredSprite;
-                }
-                else
-                {
-                    SR.sprite = SoilTilledSprite;
-                    
-                }        
-            }
+                SR.sprite = IsWatered ? SoilWateredSprite : SoilTilledSprite;
 
-            UpdateGridInfo();
+            if (saveInfo)
+                UpdateGridInfo();
         }
 
         public void UseContextAction(ItemData_Seed equippedSeed)
@@ -300,47 +214,34 @@ namespace ShiftedSignal.Garden.GridSystem
             }
         }
 
-        public void UpdateCropSprite()
+        public void UpdateCropSprite(bool saveInfo = true)
         {
             switch(CurrentStage)
             {
+                case GrowthStage.Barren:
                 case GrowthStage.Ploughed:
                     CropSprite.sprite = null;
                     break;
-                case GrowthStage.Planted:
-                    CropSprite.sprite = Seed.CropPlantedSprite;
-                    break;
-                case GrowthStage.Growing1:
-                    CropSprite.sprite = Seed.CropGrowing1Sprite;
-                    break;
-                case GrowthStage.Growing2:
-                    CropSprite.sprite = Seed.CropGrowing2Sprite;
-                    break;
-                case GrowthStage.Ripe:
-                    if (Seed.CropType == CropType.Resource)
-                    {
-                        CropSprite.sprite = Seed.CropRipeSprite;
-                    }
-                    else
-                    {
-                        if (SpawnedPlant == null)
-                        {
-                            SpawnedPlant = ObjectPoolManager.SpawnObject(
-                                Seed.RipePlant,
-                                transform.position,
-                                Quaternion.identity,
-                                null,
-                                scale: 3
-                                
-                            );
-                        }
 
-                        CropSprite.sprite = null;
-                    }
+                case GrowthStage.Planted:
+                    CropSprite.sprite = Seed != null ? Seed.CropPlantedSprite : null;
+                    break;
+
+                case GrowthStage.Growing1:
+                    CropSprite.sprite = Seed != null ? Seed.CropGrowing1Sprite : null;
+                    break;
+
+                case GrowthStage.Growing2:
+                    CropSprite.sprite = Seed != null ? Seed.CropGrowing2Sprite : null;
+                    break;
+
+                case GrowthStage.Ripe:
+                    CropSprite.sprite = Seed != null ? Seed.CropRipeSprite : null;
                     break;
             }
 
-            UpdateGridInfo();
+            if (saveInfo)
+                UpdateGridInfo();
         }
 
         public void AdvanceCrop()

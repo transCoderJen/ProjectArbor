@@ -10,8 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2909467777461249939}
   - component: {fileID: 1312158679538933271}
-  - component: {fileID: 4800229115885684813}
-  - component: {fileID: 223545946115516936}
   m_Layer: 0
   m_Name: Crop Image
   m_TagString: Untagged
@@ -89,45 +87,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!65 &4800229115885684813
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 903516299607230765}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 4, y: 4, z: 0.2}
-  m_Center: {x: -0.14947653, y: 1.6113625, z: 0}
---- !u!114 &223545946115516936
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 903516299607230765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb2f5cea62789db47b77f706c90dae03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TransparentAlpha: 0.35
-  InvisibleAlpha: 0
-  FadeDuration: 0.2
-  VisibleShadowClipThreshold: 0.2
-  OccludedShadowClipThreshold: 1
-  TargetRenderers: []
 --- !u!1 &1162636319564223424
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,7 +97,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1367289049901389125}
   - component: {fileID: 584739319620874816}
-  - component: {fileID: 9004524080292141147}
   m_Layer: 10
   m_Name: GrowBlock
   m_TagString: Untagged
@@ -178,6 +136,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CurrentStage: 0
   SR: {fileID: 5390414751969265511}
+  GridIndicator: {fileID: 0}
   BlockActiveSprite: {fileID: 21300000, guid: 1e9a0cb177a8ddf4ca093ca6c993a01b, type: 3}
   SoilTilledSprite: {fileID: 21300000, guid: 4e1f49779b7b14940a1262b8bd96add1, type: 3}
   SoilWateredSprite: {fileID: 21300000, guid: 2048356465f874b4ba38a05d3d2dda5e, type: 3}
@@ -194,27 +153,7 @@ MonoBehaviour:
     m_Bits: 1024
   health: 100
   SpawnedPlant: {fileID: 0}
---- !u!65 &9004524080292141147
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1162636319564223424}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 4, y: 4, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  HasBuildable: 0
 --- !u!1 &2404249666094589095
 GameObject:
   m_ObjectHideFlags: 0

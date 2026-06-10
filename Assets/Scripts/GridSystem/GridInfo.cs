@@ -107,14 +107,6 @@ namespace ShiftedSignal.Garden.GridSystem
             HasGrid = false;
         }
 
-        void Update()
-        {
-            if (Keyboard.current.yKey.wasPressedThisFrame)
-            {
-                GrowCrop();
-            }
-        }
-
         public void LoadData(GameData data)
         {
             // Check if there's existing grid data in the save file

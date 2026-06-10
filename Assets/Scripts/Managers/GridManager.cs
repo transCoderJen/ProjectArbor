@@ -16,6 +16,7 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private LayerMask GridBlockers;
         [SerializeField] private LayerMask ActivationBlocks;
         [SerializeField] private LayerMask InteractionLayer;
+        private GrowBlock currentHoveredBlock;
         public List<BlockRow> BlockRows = new List<BlockRow>();
 
         [SerializeField] private Vector2Int gridSize;
@@ -23,6 +24,36 @@ namespace ShiftedSignal.Garden.Managers
         private void Start()
         {
             UpdateGrid();
+        }
+
+        private void Update()
+        {
+            UpdateHoveredBlock();
+        }
+
+        private void UpdateHoveredBlock()
+        {
+            GrowBlock newHoveredBlock;
+
+            if (PlayerManager.Instance.Player.UsingController)
+                newHoveredBlock = GetBlockController();
+            else
+                newHoveredBlock = GetBlock();
+
+            if (newHoveredBlock == currentHoveredBlock)
+                return;
+
+            if (currentHoveredBlock != null)
+                currentHoveredBlock.Glow(false);
+
+            currentHoveredBlock = newHoveredBlock;
+
+            if (currentHoveredBlock != null &&
+                currentHoveredBlock.IsActive &&
+                !currentHoveredBlock.PreventUse)
+            {
+                currentHoveredBlock.Glow(true);
+            }
         }
 
         private Vector3 SnapToGrid(Vector3 pos)
@@ -119,8 +150,8 @@ namespace ShiftedSignal.Garden.Managers
                             }
                         }
                         
-                        block.SetSoilSprite();
-                        block.UpdateCropSprite();
+                        block.SetSoilSprite(false);
+                        block.UpdateCropSprite(false);
                         block.Glow(false); // Reset visual selection state
                     }
                 }
@@ -171,30 +202,43 @@ namespace ShiftedSignal.Garden.Managers
         }
     #endregion
 
+        public GrowBlock GetBlockFromWorldPosition(Vector3 worldPos)
+        {
+            Vector3 localPos = worldPos - MinPoint.position;
+
+            int x = Mathf.FloorToInt(localPos.x / CellSize);
+            int y = Mathf.FloorToInt(localPos.z / CellSize);
+
+            return GetBlock(x, y);
+        }
+
+        // Mouse GetBlock
         public GrowBlock GetBlock()
         {
-            Ray cameraRay = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+            Debug.Log("Trying to get block from mouse position");
+            Plane groundPlane = new Plane(Vector3.up, MinPoint.position);
 
-            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, InteractionLayer))
+            Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+
+            if (groundPlane.Raycast(ray, out float distance))
             {
-                GrowBlock block = hit.collider.GetComponent<GrowBlock>();
-                if (block != null)
-                {
-                    return block;
-                }
-                return null;
+                Vector3 worldPos = ray.GetPoint(distance);
+                return GetBlockFromWorldPosition(worldPos);
             }
+
+
 
             return null;
         }
 
+        // Controller GetBlock
         public GrowBlock GetBlock(int x, int y)
         {
             if (y < 0 || y >= BlockRows.Count)
                 return null;
 
             BlockRow row = BlockRows[y];
-            if (row == null || x < 0 || x >= row.Blocks.Count)
+            if (row == null || x < 0 || x > row.Blocks.Count)
                 return null;
 
             return row.Blocks[x];
@@ -202,17 +246,8 @@ namespace ShiftedSignal.Garden.Managers
 
         public GrowBlock GetBlockController()
         {
-            Ray downRay = new Ray(PlayerManager.Instance.Player.GrowBlockCheck.position, Vector3.down);
-
-            if (Physics.Raycast(downRay, out RaycastHit hit, float.MaxValue, InteractionLayer))
-            {
-                GrowBlock block = hit.collider.GetComponent<GrowBlock>();
-                if (block != null)
-                {
-                    return block;
-                }
-            }
-            return null;
+            return GetBlockFromWorldPosition(
+                PlayerManager.Instance.Player.GrowBlockCheck.position);
         }
     }
 
