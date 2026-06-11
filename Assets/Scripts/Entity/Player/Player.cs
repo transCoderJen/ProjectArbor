@@ -300,9 +300,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Keyboard.current.oem4Key.wasPressedThisFrame)
                 CurrentTool = ToolType.Basket;
 
-            // Toggle Management State
             if (Keyboard.current.fKey.wasPressedThisFrame)
             {
+                if (CameraManager.Instance.IsTransitioning)
+                    return;
+
                 if (StateMachine.CurrentState == ManagementState)
                     StateMachine.ChangeState(IdleState);
                 else
@@ -549,30 +551,62 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayer))
             {
-                if (hit.collider.TryGetComponent(out GrowBlock growBlock))
+                // if (hit.collider.TryGetComponent(out GrowBlock growBlock))
+                //     ghostInstance.transform.position = growBlock.transform.position;
+                // else
+                //     ghostInstance.transform.position = hit.point;
+
+                // if (EquippedBuildable == null || ghostRenderer == null)
+                //     return;
+
+                // BaseBuildable buildable =
+                //     EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>();
+
+                // if (buildable == null)
+                //     return;
+
+                // bool allRestrictionsPass = buildable.AllRestrictionsPass();
+
+                // ghostRenderer.material.SetColor(
+                //     TINT,
+                //     allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
+
+                // ghostRenderer.material.SetColor(
+                //     FRESNEL,
+                //     allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
+
+                GrowBlock growBlock = GridManager.Instance.GetBlock();
+                if (growBlock == null)
+                    Debug.Log("Growblock is null");
+                if (growBlock != null)
                     ghostInstance.transform.position = growBlock.transform.position;
                 else
                     ghostInstance.transform.position = hit.point;
 
-                if (EquippedBuildable == null || ghostRenderer == null)
-                    return;
-
-                BaseBuildable buildable =
-                    EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>();
-
-                if (buildable == null)
-                    return;
-
-                bool allRestrictionsPass = buildable.AllRestrictionsPass();
-
-                ghostRenderer.material.SetColor(
-                    TINT,
-                    allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
-
-                ghostRenderer.material.SetColor(
-                    FRESNEL,
-                    allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
+                UpdateGhostColor();
             }
+        }
+
+        private void UpdateGhostColor()
+        {
+            if (EquippedBuildable == null || ghostRenderer == null)
+                return;
+
+            BaseBuildable buildable =
+                EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>();
+
+            if (buildable == null)
+                return;
+
+            bool allRestrictionsPass = buildable.AllRestrictionsPass();
+
+            ghostRenderer.material.SetColor(
+                TINT,
+                allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
+
+            ghostRenderer.material.SetColor(
+                FRESNEL,
+                allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
         }
 
         public void DestroyGhost()

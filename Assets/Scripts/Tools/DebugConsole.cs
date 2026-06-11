@@ -26,6 +26,10 @@ namespace ShiftedSignal.Garden.Debugging
         [SerializeField] private Collider playerCollider;
         [SerializeField] private Rigidbody playerRigidbody;
 
+        [Header("Teleport Locations")]
+        [SerializeField] private Transform StartTeleportPoint;
+        [SerializeField] private Transform FarmTeleportPoint;
+
         private readonly List<string> outputHistory = new();
         private readonly Queue<string> pendingOutputLines = new();
 
@@ -257,6 +261,11 @@ namespace ShiftedSignal.Garden.Debugging
                 HandleQuestCommand(command);
                 return;
             }
+            if (lower.StartsWith("tp"))
+            {
+                HandleTeleportCommand(command);
+                return;
+            }
 
             Log("Unknown command. Type 'help'.");
         }
@@ -296,6 +305,10 @@ namespace ShiftedSignal.Garden.Debugging
             Log("quest.advance QuestID");
             Log("quest.finish QuestID");
             Log("quest.status QuestID");
+
+            Log("=== TELEPORT ===");
+            Log("tp start");
+            Log("tp farm");
         }
 
         #endregion
@@ -663,15 +676,15 @@ namespace ShiftedSignal.Garden.Debugging
 
             while (pendingOutputLines.Count > 0 && visibleLines.Count < linesToShow)
             {
-                string line = pendingOutputLines.Dequeue();
+                string line = pendingOutputLines.Dequeue();         
                 visibleLines.Add(line);
                 outputHistory.Add(line);
             }
 
             waitingForNextPage = pendingOutputLines.Count > 0;
 
-            if (waitingForNextPage)
-            {
+            if (waitingForNextPage)         
+            {       
                 visibleLines.Add("");
                 visibleLines.Add("[Press Space To Continue]");
             }
@@ -689,6 +702,53 @@ namespace ShiftedSignal.Garden.Debugging
             waitingForNextPage = false;
 
             outputText.text = "";
+        }
+
+        #endregion
+
+        #region Teleport
+
+        private void HandleTeleportCommand(string command)
+        {
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2)
+            {
+                Log("Usage: tp start");
+                Log("Usage: tp farm");
+                return;
+            }
+
+            if (Player.Instance == null)
+            {
+                Log("Player not found.");
+                return;
+            }
+
+            string destinationName = parts[1].ToLower();
+
+            Transform destination = destinationName switch
+            {
+                "start" => StartTeleportPoint,
+                "farm" => FarmTeleportPoint,
+                _ => null
+            };
+
+            if (destination == null)
+            {
+                Log($"Unknown destination: {destinationName}");
+                return;
+            }
+
+            Player.Instance.transform.position = destination.position;
+
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.linearVelocity = Vector3.zero;
+                playerRigidbody.angularVelocity = Vector3.zero;
+            }
+
+            Log($"Teleported to {destinationName}");
         }
 
         #endregion

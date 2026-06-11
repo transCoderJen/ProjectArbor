@@ -145,15 +145,15 @@ MonoBehaviour:
     m_Bits: 1024
   buildableData: {fileID: 11400000, guid: a3e54a26951c5d44fa26308f53dff804, type: 2}
   IsActive: 0
-  HasBuildingEffect: 1
-  Effects:
-  - {fileID: 11400000, guid: 172da92ff5cca0f4699b88ce8573c888, type: 2}
+  HasBuildingEffect: 0
+  TimedEffects: []
+  ConstantEffects: []
   RunOnDayChanged: 0
   RunEveryXDays: 1
   RunOnDayPeriodChanged: 1
   DayPeriodsToRun: 02000000
   RunOnHourChanged: 0
-  HoursToRun: 00000000
+  HoursToRun: 010000000200000003000000000000000000000000000000000000000000000000000000000000000000000000000000
   RunOnDayStarted: 0
   RunOnTimeChanged: 0
   RunOnNightStarted: 0

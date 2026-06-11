@@ -215,7 +215,6 @@ namespace ShiftedSignal.Garden.Managers
         // Mouse GetBlock
         public GrowBlock GetBlock()
         {
-            Debug.Log("Trying to get block from mouse position");
             Plane groundPlane = new Plane(Vector3.up, MinPoint.position);
 
             Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -225,8 +224,6 @@ namespace ShiftedSignal.Garden.Managers
                 Vector3 worldPos = ray.GetPoint(distance);
                 return GetBlockFromWorldPosition(worldPos);
             }
-
-
 
             return null;
         }
@@ -238,7 +235,11 @@ namespace ShiftedSignal.Garden.Managers
                 return null;
 
             BlockRow row = BlockRows[y];
-            if (row == null || x < 0 || x > row.Blocks.Count)
+
+            if (row == null || row.Blocks == null)
+                return null;
+
+            if (x < 0 || x >= row.Blocks.Count)
                 return null;
 
             return row.Blocks[x];

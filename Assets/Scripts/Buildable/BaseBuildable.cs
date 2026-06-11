@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
+using Unity.IO.LowLevel.Unsafe;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,13 +19,15 @@ namespace ShiftedSignal.Garden.Buildable
 
         [Header("Build Info")]
         [SerializeField] private Material PrimaryMaterial;
-        [SerializeField] private LayerMask GridLayer;
+        
         [SerializeField] private BuildableData buildableData;
         [SerializeField] protected bool IsActive;
 
-        [SerializeField] private bool HasBuildingEffect;
+        [SerializeField] private bool HasTimedEffects;
+        [SerializeField] protected bool HasConstantEffects;
 
-        [SerializeField] private BuildableEffect[] Effects;
+        [SerializeField] private BuildableEffect[] TimedEffects;
+        [SerializeField] protected BuildableEffect[] ConstantEffects;
 
         [Header("Day Events")]
         [SerializeField] private bool RunOnDayChanged;
@@ -40,6 +45,8 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private bool RunOnDayStarted;
         [SerializeField] private bool RunOnTimeChanged;
         [SerializeField] private bool RunOnNightStarted;
+
+        private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
 
         private void OnEnable()
         {
@@ -69,29 +76,22 @@ namespace ShiftedSignal.Garden.Buildable
 
         public bool AllRestrictionsPass()
         {
-            Ray ray = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            GrowBlock growBlock = PlayerManager.Instance.Player.PlayerInput.currentControlScheme == "Gamepad"
+                    ? GridManager.Instance.GetBlockController()
+                    : GridManager.Instance.GetBlock();
 
-            if (!Physics.Raycast(ray, out RaycastHit hit, math.INFINITY, GridLayer))
-            {
+            if (growBlock == null)
                 return false;
-            }
-
-            if (!hit.collider.TryGetComponent(out GrowBlock growBlock))
-            {
-                return false;
-            }
 
             if (!buildableData.CanAfford())
-            {
                 return false;
-            }
 
             return growBlock.IsActive;
         }
 
         protected virtual void BuildingEffect()
         {
-            foreach (BuildableEffect effect in Effects)
+            foreach (BuildableEffect effect in TimedEffects)
             {
                 effect.Apply(this);
             }
@@ -99,7 +99,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         private void RunBuildingEffect()
         {
-            if (!HasBuildingEffect)
+            if (!HasTimedEffects)
             {
                 return;
             }
@@ -181,6 +181,30 @@ namespace ShiftedSignal.Garden.Buildable
             {
                 RunBuildingEffect();
             }
+        }
+
+        public bool IsEffectReady(BuildableEffect effect, float cooldown)
+        {
+            if (effect == null)
+                return false;
+
+            if (!effectCooldowns.TryGetValue(effect, out float lastUsedTime))
+                return true;
+
+            return Time.time >= lastUsedTime + cooldown;
+        }
+
+        public void MarkEffectUsed(BuildableEffect effect)
+        {
+            if (effect == null)
+                return;
+
+            effectCooldowns[effect] = Time.time;
+        }
+
+        protected virtual void Update()
+        {
+            
         }
     }
 }

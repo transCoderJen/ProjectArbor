@@ -8,12 +8,14 @@ namespace ShiftedSignal.Garden.Buildable.Editor
     {
         private SerializedProperty mainRenderer;
         private SerializedProperty primaryMaterial;
-        private SerializedProperty gridLayer;
         private SerializedProperty buildableData;
         private SerializedProperty isActive;
 
-        private SerializedProperty hasBuildingEffect;
-        private SerializedProperty effects;
+        private SerializedProperty hasTimedEffects;
+        private SerializedProperty hasConstantEffects;
+
+        private SerializedProperty timedEffects;
+        private SerializedProperty constantEffects;
 
         private SerializedProperty runOnDayChanged;
         private SerializedProperty runEveryXDays;
@@ -32,12 +34,14 @@ namespace ShiftedSignal.Garden.Buildable.Editor
         {
             mainRenderer = serializedObject.FindProperty("<MainRenderer>k__BackingField");
             primaryMaterial = serializedObject.FindProperty("PrimaryMaterial");
-            gridLayer = serializedObject.FindProperty("GridLayer");
             buildableData = serializedObject.FindProperty("buildableData");
             isActive = serializedObject.FindProperty("IsActive");
 
-            hasBuildingEffect = serializedObject.FindProperty("HasBuildingEffect");
-            effects = serializedObject.FindProperty("Effects");
+            hasTimedEffects = serializedObject.FindProperty("HasTimedEffects");
+            hasConstantEffects = serializedObject.FindProperty("HasConstantEffects");
+
+            timedEffects = serializedObject.FindProperty("TimedEffects");
+            constantEffects = serializedObject.FindProperty("ConstantEffects");
 
             runOnDayChanged = serializedObject.FindProperty("RunOnDayChanged");
             runEveryXDays = serializedObject.FindProperty("RunEveryXDays");
@@ -59,9 +63,9 @@ namespace ShiftedSignal.Garden.Buildable.Editor
 
             DrawBuildInfo();
 
-            EditorGUILayout.Space();
+            EditorGUILayout.Space(10);
 
-            DrawBuildingEffectOptions();
+            DrawEffects();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -72,36 +76,60 @@ namespace ShiftedSignal.Garden.Buildable.Editor
 
             EditorGUILayout.PropertyField(mainRenderer);
             EditorGUILayout.PropertyField(primaryMaterial);
-            EditorGUILayout.PropertyField(gridLayer);
             EditorGUILayout.PropertyField(buildableData);
             EditorGUILayout.PropertyField(isActive);
-        }
-
-        private void DrawBuildingEffectOptions()
-        {
-            EditorGUILayout.LabelField("Building Effect", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(hasBuildingEffect);
-
-            if (!hasBuildingEffect.boolValue)
-            {
-                return;
-            }
-
-            EditorGUILayout.Space();
-
-            DrawEffects();
-            DrawDayEvents();
-            DrawDayPeriodEvents();
-            DrawHourEvents();
-            DrawOtherTimeEvents();
         }
 
         private void DrawEffects()
         {
             EditorGUILayout.LabelField("Effects", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(effects, new GUIContent("Buildable Effects"), true);
+
+            DrawConstantEffects();
 
             EditorGUILayout.Space();
+
+            DrawTimedEffects();
+        }
+
+        private void DrawConstantEffects()
+        {
+            EditorGUILayout.PropertyField(hasConstantEffects);
+
+            if (!hasConstantEffects.boolValue)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(
+                constantEffects,
+                new GUIContent("Constant Effects"),
+                true);
+
+            EditorGUI.indentLevel--;
+        }
+
+        private void DrawTimedEffects()
+        {
+            EditorGUILayout.PropertyField(hasTimedEffects);
+
+            if (!hasTimedEffects.boolValue)
+                return;
+
+            EditorGUI.indentLevel++;
+
+            EditorGUILayout.PropertyField(
+                timedEffects,
+                new GUIContent("Timed Effects"),
+                true);
+
+            EditorGUILayout.Space();
+
+            DrawDayEvents();
+            DrawDayPeriodEvents();
+            DrawHourEvents();
+            DrawOtherTimeEvents();
+
+            EditorGUI.indentLevel--;
         }
 
         private void DrawDayEvents()
@@ -113,7 +141,11 @@ namespace ShiftedSignal.Garden.Buildable.Editor
             if (runOnDayChanged.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(runEveryXDays, new GUIContent("Run Every X Days"));
+
+                EditorGUILayout.PropertyField(
+                    runEveryXDays,
+                    new GUIContent("Run Every X Days"));
+
                 EditorGUI.indentLevel--;
             }
 
@@ -129,7 +161,12 @@ namespace ShiftedSignal.Garden.Buildable.Editor
             if (runOnDayPeriodChanged.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(dayPeriodsToRun, new GUIContent("Day Periods To Run"), true);
+
+                EditorGUILayout.PropertyField(
+                    dayPeriodsToRun,
+                    new GUIContent("Day Periods To Run"),
+                    true);
+
                 EditorGUI.indentLevel--;
             }
 
@@ -145,7 +182,12 @@ namespace ShiftedSignal.Garden.Buildable.Editor
             if (runOnHourChanged.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(hoursToRun, new GUIContent("Hours To Run"), true);
+
+                EditorGUILayout.PropertyField(
+                    hoursToRun,
+                    new GUIContent("Hours To Run"),
+                    true);
+
                 EditorGUI.indentLevel--;
             }
 

@@ -148,9 +148,12 @@ MonoBehaviour:
   IsActivationBlock: 0
   GridPosition: {x: 0, y: 0}
   SelectionBox: {fileID: 1253478706470637801}
-  InteractionMask:
+  GrowBlockMask:
     serializedVersion: 2
     m_Bits: 1024
+  ObjectMask:
+    serializedVersion: 2
+    m_Bits: 64
   health: 100
   SpawnedPlant: {fileID: 0}
   HasBuildable: 0

@@ -42,7 +42,8 @@ namespace ShiftedSignal.Garden.GridSystem
         [SerializeField] private Vector2Int GridPosition;
 
         [SerializeField] private SpriteRenderer SelectionBox;
-        [SerializeField] private LayerMask InteractionMask;
+        [SerializeField] private LayerMask GrowBlockMask;
+        [SerializeField] private LayerMask ObjectMask;
         public int health = 100;
         public GameObject SpawnedPlant;
         public bool HasBuildable;
@@ -183,6 +184,9 @@ namespace ShiftedSignal.Garden.GridSystem
         {
             if (CurrentStage == GrowthStage.Barren)
             {
+                //Check if block is clear
+                if (!IsBlockClear()) return;
+
                 CurrentStage = GrowthStage.Ploughed;
                 
                 // Explicitly set the block to an unwatered state
@@ -192,6 +196,19 @@ namespace ShiftedSignal.Garden.GridSystem
                 SR.material.SetFloat("_Alpha", 1f);
                 Player.Instance.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
             }
+        }
+
+        private bool IsBlockClear()
+        {
+            
+            float cellSize = GridManager.Instance.CellSize;
+
+            Vector3 center = transform.position;
+            Vector3 halfExtents = new Vector3(cellSize * 0.5f, cellSize * 0.5f, cellSize * 0.5f);
+            
+            bool any = Physics.CheckBox(center, halfExtents, Quaternion.identity, ObjectMask, QueryTriggerInteraction.Ignore);
+
+            return !any;
         }
 
         public void WaterSoil()

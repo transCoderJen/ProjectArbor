@@ -17,7 +17,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             base.Enter();
             Time.timeScale = 0;
             CameraManager.Instance.SwitchCamera(CameraManager.VirtualCameraType.FreeLook);
-            CameraManager.Instance.ResetOffsets();
+            // CameraManager.Instance.ResetOffsets();
             Player.StopMovement();
             Player.InManagementState = true;
             
