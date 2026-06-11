@@ -6,10 +6,12 @@ namespace ShiftedSignal.Garden.Buildable.Editor
     [CustomEditor(typeof(BaseBuildable), true)]
     public class BaseBuildableEditor : UnityEditor.Editor
     {
-        private SerializedProperty mainRenderer;
-        private SerializedProperty primaryMaterial;
         private SerializedProperty buildableData;
         private SerializedProperty isActive;
+        private SerializedProperty ghostMaterial;
+
+        private SerializedProperty durability;
+        private SerializedProperty maxHP;
 
         private SerializedProperty hasTimedEffects;
         private SerializedProperty hasConstantEffects;
@@ -32,10 +34,12 @@ namespace ShiftedSignal.Garden.Buildable.Editor
 
         private void OnEnable()
         {
-            mainRenderer = serializedObject.FindProperty("<MainRenderer>k__BackingField");
-            primaryMaterial = serializedObject.FindProperty("PrimaryMaterial");
             buildableData = serializedObject.FindProperty("buildableData");
             isActive = serializedObject.FindProperty("IsActive");
+            ghostMaterial = serializedObject.FindProperty("GhostMaterial");
+
+            durability = serializedObject.FindProperty("Durability");
+            maxHP = serializedObject.FindProperty("MaxHP");
 
             hasTimedEffects = serializedObject.FindProperty("HasTimedEffects");
             hasConstantEffects = serializedObject.FindProperty("HasConstantEffects");
@@ -65,19 +69,76 @@ namespace ShiftedSignal.Garden.Buildable.Editor
 
             EditorGUILayout.Space(10);
 
+            DrawGhostPreview();
+
+            EditorGUILayout.Space(10);
+
+            DrawStats();
+
+            EditorGUILayout.Space(10);
+
             DrawEffects();
 
+            EditorGUILayout.Space(10);
+
+            DrawChildClassFields();
+            
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawChildClassFields()
+        {
+            EditorGUILayout.LabelField(
+                target.GetType().Name + " Fields",
+                EditorStyles.boldLabel);
+
+            DrawPropertiesExcluding(
+                serializedObject,
+                "m_Script",
+                "buildableData",
+                "IsActive",
+                "GhostMaterial",
+                "Durability",
+                "MaxHP",
+                "HasTimedEffects",
+                "HasConstantEffects",
+                "TimedEffects",
+                "ConstantEffects",
+                "RunOnDayChanged",
+                "RunEveryXDays",
+                "RunOnDayPeriodChanged",
+                "DayPeriodsToRun",
+                "RunOnHourChanged",
+                "HoursToRun",
+                "RunOnDayStarted",
+                "RunOnTimeChanged",
+                "RunOnNightStarted"
+            );
         }
 
         private void DrawBuildInfo()
         {
             EditorGUILayout.LabelField("Build Info", EditorStyles.boldLabel);
 
-            EditorGUILayout.PropertyField(mainRenderer);
-            EditorGUILayout.PropertyField(primaryMaterial);
             EditorGUILayout.PropertyField(buildableData);
             EditorGUILayout.PropertyField(isActive);
+        }
+
+        private void DrawGhostPreview()
+        {
+            EditorGUILayout.LabelField("Ghost Preview", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(
+                ghostMaterial,
+                new GUIContent("Ghost Material"));
+        }
+
+        private void DrawStats()
+        {
+            EditorGUILayout.LabelField("Stats", EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(durability);
+            EditorGUILayout.PropertyField(maxHP, new GUIContent("Max HP"));
         }
 
         private void DrawEffects()

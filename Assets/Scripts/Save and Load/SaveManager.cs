@@ -24,6 +24,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         private List<ISaveManager> saveManagers;
         private FileDataHandler dataHandler;
 
+        private HashSet<string> triggeredDialogueIds = new();
+
         [ContextMenu("Delete save file")]
         public void DeleteSavedData()
         {
@@ -43,6 +45,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public void NewGame()
         {
             gameData = new GameData();
+            triggeredDialogueIds.Clear();
         }
 
         public void LoadGame()
@@ -63,6 +66,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
                 }
             }
 
+            LoadTriggeredDialogueIds();
+
             foreach (ISaveManager saveManager in saveManagers)
             {
                 saveManager.LoadData(gameData);
@@ -77,7 +82,54 @@ namespace ShiftedSignal.Garden.SaveAndLoad
                 saveManager.SaveData(ref gameData);
             }
 
+            SaveTriggeredDialogueIds();
+
             dataHandler.Save(gameData);
+        }
+
+        public bool HasDialogueTriggerBeenUsed(string triggerId)
+        {
+            if (string.IsNullOrWhiteSpace(triggerId))
+                return false;
+
+            return triggeredDialogueIds.Contains(NormalizeDialogueTriggerId(triggerId));
+        }
+
+        public void MarkDialogueTriggerUsed(string triggerId)
+        {
+            if (string.IsNullOrWhiteSpace(triggerId))
+                return;
+
+            triggeredDialogueIds.Add(NormalizeDialogueTriggerId(triggerId));
+
+            SaveTriggeredDialogueIds();
+        }
+
+        private void LoadTriggeredDialogueIds()
+        {
+            triggeredDialogueIds.Clear();
+
+            if (gameData.TriggeredDialogueIds == null)
+            {
+                gameData.TriggeredDialogueIds = new List<string>();
+                return;
+            }
+
+            foreach (string id in gameData.TriggeredDialogueIds)
+            {
+                if (!string.IsNullOrWhiteSpace(id))
+                    triggeredDialogueIds.Add(NormalizeDialogueTriggerId(id));
+            }
+        }
+
+        private void SaveTriggeredDialogueIds()
+        {
+            gameData.TriggeredDialogueIds = triggeredDialogueIds.ToList();
+        }
+
+        private string NormalizeDialogueTriggerId(string triggerId)
+        {
+            return triggerId.Trim().ToLower();
         }
 
         [ContextMenu("Open Save File Location")]

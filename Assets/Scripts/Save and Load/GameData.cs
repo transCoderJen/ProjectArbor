@@ -17,6 +17,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public SerializableDictionary<string, float> volumeSettings;
         public List<string> equipmentId;
         public List<InfoRow> gridRows;
+        public List<string> TriggeredDialogueIds;
         public int currency;
         public int lostCurrencyAmount;
         public int unlockedFarmingArea;
@@ -41,6 +42,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
             volumeSettings = new SerializableDictionary<string, float>();
             equipmentId = new List<string>();
             gridRows = new List<InfoRow>();
+            TriggeredDialogueIds = new List<string>();
             lostCurrencyAmount = 0;
             lostCurrencyX = 0;
             lostCurrencyY = 0;

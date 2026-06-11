@@ -4,6 +4,7 @@ using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.Buildable;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {    
@@ -19,8 +20,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void AttackTrigger()
         {
-            // // AudioManager.instance.PlaySFX(SFXSounds.attack3, null);
-        
             int enemyCount = Physics.OverlapSphereNonAlloc(
                 player.AttackCheck.position, 
                 player.AttackCheckRadius,
@@ -33,21 +32,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Enemy enemy = hit.GetComponentInParent<Enemy>();
 
                 if (enemy != null)
-                {
-                // This works for child colliders too
-
-                // Vector3 closestPoint = hit.ClosestPoint(player.transform.position);
-
-                // ObjectPoolManager.SpawnObject(
-                //     player.EquippedWeapon.HitFX,
-                //     closestPoint + new Vector3(0f, player.CheckHeight, 0f),
-                //     Quaternion.LookRotation(player.FacingDir) * Quaternion.Euler(
-                //         Random.Range(-15f, 15f),
-                //         Random.Range(-30f, 30f),
-                //         Random.Range(-15f, 15f)),
-                //     parent: enemy.transform,
-                //     scale: Random.Range(1f, 2.5f));
-                    
+                {              
                     StartCoroutine(nameof(SlowDownTime));
                 }
                 
@@ -62,6 +47,12 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                         Debug.Log("Inventory Get Equipment is returning null");
                     }
                     Inventory.Instance.GetEquipment(EquipmentType.Weapon)?.Effect(_target.transform);
+                }
+
+                BaseBuildable buildable = hit.GetComponentInParent<BaseBuildable>();
+                if (buildable != null)
+                {
+                    buildable.DoDamage(1);
                 }
             }
         }

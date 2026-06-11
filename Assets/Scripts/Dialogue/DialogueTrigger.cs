@@ -4,6 +4,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.QuestSystem;
+using ShiftedSignal.Garden.SaveAndLoad;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
@@ -12,6 +13,10 @@ namespace ShiftedSignal.Garden.Dialogue
     {
         [Header("Dialogue")]
         [SerializeField] private string knotName;
+
+        [Header("Persistent Trigger ID")]
+        [Tooltip("Unique ID for this trigger. Used so one-time dialogue does not replay after scene reloads.")]
+        [SerializeField] private string triggerId;
 
         [Header("Trigger Settings")]
         [SerializeField] private bool triggerOnlyOnce = true;
@@ -27,10 +32,36 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private bool isWaitingToTrigger;
 
+        private void Awake()
+        {
+            triggerId = knotName;
+        }
+        
         private void Reset()
         {
             Collider triggerCollider = GetComponent<Collider>();
             triggerCollider.isTrigger = true;
+        }
+
+        private void Start()
+        {
+            if (!triggerOnlyOnce)
+                return;
+
+            if (string.IsNullOrWhiteSpace(triggerId))
+            {
+                Debug.LogWarning(
+                    $"DialogueTrigger on {gameObject.name} is set to trigger only once but has no Trigger ID.",
+                    this
+                );
+
+                return;
+            }
+
+            if (SaveManager.Instance.HasDialogueTriggerBeenUsed(triggerId))
+            {
+                Destroy(gameObject);
+            }
         }
 
         private void OnTriggerEnter(Collider other)
@@ -39,6 +70,9 @@ namespace ShiftedSignal.Garden.Dialogue
                 return;
 
             if (isWaitingToTrigger)
+                return;
+
+            if (triggerOnlyOnce && HasAlreadyTriggered())
                 return;
 
             if (!QuestRequirementPasses())
@@ -65,12 +99,36 @@ namespace ShiftedSignal.Garden.Dialogue
 
             if (triggerOnlyOnce)
             {
+                MarkTriggered();
                 Destroy(gameObject);
             }
             else
             {
                 isWaitingToTrigger = false;
             }
+        }
+
+        private bool HasAlreadyTriggered()
+        {
+            if (string.IsNullOrWhiteSpace(triggerId))
+                return false;
+
+            return SaveManager.Instance.HasDialogueTriggerBeenUsed(triggerId);
+        }
+
+        private void MarkTriggered()
+        {
+            if (string.IsNullOrWhiteSpace(triggerId))
+            {
+                Debug.LogWarning(
+                    $"DialogueTrigger on {gameObject.name} triggered once but has no Trigger ID, so it cannot be saved.",
+                    this
+                );
+
+                return;
+            }
+
+            SaveManager.Instance.MarkDialogueTriggerUsed(triggerId);
         }
 
         private bool QuestRequirementPasses()

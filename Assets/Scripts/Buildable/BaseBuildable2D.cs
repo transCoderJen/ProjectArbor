@@ -1,23 +1,27 @@
+
+
+
+
 using System.Collections.Generic;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class BaseBuildable : MonoBehaviour
+    public class BaseBuildable3D : MonoBehaviour
     {
+        [field: SerializeField] public SpriteRenderer MainRenderer { get; private set; }
+
         [Header("Build Info")]
+        [SerializeField] private Sprite BuiltSprite;
         [SerializeField] private BuildableData buildableData;
         [SerializeField] protected bool IsActive;
 
-        [Header("Ghost Preview")]
-        [SerializeField] private Material GhostMaterial;
-
-        [Header("Effects")]
         [SerializeField] private bool HasTimedEffects;
         [SerializeField] protected bool HasConstantEffects;
 
@@ -41,27 +45,7 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private bool RunOnTimeChanged;
         [SerializeField] private bool RunOnNightStarted;
 
-        [Header("Stats")]
-        [SerializeField] protected float Durability;
-        [SerializeField] protected int MaxHP;
-
-        protected int hp;
-
-        private MeshRenderer[] meshRenderers;
-        private readonly Dictionary<MeshRenderer, Material[]> originalMaterials = new();
         private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
-
-        private void Awake()
-        {
-            CacheRenderersAndMaterials();
-
-            if (!IsActive)
-            {
-                ApplyGhostMaterial();
-            }
-
-            hp = MaxHP;
-        }
 
         private void OnEnable()
         {
@@ -85,59 +69,10 @@ namespace ShiftedSignal.Garden.Buildable
 
         public void Build()
         {
-            RestoreOriginalMaterials();
+            if (MainRenderer != null && BuiltSprite != null)
+                MainRenderer.sprite = BuiltSprite;
+
             IsActive = true;
-        }
-
-        private void CacheRenderersAndMaterials()
-        {
-            meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
-            originalMaterials.Clear();
-
-            foreach (MeshRenderer meshRenderer in meshRenderers)
-            {
-                if (meshRenderer == null)
-                    continue;
-
-                originalMaterials[meshRenderer] = meshRenderer.sharedMaterials;
-            }
-        }
-
-        private void ApplyGhostMaterial()
-        {
-            if (GhostMaterial == null)
-            {
-                Debug.LogWarning($"Ghost Material is missing on {gameObject.name}.", this);
-                return;
-            }
-
-            foreach (MeshRenderer meshRenderer in meshRenderers)
-            {
-                if (meshRenderer == null)
-                    continue;
-
-                Material[] ghostMaterials = new Material[meshRenderer.sharedMaterials.Length];
-
-                for (int i = 0; i < ghostMaterials.Length; i++)
-                {
-                    ghostMaterials[i] = GhostMaterial;
-                }
-
-                meshRenderer.sharedMaterials = ghostMaterials;
-            }
-        }
-
-        private void RestoreOriginalMaterials()
-        {
-            foreach (KeyValuePair<MeshRenderer, Material[]> cachedRenderer in originalMaterials)
-            {
-                MeshRenderer meshRenderer = cachedRenderer.Key;
-
-                if (meshRenderer == null)
-                    continue;
-
-                meshRenderer.sharedMaterials = cachedRenderer.Value;
-            }
         }
 
         public bool AllRestrictionsPass()
@@ -159,7 +94,7 @@ namespace ShiftedSignal.Garden.Buildable
         {
             foreach (BuildableEffect effect in TimedEffects)
             {
-                effect.Apply(this);
+                // effect.Apply(this);
             }
         }
 
@@ -252,16 +187,6 @@ namespace ShiftedSignal.Garden.Buildable
 
         protected virtual void Update()
         {
-        }
-
-        public virtual void DoDamage(int damage)
-        {
-            hp -= damage;
-
-            if (hp <= 0)
-            {
-                Destroy(this.gameObject);
-            }
         }
     }
 }

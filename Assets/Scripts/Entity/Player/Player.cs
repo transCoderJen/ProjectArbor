@@ -91,9 +91,12 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
         private Color availableToPlaceFresnelColor = new(.02f, 0.65f, 1, 2);
+        [SerializeField] private float buildRotationStep = 90f;
+
+        private float currentBuildYRotation;
 
         private GameObject ghostInstance;
-        private MeshRenderer ghostRenderer;
+        private MeshRenderer[] ghostRenderers;
 
         private static readonly int TINT = Shader.PropertyToID("_Tint");
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
@@ -300,7 +303,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Keyboard.current.oem4Key.wasPressedThisFrame)
                 CurrentTool = ToolType.Basket;
 
-            if (Keyboard.current.fKey.wasPressedThisFrame)
+            if (Keyboard.current.gKey.wasPressedThisFrame)
             {
                 if (CameraManager.Instance.IsTransitioning)
                     return;
@@ -435,7 +438,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             GameObject builtObject = Instantiate(
                 EquippedBuildable.BuildablePrefab,
                 block.transform.position,
-                Quaternion.identity);
+                Quaternion.Euler(0f, currentBuildYRotation, 0f));
 
             builtObject.GetComponent<BaseBuildable>().Build();
 
@@ -535,7 +538,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             ghostInstance = Instantiate(EquippedBuildable.BuildablePrefab);
-            ghostRenderer = ghostInstance.GetComponentInChildren<MeshRenderer>();
+            ghostRenderers = ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
         }
         
         private void HandleGhost()
@@ -551,30 +554,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayer))
             {
-                // if (hit.collider.TryGetComponent(out GrowBlock growBlock))
-                //     ghostInstance.transform.position = growBlock.transform.position;
-                // else
-                //     ghostInstance.transform.position = hit.point;
-
-                // if (EquippedBuildable == null || ghostRenderer == null)
-                //     return;
-
-                // BaseBuildable buildable =
-                //     EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>();
-
-                // if (buildable == null)
-                //     return;
-
-                // bool allRestrictionsPass = buildable.AllRestrictionsPass();
-
-                // ghostRenderer.material.SetColor(
-                //     TINT,
-                //     allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
-
-                // ghostRenderer.material.SetColor(
-                //     FRESNEL,
-                //     allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
-
                 GrowBlock growBlock = GridManager.Instance.GetBlock();
                 if (growBlock == null)
                     Debug.Log("Growblock is null");
@@ -583,13 +562,38 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 else
                     ghostInstance.transform.position = hit.point;
 
+                HandleBuildRotationInput();
+
+                ghostInstance.transform.rotation =
+                    Quaternion.Euler(0f, currentBuildYRotation, 0f);
                 UpdateGhostColor();
             }
         }
 
+        private void HandleBuildRotationInput()
+        {
+            if (!InManagementState)
+                return;
+
+            if (Keyboard.current == null)
+                return;
+
+            if (Keyboard.current.qKey.wasPressedThisFrame)
+            {
+                currentBuildYRotation -= buildRotationStep;
+            }
+
+            if (Keyboard.current.eKey.wasPressedThisFrame)
+            {
+                currentBuildYRotation += buildRotationStep;
+            }
+
+            currentBuildYRotation = Mathf.Repeat(currentBuildYRotation, 360f);
+        }
+
         private void UpdateGhostColor()
         {
-            if (EquippedBuildable == null || ghostRenderer == null)
+            if (EquippedBuildable == null || ghostRenderers == null || ghostRenderers.Length == 0)
                 return;
 
             BaseBuildable buildable =
@@ -600,13 +604,29 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             bool allRestrictionsPass = buildable.AllRestrictionsPass();
 
-            ghostRenderer.material.SetColor(
-                TINT,
-                allRestrictionsPass ? availableToPlaceTintColor : errorTintColor);
+            Color tintColor =
+                allRestrictionsPass ? availableToPlaceTintColor : errorTintColor;
 
-            ghostRenderer.material.SetColor(
-                FRESNEL,
-                allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor);
+            Color fresnelColor =
+                allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor;
+
+            foreach (MeshRenderer renderer in ghostRenderers)
+            {
+                if (renderer == null)
+                    continue;
+
+                foreach (Material material in renderer.materials)
+                {
+                    if (material == null)
+                        continue;
+
+                    if (material.HasProperty(TINT))
+                        material.SetColor(TINT, tintColor);
+
+                    if (material.HasProperty(FRESNEL))
+                        material.SetColor(FRESNEL, fresnelColor);
+                }
+            }
         }
 
         public void DestroyGhost()
@@ -617,7 +637,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Destroy(ghostInstance);
 
             ghostInstance = null;
-            ghostRenderer = null;
+            ghostRenderers = null;
         }
 
         #endregion
