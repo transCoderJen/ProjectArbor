@@ -4,6 +4,8 @@ using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Interfaces;
+using ShiftedSignal.Garden.Combat;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -39,24 +41,27 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             {
                 Collider hit = enemyHits[i];
 
-                TryDamageEnemy(hit);
-                TryDamageBuildable(hit);
+                TryDamageTarget(hit);
+                // TryDamageBuildable(hit);
             }
         }
 
-        private void TryDamageEnemy(Collider hit)
+        private void TryDamageTarget(Collider hit)
         {
-            EnemyStats enemyStats = hit.GetComponentInParent<EnemyStats>();
+            IDamageable damageable = hit.GetComponentInParent<IDamageable>();
 
-            if (enemyStats == null)
+            if (damageable == null)
                 return;
 
-            StartCoroutine(SlowDownTime());
-
-            enemyStats.TakeDamage(
+            DamageData damageData = new DamageData(
                 player.AttackDamage,
-                true,
-                player.transform);
+                CombatTeam.Player,
+                player.transform,
+                true);
+
+            damageable.TakeDamage(damageData);
+
+            StartCoroutine(SlowDownTime());
         }
 
         private void TryDamageBuildable(Collider hit)

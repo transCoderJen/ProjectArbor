@@ -1,14 +1,16 @@
 using System.Collections.Generic;
+using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.GridSystem;
+using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class BaseBuildable : MonoBehaviour
+    public class BaseBuildable : MonoBehaviour, IDamageable
     {
         [Header("Build Info")]
         [SerializeField] private BuildableData buildableData;
@@ -44,6 +46,8 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Stats")]
         [SerializeField] protected float Durability;
         [SerializeField] protected int MaxHP;
+
+        public CombatTeam Team => CombatTeam.Buildable;
 
         protected int hp;
 
@@ -262,6 +266,14 @@ namespace ShiftedSignal.Garden.Buildable
             {
                 Destroy(this.gameObject);
             }
+        }
+
+        public void TakeDamage(DamageData damageData)
+        {
+            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
+                return;
+
+            DoDamage(damageData.Amount);
         }
     }
 }

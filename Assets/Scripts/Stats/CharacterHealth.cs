@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
 using ShiftedSignal.Garden.EntitySpace;
+using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.Interfaces;
 
 namespace ShiftedSignal.Garden.Stats
 {
-    public class CharacterHealth : MonoBehaviour
+    public class CharacterHealth : MonoBehaviour, IDamageable, IHealable
     {
         [Header("Hearts")]
         [SerializeField] private int maxHearts = 3;
@@ -12,6 +14,9 @@ namespace ShiftedSignal.Garden.Stats
 
         [Header("Damage")]
         [SerializeField] private bool isInvincible;
+        [SerializeField] private CombatTeam team;
+
+    public CombatTeam Team => team;
 
         private Entity entity;
 
@@ -103,6 +108,17 @@ namespace ShiftedSignal.Garden.Stats
 
             if (entity != null)
                 entity.Die();
+        }
+
+        public void TakeDamage(DamageData damageData)
+        {
+            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
+                return;
+
+            TakeDamage(
+                damageData.Amount,
+                damageData.Knockback,
+                damageData.Attacker);
         }
     }
 }

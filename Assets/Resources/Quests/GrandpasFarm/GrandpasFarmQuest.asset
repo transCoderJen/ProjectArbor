@@ -15,11 +15,9 @@ MonoBehaviour:
   <ID>k__BackingField: GrandpasFarmQuest
   DisplayName: Grandpas Farm
   RequiresTurnIn: 0
-  LevelRequirement: 0
   QuestPrerequisites: []
   QuestStepPrefabs:
   - {fileID: 7761655413166502757, guid: ccb930833d475d842a1974f990c174d0, type: 3}
   GoldReward: 0
-  ExperienceReward: 0
   ItemRewards: []
   QuestIcon: {fileID: 1079930780, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}

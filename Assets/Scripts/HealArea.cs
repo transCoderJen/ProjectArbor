@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.EntitySpace.PlantSpace;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 

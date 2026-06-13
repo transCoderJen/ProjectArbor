@@ -15,12 +15,10 @@ MonoBehaviour:
   <ID>k__BackingField: CollectCoinsQuest
   DisplayName: Collect the Coins!
   RequiresTurnIn: 1
-  LevelRequirement: 1
   QuestPrerequisites: []
   QuestStepPrefabs:
   - {fileID: 976179792558037621, guid: 99d1b1e0b25da8d4492e6514683ff9a9, type: 3}
   GoldReward: 50
-  ExperienceReward: 250
   ItemRewards:
   - Data: {fileID: 11400000, guid: f1e297163b7c2de44a978a13be17c457, type: 2}
     Amount: 10
