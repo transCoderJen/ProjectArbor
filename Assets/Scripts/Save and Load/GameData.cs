@@ -30,6 +30,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public List<string> seedWheelIds;
         public float currentTime;
         public int currentDay;
+        public int weaponDamageLevel;
 
         public GameData()
         {

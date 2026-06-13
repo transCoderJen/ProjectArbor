@@ -7,7 +7,6 @@ using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.SaveAndLoad;
-using ShiftedSignal.Garden.Stats;
 using UnityEngine;
 
 public class QuestManager : Singleton<QuestManager>, ISaveManager
@@ -18,7 +17,6 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
     public Quest TrackedQuest { get; private set; }
 
     private Dictionary<string, Quest> questMap;
-    private int currentPlayerLevel = 1;
 
     protected override void Awake()
     {
@@ -31,9 +29,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<StartQuestEvent>.OnEvent += StartQuest;
         Bus<AdvanceQuestEvent>.OnEvent += AdvanceQuest;
         Bus<FinishQuestEvent>.OnEvent += FinishQuest;
-        Bus<PlayerLevelUpEvent>.OnEvent += HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent += HandleQuestStepStateChanged;
-        Bus<QuestReceivedEvent>.OnEvent += RecieveQuest;
+        Bus<QuestReceivedEvent>.OnEvent += ReceiveQuest;
     }
 
     private void OnDisable()
@@ -41,9 +38,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         Bus<StartQuestEvent>.OnEvent -= StartQuest;
         Bus<AdvanceQuestEvent>.OnEvent -= AdvanceQuest;
         Bus<FinishQuestEvent>.OnEvent -= FinishQuest;
-        Bus<PlayerLevelUpEvent>.OnEvent -= HandlePlayerLevelUp;
         Bus<QuestStepStateChangedEvent>.OnEvent -= HandleQuestStepStateChanged;
-        Bus<QuestReceivedEvent>.OnEvent -= RecieveQuest;
+        Bus<QuestReceivedEvent>.OnEvent -= ReceiveQuest;
     }
 
     private void Update()
@@ -84,6 +80,14 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         SetTrackedQuest(quest);
     }
 
+    public void ClearTrackedQuest()
+    {
+        TrackedQuest = null;
+
+        Bus<TrackedQuestChangedEvent>.Raise(
+            new TrackedQuestChangedEvent(null));
+    }
+
     private void RefreshQuestData()
     {
         foreach (Quest quest in questMap.Values)
@@ -93,7 +97,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
                 quest.InstantiateCurrentQuestStep(transform);
             }
 
-            Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
+            Bus<QuestStateChangedEvent>.Raise(
+                new QuestStateChangedEvent(quest));
         }
 
         AutoTrackFirstReceivedQuest();
@@ -122,14 +127,7 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         ClearTrackedQuest();
     }
 
-    public void ClearTrackedQuest()
-    {
-        TrackedQuest = null;
-
-        Bus<TrackedQuestChangedEvent>.Raise(new TrackedQuestChangedEvent(null));
-    }
-
-    private void RecieveQuest(QuestReceivedEvent evt)
+    private void ReceiveQuest(QuestReceivedEvent evt)
     {
         Quest quest = GetQuestById(evt.Id);
 
@@ -138,7 +136,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         quest.ReceiveQuest();
 
-        Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
+        Bus<QuestStateChangedEvent>.Raise(
+            new QuestStateChangedEvent(quest));
 
         if (TrackedQuest == null)
         {
@@ -155,7 +154,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         if (data.quests == null)
         {
-            data.quests = new SerializableDictionary<string, QuestData>();
+            data.quests =
+                new SerializableDictionary<string, QuestData>();
         }
 
         foreach (Quest quest in questMap.Values)
@@ -175,7 +175,8 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
     {
         if (data.quests == null)
         {
-            data.quests = new SerializableDictionary<string, QuestData>();
+            data.quests =
+                new SerializableDictionary<string, QuestData>();
         }
 
         foreach (Quest quest in questMap.Values)
@@ -196,29 +197,34 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         ChangeQuestState(evt.ID, quest.State);
 
-        // if (TrackedQuest == quest)
-        // {
-        //     Bus<TrackedQuestChangedEvent>.Raise(
-        //         new TrackedQuestChangedEvent(quest));
-        // }
-    }
-
-    private void HandlePlayerLevelUp(PlayerLevelUpEvent evt)
-    {
-        currentPlayerLevel = evt.Level;
+        if (TrackedQuest == quest)
+        {
+            Bus<TrackedQuestChangedEvent>.Raise(
+                new TrackedQuestChangedEvent(quest));
+        }
     }
 
     private bool CheckRequirementsMet(Quest quest)
     {
-        if (currentPlayerLevel < quest.Info.LevelRequirement)
+        if (quest == null || quest.Info == null)
             return false;
+
+        if (quest.Info.QuestPrerequisites == null)
+            return true;
 
         foreach (QuestInfoSO prerequisiteQuestInfo in quest.Info.QuestPrerequisites)
         {
-            Quest prerequisiteQuest = GetQuestById(prerequisiteQuestInfo.ID);
+            if (prerequisiteQuestInfo == null)
+                continue;
 
-            if (prerequisiteQuest == null || prerequisiteQuest.State != QuestState.FINISHED)
+            Quest prerequisiteQuest =
+                GetQuestById(prerequisiteQuestInfo.ID);
+
+            if (prerequisiteQuest == null ||
+                prerequisiteQuest.State != QuestState.FINISHED)
+            {
                 return false;
+            }
         }
 
         return true;
@@ -233,13 +239,14 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         quest.State = state;
 
-        Bus<QuestStateChangedEvent>.Raise(new QuestStateChangedEvent(quest));
+        Bus<QuestStateChangedEvent>.Raise(
+            new QuestStateChangedEvent(quest));
 
-        // if (TrackedQuest == quest)
-        // {
-        //     Bus<TrackedQuestChangedEvent>.Raise(
-        //         new TrackedQuestChangedEvent(quest));
-        // }
+        if (TrackedQuest == quest)
+        {
+            Bus<TrackedQuestChangedEvent>.Raise(
+                new TrackedQuestChangedEvent(quest));
+        }
     }
 
     private void StartQuest(StartQuestEvent evt)
@@ -268,8 +275,6 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         quest.MoveToNextStep();
 
-        
-
         if (quest.CurrentStepExists())
         {
             quest.InstantiateCurrentQuestStep(transform);
@@ -286,13 +291,14 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
             }
         }
 
-        Bus<QuestStepAdvancedEvent>.Raise(new QuestStepAdvancedEvent(quest));
+        Bus<QuestStepAdvancedEvent>.Raise(
+            new QuestStepAdvancedEvent(quest));
 
-        // if (TrackedQuest == quest)
-        // {
-        //     Bus<TrackedQuestChangedEvent>.Raise(
-        //         new TrackedQuestChangedEvent(quest));
-        // }
+        if (TrackedQuest == quest)
+        {
+            Bus<TrackedQuestChangedEvent>.Raise(
+                new TrackedQuestChangedEvent(quest));
+        }
     }
 
     private void FinishQuest(FinishQuestEvent evt)
@@ -315,35 +321,46 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
     private void ClaimRewards(Quest quest)
     {
+        if (quest == null || quest.Info == null)
+            return;
+
         Bus<CurrencyUpdatedEvent>.Raise(
             new CurrencyUpdatedEvent(quest.Info.GoldReward));
-
-        PlayerStats playerStats = (PlayerStats)PlayerManager.Instance.Player.Stats;
-        playerStats.AddExperience(quest.Info.ExperienceReward);
 
         if (quest.Info.ItemRewards == null)
             return;
 
         foreach (ItemReward reward in quest.Info.ItemRewards)
         {
-            for (int i = 0; i < reward.Amount; i++)
-            {
-                Inventory.Instance.AddItem(reward.Data);
-            }
+            if (reward.Data == null)
+                continue;
+
+            Inventory.Instance.AddItem(
+                reward.Data,
+                reward.Amount,
+                true);
         }
     }
 
     private Dictionary<string, Quest> CreateQuestMap()
     {
-        QuestInfoSO[] allQuests = Resources.LoadAll<QuestInfoSO>("Quests");
+        QuestInfoSO[] allQuests =
+            Resources.LoadAll<QuestInfoSO>("Quests");
 
-        Dictionary<string, Quest> idToQuestMap = new Dictionary<string, Quest>();
+        Dictionary<string, Quest> idToQuestMap =
+            new Dictionary<string, Quest>();
 
         foreach (QuestInfoSO questInfo in allQuests)
         {
+            if (questInfo == null)
+                continue;
+
             if (idToQuestMap.ContainsKey(questInfo.ID))
             {
-                Debug.LogWarning("Duplicate ID found when creating quest map: " + questInfo.ID);
+                Debug.LogWarning(
+                    "Duplicate ID found when creating quest map: " +
+                    questInfo.ID);
+
                 continue;
             }
 
@@ -363,7 +380,10 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
 
         foreach (KeyValuePair<string, Quest> pair in questMap)
         {
-            if (string.Equals(pair.Key, id, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(
+                    pair.Key,
+                    id,
+                    StringComparison.OrdinalIgnoreCase))
             {
                 return pair.Value;
             }
@@ -378,9 +398,7 @@ public class QuestManager : Singleton<QuestManager>, ISaveManager
         foreach (Quest quest in questMap.Values)
         {
             if (quest.IsReceived)
-            {
                 yield return quest;
-            }
         }
     }
 }

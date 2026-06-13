@@ -7,19 +7,33 @@ namespace ShiftedSignal.Garden.UserInterface
     public class UI_ItemTooltip : UI_Tooltip
     {
         [SerializeField] private TextMeshProUGUI itemNameText;
-        [SerializeField] private TextMeshProUGUI itemType;
-        [SerializeField] private TextMeshProUGUI itemDescription;
-        
-        public void ShowToolTip(ItemData_Equipment item)
+        [SerializeField] private TextMeshProUGUI itemTypeText;
+        [SerializeField] private TextMeshProUGUI itemDescriptionText;
+
+        public void ShowToolTip(ItemData item)
         {
-            itemNameText.text = item.name;
-            itemType.text = item.EquipmentType.ToString();
-            itemDescription.text = item.GetDescription();
+            if (item == null)
+            {
+                HideToolTip();
+                return;
+            }
+
+            if (itemNameText != null)
+                itemNameText.text = item.ItemName;
+
+            if (itemTypeText != null)
+                itemTypeText.text = item.ItemType.ToString();
+
+            if (itemDescriptionText != null)
+                itemDescriptionText.text = item.GetDescription();
 
             AdjustPosition();
             gameObject.SetActive(true);
         }
 
-        public void HideToolTip() => gameObject.SetActive(false);
+        public void HideToolTip()
+        {
+            gameObject.SetActive(false);
+        }
     }
 }

@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ShiftedSignal.Garden.UserInterface;
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
-using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
-using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignal.Garden.Events;
-using System.Linq;
-using TMPro;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -22,18 +18,7 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
     public enum InventorySortMode
     {
         None,
-        Alphabetical,
-        Power,
-        Defense,
-        HP,
-        MP,
-        Vitality,
-        Speed,
-        CritChance,
-        CritPower,
-        Evasion,
-        MagicResistance,
-        AttackSpeed
+        Alphabetical
     }
 
     public class Inventory : Singleton<Inventory>, ISaveManager
@@ -42,60 +27,40 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         [SerializeField] private GameObject stashSlotPrefab;
 
         [Header("Starting Items")]
-        public List<ItemData> StartingEquipment = new();
+        public List<ItemData> StartingInventoryItems = new();
         public List<ItemData> StartingStashItems = new();
         public List<ItemData> StartingSeedBankItems = new();
 
         [Header("Runtime Collections")]
-        public List<InventoryItem> equipment = new();
-        public Dictionary<ItemData_Equipment, InventoryItem> equipmentDictionary = new();
-
         public List<InventoryItem> inventory = new();
         public Dictionary<ItemData, InventoryItem> inventoryDictionary = new();
 
         public List<InventoryItem> stash = new();
         public Dictionary<ItemData, InventoryItem> stashDictionary = new();
-        
+
         public List<InventoryItem> seedBank = new();
         public Dictionary<ItemData, InventoryItem> seedBankDictionary = new();
-
-
 
         [Header("Inventory UI")]
         [SerializeField] private Transform inventorySlotParent;
         [SerializeField] private Transform stashSlotParent;
-        [SerializeField] public Transform equipmentSlotParent;
-        [SerializeField] public Transform statSlotParent;
         [SerializeField] public Transform seedBankSlotParent;
 
         [SerializeField] public TMP_Dropdown sortModeDropdown;
-        [SerializeField] public TMP_Dropdown sortTypeDropdown;
 
         private UI_ItemSlot[] inventoryItemSlot = Array.Empty<UI_ItemSlot>();
         private UI_ItemSlot[] stashItemSlot = Array.Empty<UI_ItemSlot>();
-        private UI_EquipmentSlot[] equipmentSlot = Array.Empty<UI_EquipmentSlot>();
-        private UI_StatSlot[] statSlot = Array.Empty<UI_StatSlot>();
         private UI_ItemSlot[] seedBankItemSlot = Array.Empty<UI_ItemSlot>();
-
-        private float flaskTimer;
-        private float armorTimer;
 
         [Header("Database")]
         public List<ItemData> itemDataBase = new();
         public List<InventoryItem> loadedItems = new();
-        public List<ItemData_Equipment> loadedEquipment = new();
 
         private bool startingItemsApplied;
 
-        [Header("Inventory Sorting Flags")]
-        [SerializeField] private bool showWeapons;
-        [SerializeField] private bool showFlasks;
-        [SerializeField] private bool showArmor;
-        [SerializeField] private bool showAmulets;
-
         [Header("Inventory Sorting")]
         [SerializeField] private InventorySortMode inventorySortMode = InventorySortMode.None;
-        [SerializeField] private bool sortDescending = true;
+        [SerializeField] private bool sortDescending = false;
 
         [Header("Debug")]
         [SerializeField] private bool loadAsNewGame;
@@ -106,22 +71,18 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
 
             InitializeCollections();
 
-            Bus<WeaponQuickSelectEvent>.OnEvent += HandleWeaponEquipped;
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            SceneManager.sceneLoaded += OnSceneLoaded;
         }
 
         private void Start()
         {
             CacheUIReferences();
-
-            // Delay slightly in case save systems load in Start on other objects.
             Invoke(nameof(AddStartingItems), 0.1f);
         }
 
         protected override void OnDestroy()
         {
-            Bus<WeaponQuickSelectEvent>.OnEvent -= HandleWeaponEquipped;
-            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+            SceneManager.sceneLoaded -= OnSceneLoaded;
             base.OnDestroy();
         }
 
@@ -129,64 +90,6 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         {
             CacheUIReferences();
             UpdateSlotUI();
-        }
-
-        public void SortModeChanged(int _)
-        {
-            inventorySortMode = (InventorySortMode) sortModeDropdown.value;
-            UpdateSlotUI();
-
-        }
-
-        public void SortTypeChanged(int _)
-        {
-            // DropDown Menu Key:
-            // 0 = all, 1 = weapons, 2 = armor, 3 = amulets, 4 = flask
-
-            switch (sortTypeDropdown.value)
-            {
-                case 0:
-                    showWeapons = true;
-                    showFlasks = true;
-                    showArmor = true;
-                    showAmulets = true;
-                    break;
-                case 1:
-                    showWeapons = true;
-                    showFlasks = false;
-                    showArmor =false;
-                    showAmulets =false;
-                    break;
-                case 2:
-                    showWeapons =false;
-                    showFlasks =false;
-                    showArmor = true;
-                    showAmulets =false;
-                    break;
-                case 3:
-                    showWeapons =false;
-                    showFlasks =false;
-                    showArmor =false;
-                    showAmulets = true;
-                    break;
-                case 4:
-                    showWeapons = false;
-                    showFlasks = true;
-                    showArmor =false;
-                    showAmulets = false;
-                    break;
-            }
-
-            UpdateSlotUI();
-        }
-
-        private void Update()
-        {
-            if (flaskTimer > 0)
-                flaskTimer -= Time.deltaTime;
-
-            if (armorTimer > 0)
-                armorTimer -= Time.deltaTime;
         }
 
         private void InitializeCollections()
@@ -200,54 +103,40 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             seedBank ??= new List<InventoryItem>();
             seedBankDictionary ??= new Dictionary<ItemData, InventoryItem>();
 
-            equipment ??= new List<InventoryItem>();
-            equipmentDictionary ??= new Dictionary<ItemData_Equipment, InventoryItem>();
-
             itemDataBase ??= new List<ItemData>();
             loadedItems ??= new List<InventoryItem>();
-            loadedEquipment ??= new List<ItemData_Equipment>();
         }
 
         private void CacheUIReferences()
         {
-            if (inventorySlotParent != null)
-                inventoryItemSlot = inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
-            else
-                inventoryItemSlot = Array.Empty<UI_ItemSlot>();
+            inventoryItemSlot = inventorySlotParent != null
+                ? inventorySlotParent.GetComponentsInChildren<UI_ItemSlot>(true)
+                : Array.Empty<UI_ItemSlot>();
 
-            if (stashSlotParent != null)
-                stashItemSlot = stashSlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
-            else
-                stashItemSlot = Array.Empty<UI_ItemSlot>();
+            stashItemSlot = stashSlotParent != null
+                ? stashSlotParent.GetComponentsInChildren<UI_ItemSlot>(true)
+                : Array.Empty<UI_ItemSlot>();
 
-            if (equipmentSlotParent != null)
-                equipmentSlot = equipmentSlotParent.GetComponentsInChildren<UI_EquipmentSlot>(true);
-            else
-                equipmentSlot = Array.Empty<UI_EquipmentSlot>();
-
-            if (statSlotParent != null)
-                statSlot = statSlotParent.GetComponentsInChildren<UI_StatSlot>(true);
-            else
-                statSlot = Array.Empty<UI_StatSlot>();
-
-            if (seedBankSlotParent != null)
-                seedBankItemSlot = seedBankSlotParent.GetComponentsInChildren<UI_ItemSlot>(true);
-            else
-                seedBankItemSlot = Array.Empty<UI_ItemSlot>();
+            seedBankItemSlot = seedBankSlotParent != null
+                ? seedBankSlotParent.GetComponentsInChildren<UI_ItemSlot>(true)
+                : Array.Empty<UI_ItemSlot>();
         }
 
         [ContextMenu("Add StashSlot")]
         private void AddStashSlot()
         {
+            if (stashSlotPrefab == null || stashSlotParent == null)
+                return;
+
             Instantiate(stashSlotPrefab, stashSlotParent);
         }
 
-        private void HandleWeaponEquipped(WeaponQuickSelectEvent evt)
+        public void SortModeChanged(int _)
         {
-            if (evt.Weapon is null)
-                return;
+            if (sortModeDropdown != null)
+                inventorySortMode = (InventorySortMode)sortModeDropdown.value;
 
-            EquipItem(evt.Weapon);
+            UpdateSlotUI();
         }
 
         private void AddStartingItems()
@@ -257,59 +146,61 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
 
             InitializeCollections();
 
-            if (!loadAsNewGame)
+            if (!loadAsNewGame && loadedItems.Count > 0)
             {
-                if (loadedEquipment.Count > 0)
+                foreach (InventoryItem item in loadedItems)
                 {
-                    foreach (ItemData_Equipment item in loadedEquipment)
-                    {
-                        if (item == null)
-                            continue;
+                    if (item == null || item.data == null)
+                        continue;
 
-                        EquipItem(item);
-                    }
+                    AddItem(item.data, item.stackSize, false);
                 }
 
-                if (loadedItems.Count > 0)
-                {
-                    foreach (InventoryItem item in loadedItems)
-                    {
-                        if (item == null || item.data == null)
-                            continue;
-
-                        for (int i = 0; i < item.stackSize; i++)
-                        {
-                            AddItem(item.data, false);
-                        }
-                    }
-
-                    startingItemsApplied = true;
-                    UpdateSlotUI();
-                    return;
-                }
+                startingItemsApplied = true;
+                UpdateSlotUI();
+                return;
             }
 
             if (SaveManager.Instance != null && !loadAsNewGame)
             {
-                Debug.Log("Saved file: " + SaveManager.Instance.HasSavedData());
-
                 if (!SaveManager.Instance.HasSavedData())
                 {
-                    AddStartingEquipment();
+                    AddStartingInventoryItems();
                     AddStartingStashItems();
                     AddStartingSeedBankItems();
                 }
             }
             else
             {
-                Debug.Log("SaveManager.Instance is null or debug option selected to load starting items.");
-                AddStartingEquipment();
+                AddStartingInventoryItems();
                 AddStartingStashItems();
                 AddStartingSeedBankItems();
             }
 
             startingItemsApplied = true;
             UpdateSlotUI();
+        }
+
+        private void AddStartingInventoryItems()
+        {
+            for (int i = 0; i < StartingInventoryItems.Count; i++)
+            {
+                if (StartingInventoryItems[i] == null)
+                    continue;
+
+                AddItem(StartingInventoryItems[i], false);
+            }
+        }
+
+        private void AddStartingStashItems()
+        {
+            for (int i = 0; i < StartingStashItems.Count; i++)
+            {
+                if (StartingStashItems[i] == null)
+                    continue;
+
+                AddItem(StartingStashItems[i], false);
+            }
         }
 
         private void AddStartingSeedBankItems()
@@ -320,6 +211,156 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                     continue;
 
                 AddItem(StartingSeedBankItems[i], false);
+            }
+        }
+
+        [ContextMenu("Update Slot UI")]
+        private void UpdateSlotUI()
+        {
+            UpdateInventorySlots();
+            UpdateStashSlots();
+            UpdateSeedBankSlots();
+        }
+
+        private void UpdateInventorySlots()
+        {
+            if (inventoryItemSlot == null)
+                return;
+
+            for (int i = 0; i < inventoryItemSlot.Length; i++)
+            {
+                if (inventoryItemSlot[i] != null)
+                    inventoryItemSlot[i].CleanUpSlot();
+            }
+
+            List<InventoryItem> sortedInventory = SortInventory(inventory);
+
+            int maxSlots = Mathf.Min(sortedInventory.Count, inventoryItemSlot.Length);
+
+            for (int i = 0; i < maxSlots; i++)
+            {
+                if (inventoryItemSlot[i] != null)
+                    inventoryItemSlot[i].UpdateSlot(sortedInventory[i]);
+            }
+        }
+
+        private void UpdateStashSlots()
+        {
+            if (stashItemSlot == null)
+                return;
+
+            for (int i = 0; i < stashItemSlot.Length; i++)
+            {
+                if (stashItemSlot[i] != null)
+                    stashItemSlot[i].CleanUpSlot();
+            }
+
+            for (int i = 0; i < stash.Count && i < stashItemSlot.Length; i++)
+            {
+                if (stashItemSlot[i] != null)
+                    stashItemSlot[i].UpdateSlot(stash[i]);
+            }
+        }
+
+        private void UpdateSeedBankSlots()
+        {
+            if (seedBankItemSlot == null)
+                return;
+
+            for (int i = 0; i < seedBankItemSlot.Length; i++)
+            {
+                if (seedBankItemSlot[i] != null)
+                    seedBankItemSlot[i].CleanUpSlot();
+            }
+
+            for (int i = 0; i < seedBank.Count && i < seedBankItemSlot.Length; i++)
+            {
+                if (seedBankItemSlot[i] != null)
+                    seedBankItemSlot[i].UpdateSlot(seedBank[i]);
+            }
+        }
+
+        private List<InventoryItem> SortInventory(List<InventoryItem> items)
+        {
+            switch (inventorySortMode)
+            {
+                case InventorySortMode.Alphabetical:
+                    return sortDescending
+                        ? items.OrderByDescending(item => item.data.name).ToList()
+                        : items.OrderBy(item => item.data.name).ToList();
+
+                case InventorySortMode.None:
+                default:
+                    return items;
+            }
+        }
+
+        public void AddItem(ItemData item, bool updateUI = true)
+        {
+            InitializeCollections();
+
+            if (item == null)
+                return;
+
+            switch (item.ItemType)
+            {
+                case ItemType.Equipment:
+                    if (CanAddInventoryItem())
+                        AddToInventory(item);
+                    else
+                        Debug.Log("Inventory full, could not add item: " + item.name);
+                    break;
+
+                case ItemType.Material:
+                    AddToStash(item);
+                    break;
+
+                case ItemType.Seed:
+                    AddToSeedBank(item);
+                    break;
+            }
+
+            if (updateUI)
+                UpdateSlotUI();
+        }
+
+        public void AddItem(ItemData item, int amount, bool updateUI = true)
+        {
+            if (amount <= 0)
+                return;
+
+            for (int i = 0; i < amount; i++)
+                AddItem(item, false);
+
+            if (updateUI)
+                UpdateSlotUI();
+        }
+
+        private void AddToInventory(ItemData item)
+        {
+            if (inventoryDictionary.TryGetValue(item, out InventoryItem value))
+            {
+                value.AddStack();
+            }
+            else
+            {
+                InventoryItem newItem = new InventoryItem(item);
+                inventory.Add(newItem);
+                inventoryDictionary.Add(item, newItem);
+            }
+        }
+
+        private void AddToStash(ItemData item)
+        {
+            if (stashDictionary.TryGetValue(item, out InventoryItem value))
+            {
+                value.AddStack();
+            }
+            else
+            {
+                InventoryItem newItem = new InventoryItem(item);
+                stash.Add(newItem);
+                stashDictionary.Add(item, newItem);
             }
         }
 
@@ -337,364 +378,14 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             }
         }
 
-        private void AddStartingEquipment()
-        {
-            for (int i = 0; i < StartingEquipment.Count; i++)
-            {
-                if (StartingEquipment[i] == null)
-                    continue;
-
-                EquipItem(StartingEquipment[i]);
-            }
-        }
-
-        private void AddStartingStashItems()
-        {
-            for (int i = 0; i < StartingStashItems.Count; i++)
-            {
-                if (StartingStashItems[i] == null)
-                    continue;
-
-                AddItem(StartingStashItems[i], false);
-            }
-        }
-
-        public void EquipItem(ItemData item)
-        {
-            InitializeCollections();
-
-            if (item == null)
-                return;
-
-            ItemData_Equipment newEquipment = item as ItemData_Equipment;
-            if (newEquipment == null)
-            {
-                Debug.LogWarning($"Tried to equip non-equipment item: {item.name}");
-                return;
-            }
-
-            InventoryItem newItem = new InventoryItem(newEquipment);
-            ItemData_Equipment oldEquipment = null;
-
-            if (newEquipment.EquipmentType == EquipmentType.Flask)
-            {
-                // Unlock flask UI here if needed
-            }
-
-            foreach (KeyValuePair<ItemData_Equipment, InventoryItem> equippedItem in equipmentDictionary)
-            {
-                if (equippedItem.Key != null && equippedItem.Key.EquipmentType == newEquipment.EquipmentType)
-                {
-                    oldEquipment = equippedItem.Key;
-                    break;
-                }
-            }
-
-            if (oldEquipment != null)
-            {
-                UnequipItem(oldEquipment);
-                AddItem(oldEquipment, false);
-            }
-
-            equipment.Add(newItem);
-            equipmentDictionary[newEquipment] = newItem;
-            newEquipment.AddModifiers();
-
-            if (newEquipment.EquipmentType == EquipmentType.Weapon)
-                Bus<WeaponEquipEvent>.Raise(new WeaponEquipEvent(newItem.data as ItemData_Equipment));
-
-            RemoveItem(item, false);
-            UpdateSlotUI();
-        }
-
-        public void UnequipItem(ItemData_Equipment oldEquipment)
-        {
-            InitializeCollections();
-
-            if (oldEquipment == null)
-                return;
-
-            if (equipmentDictionary.TryGetValue(oldEquipment, out InventoryItem value))
-            {
-                equipment.Remove(value);
-                equipmentDictionary.Remove(oldEquipment);
-                oldEquipment.RemoveModifiers();
-            }
-
-            UpdateSlotUI();
-        }
-
-        [ContextMenu("Update Slot UI")]
-        private void UpdateSlotUI()
-        {
-            if (equipmentSlot != null)
-            {
-                for (int i = 0; i < equipmentSlot.Length; i++)
-                {
-                    if (equipmentSlot[i] == null)
-                        continue;
-
-                    equipmentSlot[i].CleanUpSlot();
-
-                    foreach (KeyValuePair<ItemData_Equipment, InventoryItem> item in equipmentDictionary)
-                    {
-                        if (item.Key != null && item.Key.EquipmentType == equipmentSlot[i].slotType)
-                        {
-                            equipmentSlot[i].UpdateSlot(item.Value);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (inventoryItemSlot != null)
-            {
-                for (int i = 0; i < inventoryItemSlot.Length; i++)
-                {
-                    if (inventoryItemSlot[i] != null)
-                        inventoryItemSlot[i].CleanUpSlot();
-                }
-
-                List<InventoryItem> filteredInventory = GetFilteredAndSortedInventory();
-
-                int maxSlots = Mathf.Min(filteredInventory.Count, inventoryItemSlot.Length);
-                for (int i = 0; i < maxSlots; i++)
-                {
-                    if (inventoryItemSlot[i] != null)
-                        inventoryItemSlot[i].UpdateSlot(filteredInventory[i]);
-                }
-            }
-
-            if (stashItemSlot != null)
-            {
-                for (int i = 0; i < stashItemSlot.Length; i++)
-                {
-                    if (stashItemSlot[i] != null)
-                        stashItemSlot[i].CleanUpSlot();
-                }
-
-                for (int i = 0; i < stash.Count && i < stashItemSlot.Length; i++)
-                {
-                    if (stashItemSlot[i] != null)
-                        stashItemSlot[i].UpdateSlot(stash[i]);
-                }
-            }
-
-            if (seedBankItemSlot != null)
-            {
-                for (int i = 0; i < seedBankItemSlot.Length; i++)
-                {
-                    if (seedBankItemSlot[i] != null)
-                        seedBankItemSlot[i].CleanUpSlot();
-                }
-
-                for (int i = 0; i < seedBank.Count && i < seedBankItemSlot.Length; i++)
-                {
-                    if (seedBankItemSlot[i] != null)
-                        seedBankItemSlot[i].UpdateSlot(seedBank[i]);
-                }
-            }
-
-            UpdateStatsUI();
-        }
-
-        private List<InventoryItem> GetFilteredAndSortedInventory()
-        {
-            List<InventoryItem> filteredInventory = new List<InventoryItem>();
-
-            for (int i = 0; i < inventory.Count; i++)
-            {
-                if (inventory[i] == null || inventory[i].data == null)
-                    continue;
-
-                ItemData_Equipment itemData = inventory[i].data as ItemData_Equipment;
-                if (itemData == null)
-                    continue;
-
-                if (!ShouldShowItem(itemData))
-                    continue;
-
-                filteredInventory.Add(inventory[i]);
-            }
-
-            return SortInventory(filteredInventory);
-        }
-
-        private bool ShouldShowItem(ItemData_Equipment itemData)
-        {
-            switch (itemData.EquipmentType)
-            {
-                case EquipmentType.Weapon:
-                    return showWeapons;
-
-                case EquipmentType.Armor:
-                    return showArmor;
-
-                case EquipmentType.Amulet:
-                    return showAmulets;
-
-                case EquipmentType.Flask:
-                    return showFlasks;
-
-                default:
-                    return false;
-            }
-        }
-
-        private List<InventoryItem> SortInventory(List<InventoryItem> items)
-        {
-            switch (inventorySortMode)
-            {
-                case InventorySortMode.Alphabetical:
-                    return sortDescending
-                        ? items.OrderByDescending(item => item.data.name).ToList()
-                        : items.OrderBy(item => item.data.name).ToList();
-
-                case InventorySortMode.Power:
-                    return SortByStat(items, data => data.Power);
-
-                case InventorySortMode.Defense:
-                    return SortByStat(items, data => data.Defense);
-
-                case InventorySortMode.HP:
-                    return SortByStat(items, data => data.HP);
-
-                case InventorySortMode.MP:
-                    return SortByStat(items, data => data.MP);
-
-                case InventorySortMode.Vitality:
-                    return SortByStat(items, data => data.Vitality);
-
-                case InventorySortMode.Speed:
-                    return SortByStat(items, data => data.Speed);
-
-                case InventorySortMode.CritChance:
-                    return SortByStat(items, data => data.CritChance);
-
-                case InventorySortMode.CritPower:
-                    return SortByStat(items, data => data.CritPower);
-
-                case InventorySortMode.Evasion:
-                    return SortByStat(items, data => data.Evasion);
-
-                case InventorySortMode.MagicResistance:
-                    return SortByStat(items, data => data.MagicResistance);
-
-                case InventorySortMode.AttackSpeed:
-                    return SortByStat(items, data => data.AttackSpeed);
-
-                case InventorySortMode.None:
-                default:
-                    return items;
-            }
-        }
-
-        private List<InventoryItem> SortByStat(List<InventoryItem> items, System.Func<ItemData_Equipment, int> statSelector)
-        {
-            if (sortDescending)
-            {
-                return items
-                    .OrderByDescending(item => statSelector(item.data as ItemData_Equipment))
-                    .ThenBy(item => item.data.name)
-                    .ToList();
-            }
-
-            return items
-                .OrderBy(item => statSelector(item.data as ItemData_Equipment))
-                .ThenBy(item => item.data.name)
-                .ToList();
-        }
-
-        private void UpdateStatsUI()
-        {
-            
-            if (statSlot == null)
-                return;
-
-            for (int i = 0; i < statSlot.Length; i++)
-            {
-                if (statSlot[i] != null)
-                    statSlot[i].UpdateStatValueUI();
-            }
-        }
-
-        public void AddItem(ItemData item, bool updateUI = true)
-        {
-            InitializeCollections();
-
-            if (item == null)
-                return;
-
-            if (item.ItemType == ItemType.Equipment)
-            {
-                if (CanAddEquipment())
-                    AddToInventory(item);
-                else
-                    Debug.Log("Inventory full, could not add equipment: " + item.name);
-            }
-            else if (item.ItemType == ItemType.Material)
-            {
-                AddToStash(item);
-            }
-            else if (item.ItemType == ItemType.Seed)
-            {
-                AddToSeedBank(item);
-            }
-
-            if (updateUI)
-                UpdateSlotUI();
-        }
-
-        public void AddItem(ItemData item, int amount, bool updateUI = true)
-        {
-            if (amount <= 0)
-                return;
-
-            for (int i = 0; i < amount; i++)
-            {
-                AddItem(item, false);
-            }
-
-            if (updateUI)
-                UpdateSlotUI();
-        }
-
-        private void AddToStash(ItemData item)
-        {
-            if (stashDictionary.TryGetValue(item, out InventoryItem value))
-            {
-                value.AddStack();
-            }
-            else
-            {
-                InventoryItem newItem = new InventoryItem(item);
-                stash.Add(newItem);
-                stashDictionary.Add(item, newItem);
-            }
-        }
-
-        private void AddToInventory(ItemData item)
-        {
-            if (inventoryDictionary.TryGetValue(item, out InventoryItem value))
-            {
-                value.AddStack();
-            }
-            else
-            {
-                InventoryItem newItem = new InventoryItem(item);
-                inventory.Add(newItem);
-                inventoryDictionary.Add(item, newItem);
-            }
-        }
-
         public bool HasItem(ItemData item)
         {
             if (item == null)
                 return false;
-            
+
             return inventoryDictionary.ContainsKey(item) ||
-                    stashDictionary.ContainsKey(item) ||
-                    seedBankDictionary.ContainsKey(item);
+                   stashDictionary.ContainsKey(item) ||
+                   seedBankDictionary.ContainsKey(item);
         }
 
         public bool HasItem(ItemData item, int amount)
@@ -707,8 +398,8 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             if (inventoryDictionary.TryGetValue(item, out InventoryItem inv))
                 count += inv.stackSize;
 
-            if (stashDictionary.TryGetValue(item, out InventoryItem stash))
-                count += stash.stackSize;
+            if (stashDictionary.TryGetValue(item, out InventoryItem stashItem))
+                count += stashItem.stackSize;
 
             if (seedBankDictionary.TryGetValue(item, out InventoryItem seeds))
                 count += seeds.stackSize;
@@ -766,12 +457,12 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                 UpdateSlotUI();
         }
 
-        public bool CanAddEquipment()
+        public bool CanAddInventoryItem()
         {
             return inventoryItemSlot == null || inventory.Count < inventoryItemSlot.Length;
         }
 
-        public bool CanCraft(ItemData_Equipment itemToCraft, List<InventoryItem> requiredMaterials)
+        public bool CanCraft(ItemData itemToCraft, List<InventoryItem> requiredMaterials)
         {
             InitializeCollections();
 
@@ -801,103 +492,53 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             for (int i = 0; i < requiredMaterials.Count; i++)
             {
                 for (int j = 0; j < requiredMaterials[i].stackSize; j++)
-                {
                     RemoveItem(requiredMaterials[i].data, false);
-                }
             }
 
             AddItem(itemToCraft, false);
             UpdateSlotUI();
 
-            Debug.Log("Here is your item " + itemToCraft.name);
+            Debug.Log("Crafted item: " + itemToCraft.name);
             return true;
         }
 
-        public List<InventoryItem> GetEquipmentList() => equipment;
         public List<InventoryItem> GetStashList() => stash;
         public List<InventoryItem> GetInventoryList() => inventory;
-        public UI_EquipmentSlot[] GetUI_EquipmentSlots() => equipmentSlot;
+        public List<InventoryItem> GetSeedBankList() => seedBank;
+
         public UI_ItemSlot[] GetUI_StashSlots() => stashItemSlot;
         public UI_ItemSlot[] GetUI_InventorySlots() => inventoryItemSlot;
-
-        public ItemData_Equipment GetEquipment(EquipmentType type)
-        {
-            InitializeCollections();
-
-            foreach (KeyValuePair<ItemData_Equipment, InventoryItem> item in equipmentDictionary)
-            {
-                if (item.Key != null && item.Key.EquipmentType == type)
-                    return item.Key;
-            }
-
-            return null;
-        }
-
-        public void UseFlask()
-        {
-            ItemData_Equipment flask = GetEquipment(EquipmentType.Flask);
-            Player player = PlayerManager.Instance != null ? PlayerManager.Instance.Player : null;
-
-            if (flask == null || player == null)
-                return;
-
-            if (flaskTimer <= 0)
-            {
-                flask.Effect(player.transform);
-                flaskTimer = flask.ItemCooldown;
-            }
-        }
-
-        public float GetFlaskCooldownRatio()
-        {
-            ItemData_Equipment flask = GetEquipment(EquipmentType.Flask);
-
-            if (flask == null || flask.ItemCooldown <= 0)
-                return 0f;
-
-            return flaskTimer / flask.ItemCooldown;
-        }
-
-        public float FlaskCooldown()
-        {
-            ItemData_Equipment flask = GetEquipment(EquipmentType.Flask);
-            return flask == null ? 0f : flask.ItemCooldown;
-        }
-
-        public bool CanUseArmor()
-        {
-            ItemData_Equipment armor = GetEquipment(EquipmentType.Armor);
-
-            if (armor != null && armorTimer <= 0)
-            {
-                armorTimer = armor.ItemCooldown;
-                return true;
-            }
-
-            return false;
-        }
+        public UI_ItemSlot[] GetUI_SeedBankSlots() => seedBankItemSlot;
 
         public void LoadData(GameData data)
         {
             InitializeCollections();
+
             loadedItems.Clear();
-            loadedEquipment.Clear();
+
             if (data == null)
                 return;
 
-            // 1. Combine all saved items into a single dictionary to easily process them
             Dictionary<string, int> allSavedItems = new Dictionary<string, int>();
 
             if (data.inventory != null)
-                foreach (var pair in data.inventory) allSavedItems[pair.Key] = pair.Value;
-                
-            if (data.stash != null)
-                foreach (var pair in data.stash) allSavedItems[pair.Key] = pair.Value;
-                
-            if (data.seedBank != null)
-                foreach (var pair in data.seedBank) allSavedItems[pair.Key] = pair.Value;
+            {
+                foreach (KeyValuePair<string, int> pair in data.inventory)
+                    allSavedItems[pair.Key] = pair.Value;
+            }
 
-            // 2. Load the combined list into loadedItems
+            if (data.stash != null)
+            {
+                foreach (KeyValuePair<string, int> pair in data.stash)
+                    allSavedItems[pair.Key] = pair.Value;
+            }
+
+            if (data.seedBank != null)
+            {
+                foreach (KeyValuePair<string, int> pair in data.seedBank)
+                    allSavedItems[pair.Key] = pair.Value;
+            }
+
             foreach (KeyValuePair<string, int> pair in allSavedItems)
             {
                 foreach (ItemData item in itemDataBase)
@@ -908,24 +549,9 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                         {
                             stackSize = pair.Value
                         };
+
                         loadedItems.Add(itemToLoad);
                         break;
-                    }
-                }
-            }
-
-            // 3. Load Equipment
-            foreach (string loadedItemId in data.equipmentId)
-            {
-                foreach (ItemData item in itemDataBase)
-                {
-                    if (item != null && item.ItemID == loadedItemId)
-                    {
-                        if (item is ItemData_Equipment equipmentItem)
-                        {
-                            loadedEquipment.Add(equipmentItem);
-                            break;
-                        }
                     }
                 }
             }
@@ -934,13 +560,13 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         public void SaveData(ref GameData data)
         {
             InitializeCollections();
+
             if (data == null)
                 return;
 
             data.inventory.Clear();
             data.stash.Clear();
             data.seedBank.Clear();
-            data.equipmentId.Clear();
 
             foreach (KeyValuePair<ItemData, InventoryItem> pair in inventoryDictionary)
             {
@@ -958,12 +584,6 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             {
                 if (pair.Key != null)
                     data.seedBank[pair.Key.ItemID] = pair.Value.stackSize;
-            }
-
-            foreach (KeyValuePair<ItemData_Equipment, InventoryItem> pair in equipmentDictionary)
-            {
-                if (pair.Key != null)
-                    data.equipmentId.Add(pair.Key.ItemID);
             }
         }
 

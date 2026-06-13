@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using ShiftedSignal.Garden.Effects;
 using ShiftedSignal.Garden.Stats;
-using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.UserInterface;
 using UnityEngine;
 
@@ -20,35 +19,32 @@ namespace ShiftedSignal.Garden.EntitySpace
         UpLeft
     }
 
-    /// <summary>
-    /// Base entity class for 2.5D gameplay.
-    /// </summary>
     [RequireComponent(typeof(Rigidbody))]
-    
     [RequireComponent(typeof(EntityFX))]
     public class Entity : MonoBehaviour
     {
+        [Header("Grounding")]
         public LayerMask TerrainLayer;
         public float GroundDist;
+
         #region Components
+
         public UI UI;
         public Animator Anim { get; private set; }
         public Rigidbody Rb { get; private set; }
         public SpriteRenderer Sr { get; private set; }
-        public CharacterStats Stats { get; private set; }
+        public CharacterHealth Health { get; private set; }
         public CapsuleCollider Cd { get; private set; }
         public EntityFX Fx { get; private set; }
 
         #endregion
 
         [Header("Movement")]
-        [SerializeField] protected float BaseMoveSpeed = 4f;
-        protected float CurrentMoveSpeed;
-
+        [SerializeField] protected float MoveSpeed = 4f;
 
         [Header("Facing")]
-        public Vector3 FacingDir  = Vector3.right;
-        public Vector2 LastFacingDir = Vector3.right;
+        public Vector3 FacingDir = Vector3.right;
+        public Vector2 LastFacingDir = Vector2.right;
         public RotationAdjustmentDirection RotationAdjustmentDirection = RotationAdjustmentDirection.Right;
         public bool FacingRight { get; private set; } = true;
 
@@ -60,8 +56,13 @@ namespace ShiftedSignal.Garden.EntitySpace
         [Header("Combat")]
         public Transform AttackCheck;
         public float AttackCheckRadius = 0.5f;
-        [Tooltip("The Distance in front of the player")]public float AttackCheckDistance = 1f;
-        [Tooltip("How High the Checks Should Be")] public float CheckHeight = 1f;
+
+        [Tooltip("The Distance in front of the player")]
+        public float AttackCheckDistance = 1f;
+
+        [Tooltip("How High the Checks Should Be")]
+        public float CheckHeight = 1f;
+
         [SerializeField] public Vector3 RotationAdjustment { get; private set; }
         [SerializeField] public float AttackCoolDown;
         [HideInInspector] public float AttackTimer;
@@ -75,55 +76,53 @@ namespace ShiftedSignal.Garden.EntitySpace
 
         protected virtual void Awake()
         {
-            CurrentMoveSpeed = BaseMoveSpeed;
-
             Sr = GetComponentInChildren<SpriteRenderer>();
             Anim = GetComponentInChildren<Animator>();
             Rb = GetComponent<Rigidbody>();
-            Stats = GetComponent<CharacterStats>();
+            Health = GetComponent<CharacterHealth>();
             Cd = GetComponentInChildren<CapsuleCollider>();
             Fx = GetComponent<EntityFX>();
-            
 
             if (Rb != null)
             {
-                Rb.constraints = RigidbodyConstraints.FreezeRotationX
-                            | RigidbodyConstraints.FreezeRotationY
-                            | RigidbodyConstraints.FreezeRotationZ;
+                Rb.constraints =
+                    RigidbodyConstraints.FreezeRotationX |
+                    RigidbodyConstraints.FreezeRotationY |
+                    RigidbodyConstraints.FreezeRotationZ;
             }
         }
 
         protected virtual void Start()
         {
-            // UI = FindAnyObjectByType<UI>();
-            // GameObject canvas = GameObject.Find("Canvas");
-            // if (canvas != null)
-            //     UI = canvas.GetComponent<UI>();
         }
 
         protected virtual void OnEnable()
         {
-            
         }
 
         protected virtual void OnDisable()
         {
-            
         }
-
-
 
         protected virtual void Update()
         {
-            
-
         }
 
         protected virtual void FixedUpdate()
         {
-            Vector3 castPos = transform.position + Vector3.up * 1f;
+            SnapToTerrain();
+        }
 
-            if (Physics.Raycast(castPos, Vector3.down, out RaycastHit hit , Mathf.Infinity, TerrainLayer))
+        private void SnapToTerrain()
+        {
+            Vector3 castPos = transform.position + Vector3.up;
+
+            if (Physics.Raycast(
+                    castPos,
+                    Vector3.down,
+                    out RaycastHit hit,
+                    Mathf.Infinity,
+                    TerrainLayer))
             {
                 Vector3 movePos = transform.position;
                 movePos.y = hit.point.y + GroundDist;
@@ -132,59 +131,117 @@ namespace ShiftedSignal.Garden.EntitySpace
         }
 
         #region Movement
-        /// <summary>
-        /// Applies movement on the X/Z plane.
-        /// Input.x = left/right
-        /// Input.y = forward/back
-        /// </summary>
-        public virtual void ApplyMovement(Vector2 Input, bool normalized = true)
+
+        public virtual void ApplyMovement(Vector2 input, bool normalized = true)
         {
             if (IsKnocked || IsDead || Rb == null)
                 return;
-            Vector3 moveDirection;
-            if (normalized)
-                moveDirection = new Vector3(Input.x, 0f, Input.y).normalized;
-            else
-                moveDirection = new Vector3(Input.x, 0f, Input.y);
 
-            float speedStat = Stats != null ? Stats.Speed.GetValue() : 0f;
-            float finalSpeed = CurrentMoveSpeed + speedStat;
+            Vector3 moveDirection = normalized
+                ? new Vector3(input.x, 0f, input.y).normalized
+                : new Vector3(input.x, 0f, input.y);
 
-            Vector3 velocity = moveDirection * finalSpeed;
-            Rb.linearVelocity = new Vector3(velocity.x, Rb.linearVelocity.y, velocity.z);
+            Vector3 velocity = moveDirection * MoveSpeed;
 
-            float animX = Mathf.Abs(Input.x) > 0.5f ? Mathf.Sign(Input.x) : 0f;
-            float animY = Mathf.Abs(Input.y) > 0.5f ? Mathf.Sign(Input.y) : 0f;
+            Rb.linearVelocity = new Vector3(
+                velocity.x,
+                Rb.linearVelocity.y,
+                velocity.z);
 
-            bool hasSnappedDirection = animX != 0f || animY != 0f;
-
-            if (hasSnappedDirection)
-            {
-                if (animX != lastAnimX)
-                {
-                    Anim.SetFloat("MovementX", animX);
-                    lastAnimX = animX;
-                }
-
-                if (animY != lastAnimY)
-                {
-                    Anim.SetFloat("MovementY", animY);
-                    lastAnimY = animY;
-                }
-
-                UpdateFacingFromSnappedDirection(animX, animY);
-            }
-
-            if (FacingDir.sqrMagnitude > 0.01f)
-            {
-                LastFacingDir = new Vector2 (FacingDir.x, FacingDir.z);
-                RotationAdjustmentDirection = GetRotationAdjustmentFromDirection(LastFacingDir);
-            }
-
+            UpdateAnimationDirection(input);
+            UpdateFacingData();
             UpdateAttackCheckPosition();
         }
 
-        private RotationAdjustmentDirection GetRotationAdjustmentFromDirection(Vector2 lastFacingDir)
+        public void StopMovement()
+        {
+            if (Rb == null)
+                return;
+
+            Rb.linearVelocity = Vector3.zero;
+        }
+
+        public virtual void SlowEntityBy(float slowPercentage, float slowDuration)
+        {
+            StartCoroutine(SlowCoroutine(slowPercentage, slowDuration));
+        }
+
+        private IEnumerator SlowCoroutine(float slowPercentage, float slowDuration)
+        {
+            float originalSpeed = MoveSpeed;
+
+            MoveSpeed = Mathf.Max(
+                0.1f,
+                originalSpeed * (1f - slowPercentage));
+
+            yield return new WaitForSeconds(slowDuration);
+
+            MoveSpeed = originalSpeed;
+        }
+
+        protected virtual void ReturnDefaultSpeed()
+        {
+            if (Anim != null)
+                Anim.speed = 1f;
+        }
+
+        #endregion
+
+        #region Facing / Animation
+
+        private void UpdateAnimationDirection(Vector2 input)
+        {
+            float animX = Mathf.Abs(input.x) > 0.5f
+                ? Mathf.Sign(input.x)
+                : 0f;
+
+            float animY = Mathf.Abs(input.y) > 0.5f
+                ? Mathf.Sign(input.y)
+                : 0f;
+
+            bool hasSnappedDirection = animX != 0f || animY != 0f;
+
+            if (!hasSnappedDirection)
+                return;
+
+            if (Anim != null && animX != lastAnimX)
+            {
+                Anim.SetFloat("MovementX", animX);
+                lastAnimX = animX;
+            }
+
+            if (Anim != null && animY != lastAnimY)
+            {
+                Anim.SetFloat("MovementY", animY);
+                lastAnimY = animY;
+            }
+
+            UpdateFacingFromSnappedDirection(animX, animY);
+        }
+
+        protected virtual void UpdateFacingFromSnappedDirection(float x, float y)
+        {
+            Vector3 newFacingDir = new Vector3(x, 0f, y);
+
+            if (newFacingDir == FacingDir)
+                return;
+
+            FacingDir = newFacingDir;
+            OnFacingChanged?.Invoke();
+        }
+
+        private void UpdateFacingData()
+        {
+            if (FacingDir.sqrMagnitude <= 0.01f)
+                return;
+
+            LastFacingDir = new Vector2(FacingDir.x, FacingDir.z);
+            RotationAdjustmentDirection =
+                GetRotationAdjustmentFromDirection(LastFacingDir);
+        }
+
+        private RotationAdjustmentDirection GetRotationAdjustmentFromDirection(
+            Vector2 lastFacingDir)
         {
             return (lastFacingDir.x, lastFacingDir.y) switch
             {
@@ -200,90 +257,48 @@ namespace ShiftedSignal.Garden.EntitySpace
             };
         }
 
-        protected virtual void OnValidate() {
+        #endregion
+
+        #region Attack Check
+
+        protected virtual void OnValidate()
+        {
             UpdateAttackCheckPosition();
         }
 
         private void UpdateAttackCheckPosition()
         {
-            AttackCheck.position = transform.position + FacingDir * AttackCheckDistance + Vector3.up * CheckHeight;
-        }
-
-        public void StopMovement()
-        {
-            if (IsKnocked || Rb == null)
-            {
-                Debug.Log("RB is null");
-                return;
-            }
-            
-            Rb.linearVelocity = Vector3.zero;
-        }
-
-        public virtual void SlowEntityBy(float SlowPercentage, float SlowDuration)
-        {
-            StartCoroutine(SlowCoroutine(SlowPercentage, SlowDuration));
-        }
-
-        private IEnumerator SlowCoroutine(float SlowPercentage, float SlowDuration)
-        {
-            float original = CurrentMoveSpeed;
-            CurrentMoveSpeed = Mathf.Max(0.1f, original * (1f - SlowPercentage));
-            yield return new WaitForSeconds(SlowDuration);
-            CurrentMoveSpeed = original;
-        }
-
-        protected virtual void ReturnDefaultSpeed()
-        {
-            Anim.speed = 1;
-        }
-        #endregion
-
-        #region Facing
-        protected virtual void UpdateFacingFromSnappedDirection(float x, float y)
-        {
-            Vector3 newFacingDir = new Vector3(x, 0f, y);
-
-            if (newFacingDir == FacingDir)
+            if (AttackCheck == null)
                 return;
 
-            FacingDir = newFacingDir;
-
-            // if (FacingDir.x > 0f && !FacingRight)
-            //     FlipSprite();
-            // else if (FacingDir.x < 0f && FacingRight)
-            //     FlipSprite();
-
-            OnFacingChanged?.Invoke();
+            AttackCheck.position =
+                transform.position +
+                FacingDir * AttackCheckDistance +
+                Vector3.up * CheckHeight;
         }
 
-        // protected virtual void FlipSprite()
-        // {    
-        //     FacingRight = !FacingRight;
-
-        //     Vector3 scale = transform.localScale;
-        //     scale.x = Mathf.Abs(scale.x) * (FacingRight ? 1f : -1f);
-        //     transform.localScale = scale;
-        // }
         #endregion
 
         #region Damage / Knockback
-        public virtual void DamageEffect(bool Knockback, Transform attacker = null)
+
+        public virtual void DamageEffect(bool knockback, Transform attacker = null)
         {
-            if (!Knockback || IsDead)
+            if (!knockback || IsDead)
                 return;
 
             Vector3 direction;
 
             if (attacker != null)
             {
-                Debug.Log("Attacker being passed in to Damage Effect Function");
                 direction = transform.position - attacker.position;
+                direction.y = 0f;
                 direction.Normalize();
             }
             else
             {
-                direction = FacingDir.sqrMagnitude > 0f ? FacingDir.normalized : Vector3.forward;
+                direction = FacingDir.sqrMagnitude > 0f
+                    ? FacingDir.normalized
+                    : Vector3.forward;
             }
 
             StartCoroutine(HitKnockback(direction));
@@ -293,10 +308,8 @@ namespace ShiftedSignal.Garden.EntitySpace
         {
             if (Rb == null)
                 yield break;
-            
-            IsKnocked = true;
 
-            Debug.Log("Enemy is being knocked back");
+            IsKnocked = true;
 
             Rb.linearVelocity = Vector3.zero;
             Rb.AddForce(direction * KnockbackForce, ForceMode.Impulse);
@@ -306,29 +319,34 @@ namespace ShiftedSignal.Garden.EntitySpace
             IsKnocked = false;
             Rb.linearVelocity = Vector3.zero;
         }
+
         #endregion
 
         #region Gizmos
+
         protected virtual void OnDrawGizmosSelected()
         {
             if (!Application.isPlaying)
-            {
                 return;
-            }
 
             if (AttackCheck != null)
-                Gizmos.DrawWireSphere(AttackCheck.position, AttackCheckRadius);
+                Gizmos.DrawWireSphere(
+                    AttackCheck.position,
+                    AttackCheckRadius);
 
-            Gizmos.DrawLine(transform.position, transform.position + FacingDir);
-            // Gizmos.DrawLine(GroundCheck.position, new Vector3(GroundCheck.position.x, GroundCheck.position.y - GroundCheckDistance));
+            Gizmos.DrawLine(
+                transform.position,
+                transform.position + FacingDir);
         }
+
         #endregion
 
         public virtual void Die()
         {
             IsDead = true;
             StopMovement();
-            Destroy(gameObject); //TODO DeathStates for player and enemies.
+
+            Destroy(gameObject);
         }
     }
 }

@@ -2,73 +2,81 @@ using System.Collections;
 using UnityEngine;
 using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.Stats;
-using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Buildable;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
-{    
+{
     public class PlayerAnimationsTriggers : MonoBehaviour
     {
-        private Player player => GetComponentInParent<Player>();
-        private Collider[] enemyHits = new Collider[50];
+        private Player player;
+        private readonly Collider[] enemyHits = new Collider[50];
+
+        private void Awake()
+        {
+            player = GetComponentInParent<Player>();
+        }
 
         private void AnimationTrigger()
         {
+            if (player == null)
+                return;
+
             player.AnimationTrigger();
         }
 
         private void AttackTrigger()
         {
-            int enemyCount = Physics.OverlapSphereNonAlloc(
-                player.AttackCheck.position, 
+            if (player == null || player.AttackCheck == null)
+                return;
+
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                player.AttackCheck.position,
                 player.AttackCheckRadius,
                 enemyHits);
 
-            for (int i = 0; i < enemyCount; i++)
+            for (int i = 0; i < hitCount; i++)
             {
                 Collider hit = enemyHits[i];
-                
-                Enemy enemy = hit.GetComponentInParent<Enemy>();
 
-                if (enemy != null)
-                {              
-                    StartCoroutine(nameof(SlowDownTime));
-                }
-                
-                EnemyStats _target = hit.GetComponentInParent<EnemyStats>();
-
-                if (_target != null)
-                {
-                    player.Stats.DoDamage(_target, Knockback: true);
-
-                    if (Inventory.Instance.GetEquipment(EquipmentType.Weapon) == null)
-                    {
-                        Debug.Log("Inventory Get Equipment is returning null");
-                    }
-                    Inventory.Instance.GetEquipment(EquipmentType.Weapon)?.Effect(_target.transform);
-                }
-
-                BaseBuildable buildable = hit.GetComponentInParent<BaseBuildable>();
-                if (buildable != null)
-                {
-                    buildable.DoDamage(1);
-                }
+                TryDamageEnemy(hit);
+                TryDamageBuildable(hit);
             }
         }
-        
 
-        private void ThrowSword()
-        {       
-            // SkillManager.instance.sword.CanUseSkill();
+        private void TryDamageEnemy(Collider hit)
+        {
+            EnemyStats enemyStats = hit.GetComponentInParent<EnemyStats>();
+
+            if (enemyStats == null)
+                return;
+
+            StartCoroutine(SlowDownTime());
+
+            enemyStats.TakeDamage(
+                player.AttackDamage,
+                true,
+                player.transform);
+        }
+
+        private void TryDamageBuildable(Collider hit)
+        {
+            BaseBuildable buildable =
+                hit.GetComponentInParent<BaseBuildable>();
+
+            if (buildable == null)
+                return;
+
+            buildable.DoDamage(1);
         }
 
         private IEnumerator SlowDownTime()
         {
-            Time.timeScale = .5f;
-            yield return Helpers.GetWait(.1f);
+            Time.timeScale = 0.5f;
+
+            yield return Helpers.GetWait(0.1f);
+
             Time.timeScale = 1f;
         }
-
     }
 }

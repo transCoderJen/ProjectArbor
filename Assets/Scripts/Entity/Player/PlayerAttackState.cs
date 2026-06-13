@@ -1,17 +1,27 @@
-using UnityEngine;
 using ShiftedSignal.Garden.Managers;
-using UnityEngine.InputSystem;
+using ShiftedSignal.Garden.Misc;
+using UnityEngine;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
-{    
+{
     public class PlayerAttackState : PlayerState
     {
         private int comboCounter;
         public float lastTimeAttacked;
-        private float comboWindow = .35f;
-        private bool attackInputCached = false;
 
-        public PlayerAttackState(Player _player, PlayerStateMachine _stateMachine, string _animBoolName) : base(_player, _stateMachine, _animBoolName)
+        private readonly float comboWindow = 0.35f;
+
+        private readonly PooledObjectList[] slashFXByCombo =
+        {
+            PooledObjectList.SlashRed,
+            PooledObjectList.SlashRed,
+            PooledObjectList.SlashRed
+        };
+
+        public PlayerAttackState(
+            Player player,
+            PlayerStateMachine stateMachine,
+            string animBoolName) : base(player, stateMachine, animBoolName)
         {
         }
 
@@ -26,50 +36,68 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             Player.Anim.SetInteger("ComboCounter", comboCounter);
 
-            Vector3 AttackDir = Player.FacingDir;
+            Vector3 attackDir = Player.FacingDir;
 
             Vector2 moveInput = Player.CachedMoveInput.normalized;
 
             if (moveInput != Vector2.zero)
             {
-                Debug.Log("Changing attack direction");
-                AttackDir = new Vector3(moveInput.x, 0f, moveInput.y);
+                attackDir = new Vector3(moveInput.x, 0f, moveInput.y);
+                Player.SetFacingDirection(attackDir);
             }
 
-            Player.ApplyMovement(new Vector2(Player.AttackMovement[comboCounter].x * AttackDir.x,
-                                                Player.AttackMovement[comboCounter].x * AttackDir.z), normalized: false);
-            
-            // Player.TryCutGrass(Player.LastFacingDir);
+            Vector2 attackMovement = new Vector2(
+                Player.AttackMovement[comboCounter].x * attackDir.x,
+                Player.AttackMovement[comboCounter].x * attackDir.z);
+
+            Player.ApplyMovement(attackMovement, normalized: false);
 
             SpawnSlashFX();
 
-            StateTimer = .15f;
+            StateTimer = 0.15f;
         }
 
         private void SpawnSlashFX()
         {
+            if (Player.FacingDir == Vector3.zero)
+                return;
+
             float scale;
             Vector3 rotation;
+
             if (comboCounter == 0)
             {
-                rotation = new Vector3(0, -90, 0);
-                scale = 2;
+                rotation = new Vector3(0f, -90f, 0f);
+                scale = 2f;
             }
             else if (comboCounter == 1)
             {
-                rotation = new Vector3(180, -90, 0);
+                rotation = new Vector3(180f, -90f, 0f);
                 scale = 2.2f;
             }
             else
             {
-                rotation = new Vector3(90, -90, 0);
+                rotation = new Vector3(90f, -90f, 0f);
                 scale = 2.5f;
             }
-            
-            ObjectPoolManager.SpawnObject(Player.EquippedWeapon.SlashFX,
-                                            Player.transform.position + new Vector3(0, Player.CheckHeight, 0),
-                                            Quaternion.LookRotation(Player.FacingDir) * Quaternion.Euler(rotation.x, rotation.y, rotation.z),
-                                            Player.transform, scale: scale);
+
+            PooledObjectList slashFX = GetSlashFXForCombo(comboCounter);
+
+            ObjectPoolManager.SpawnObject(
+                slashFX,
+                Player.transform.position + new Vector3(0f, Player.CheckHeight, 0f),
+                Quaternion.LookRotation(Player.FacingDir) *
+                Quaternion.Euler(rotation.x, rotation.y, rotation.z),
+                Player.transform,
+                scale: scale);
+        }
+
+        private PooledObjectList GetSlashFXForCombo(int comboIndex)
+        {
+            if (comboIndex < 0 || comboIndex >= slashFXByCombo.Length)
+                return slashFXByCombo[0];
+
+            return slashFXByCombo[comboIndex];
         }
 
         public override void Update()
@@ -78,7 +106,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             if (StateTimer < 0)
                 Player.StopMovement();
-            
+
             if (TriggerCalled)
                 Player.StateMachine.ChangeState(Player.IdleState);
         }
@@ -91,6 +119,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             lastTimeAttacked = Time.time;
         }
 
-        public int getComboCounter() => comboCounter;
+        public int GetComboCounter() => comboCounter;
     }
 }

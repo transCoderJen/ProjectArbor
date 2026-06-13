@@ -23,7 +23,6 @@ namespace ShiftedSignal.Garden.QuestSystem
         public bool RequiresTurnIn = true;
         
         [Header("Requirements")]
-        public int LevelRequirement;
         public QuestInfoSO[] QuestPrerequisites;
 
         [Header("Steps")]
@@ -31,7 +30,6 @@ namespace ShiftedSignal.Garden.QuestSystem
 
         [Header("Rewards")]
         public int GoldReward;
-        public int ExperienceReward;
         public ItemReward[] ItemRewards;
 
         [Header("UI")]

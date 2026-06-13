@@ -32,39 +32,30 @@ namespace ShiftedSignal.Garden.Debugging
 
         private readonly List<string> outputHistory = new();
         private readonly Queue<string> pendingOutputLines = new();
-
         private readonly List<string> commandHistory = new();
+
         private int commandHistoryIndex = -1;
 
-        private CharacterStats playerStats;
+        private CharacterHealth playerHealth;
+        private Player player;
+
         private bool isOpen;
         private bool noclipEnabled;
         private bool waitingForNextPage;
 
         private void Start()
         {
-            consoleRoot.SetActive(false);
+            if (consoleRoot != null)
+                consoleRoot.SetActive(false);
 
-            if (Player.Instance != null)
-            {
-                playerStats = Player.Instance.GetComponent<CharacterStats>();
-
-                if (playerCollider == null)
-                    playerCollider = Player.Instance.GetComponent<Collider>();
-
-                if (playerRigidbody == null)
-                    playerRigidbody = Player.Instance.GetComponent<Rigidbody>();
-            }
-
+            CachePlayer();
             ClearOutput();
         }
 
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.BackQuote))
-            {
                 ToggleConsole();
-            }
 
             if (!isOpen)
                 return;
@@ -72,9 +63,7 @@ namespace ShiftedSignal.Garden.Debugging
             if (waitingForNextPage)
             {
                 if (Input.GetKeyDown(KeyCode.Space))
-                {
                     ShowNextOutputPage();
-                }
 
                 return;
             }
@@ -92,42 +81,31 @@ namespace ShiftedSignal.Garden.Debugging
             }
 
             if (Input.GetKeyDown(KeyCode.Return))
-            {
                 ExecuteCommand(inputField.text);
-            }
         }
 
-        private void CycleCommandHistory(int direction)
+        private void CachePlayer()
         {
-            if (commandHistory.Count == 0)
+            player = Player.Instance;
+
+            if (player == null)
                 return;
 
-            if (commandHistoryIndex == -1)
-                commandHistoryIndex = commandHistory.Count;
+            playerHealth = player.GetComponent<CharacterHealth>();
 
-            commandHistoryIndex += direction;
+            if (playerCollider == null)
+                playerCollider = player.GetComponent<Collider>();
 
-            if (commandHistoryIndex < 0)
-                commandHistoryIndex = commandHistory.Count - 1;
-
-            if (commandHistoryIndex >= commandHistory.Count)
-            {
-                commandHistoryIndex = commandHistory.Count;
-                inputField.text = "";
-                inputField.ActivateInputField();
-                inputField.caretPosition = inputField.text.Length;
-                return;
-            }
-
-            inputField.text = commandHistory[commandHistoryIndex];
-            inputField.ActivateInputField();
-            inputField.caretPosition = inputField.text.Length;
+            if (playerRigidbody == null)
+                playerRigidbody = player.GetComponent<Rigidbody>();
         }
 
         private void ToggleConsole()
         {
             isOpen = !isOpen;
-            consoleRoot.SetActive(isOpen);
+
+            if (consoleRoot != null)
+                consoleRoot.SetActive(isOpen);
 
             if (isOpen)
             {
@@ -162,14 +140,11 @@ namespace ShiftedSignal.Garden.Debugging
             command = command.Trim();
 
             if (commandHistory.Count == 0 || commandHistory[^1] != command)
-            {
                 commandHistory.Add(command);
-            }
 
             commandHistoryIndex = commandHistory.Count;
 
             BeginCommandOutput();
-
             Log("> " + command);
 
             try
@@ -188,19 +163,6 @@ namespace ShiftedSignal.Garden.Debugging
             inputField.Select();
         }
 
-        private string NormalizeQuestID(string questID)
-        {
-            if (string.IsNullOrWhiteSpace(questID))
-                return questID;
-
-            questID = questID.Trim();
-
-            if (!questID.EndsWith("quest", StringComparison.OrdinalIgnoreCase))
-                questID += "quest";
-
-            return questID;
-        }
-
         private void ParseCommand(string command)
         {
             string lower = command.ToLower();
@@ -215,16 +177,12 @@ namespace ShiftedSignal.Garden.Debugging
                     ClearOutput();
                     return;
 
-                case "player.stats":
-                    PrintStats();
+                case "player.health":
+                    PrintPlayerHealth();
                     return;
 
                 case "player.heal.full":
                     FullHeal();
-                    return;
-
-                case "player.mp.full":
-                    FullMana();
                     return;
 
                 case "player.kill":
@@ -232,9 +190,21 @@ namespace ShiftedSignal.Garden.Debugging
                     return;
             }
 
-            if (lower.StartsWith("player.stat"))
+            if (lower.StartsWith("player.damage"))
             {
-                HandlePlayerStatCommand(command);
+                HandlePlayerDamageCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("player.heal "))
+            {
+                HandlePlayerHealCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("player.hearts.max"))
+            {
+                HandleMaxHeartsCommand(command);
                 return;
             }
 
@@ -261,6 +231,7 @@ namespace ShiftedSignal.Garden.Debugging
                 HandleQuestCommand(command);
                 return;
             }
+
             if (lower.StartsWith("tp"))
             {
                 HandleTeleportCommand(command);
@@ -270,36 +241,27 @@ namespace ShiftedSignal.Garden.Debugging
             Log("Unknown command. Type 'help'.");
         }
 
-        #region Help
-
         private void ShowHelp()
         {
-            Log("=== COMMANDS ===");
-
-            Log("help");
-            Log("clear");
-
-            Log("player.stat Speed 20");
-            Log("player.stat Power 50");
-            Log("player.stat Defense 999");
-            Log("player.stat MaxHP 500");
-            Log("player.stat MaxMP 200");
-            Log("player.stat CritChance 100");
-            Log("player.stat CritPower 300");
+            Log("=== PLAYER ===");
+            Log("player.health");
+            Log("player.damage 1");
+            Log("player.heal 1");
             Log("player.heal.full");
-            Log("player.mp.full");
+            Log("player.hearts.max 5");
             Log("player.kill");
 
+            Log("=== ITEMS / CURRENCY ===");
             Log("currency.add 1000");
-
             Log("item.add Wood 50");
-            Log("item.add Stone 25");
             Log("item.add \"Blood Essence\" 10");
 
+            Log("=== NOCLIP ===");
             Log("noclip on");
             Log("noclip off");
             Log("noclip toggle");
 
+            Log("=== QUESTS ===");
             Log("quest.receive QuestID");
             Log("quest.start QuestID");
             Log("quest.advance QuestID");
@@ -311,149 +273,130 @@ namespace ShiftedSignal.Garden.Debugging
             Log("tp farm");
         }
 
-        #endregion
-
-        #region Currency
-
-        private void HandleCurrencyCommand(string command)
+        private void PrintPlayerHealth()
         {
-            string[] parts = command.Split(' ');
+            CachePlayer();
 
-            if (parts.Length < 2)
+            if (playerHealth == null)
             {
-                Log("Usage: currency.add Amount");
+                Log("Player health not found.");
                 return;
             }
 
-            if (!int.TryParse(parts[1], out int amount))
-            {
-                Log("Invalid amount.");
-                return;
-            }
+            Log("=== PLAYER HEALTH ===");
+            Log($"Hearts: {playerHealth.CurrentHearts}/{playerHealth.MaxHearts}");
 
-            Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(amount));
-
-            Log($"Added {amount} gold.");
+            if (player != null)
+                Log($"Attack Damage: {player.AttackDamage}");
         }
 
-        #endregion
-
-        #region Player Stats
-
-        private void PrintStats()
+        private void HandlePlayerDamageCommand(string command)
         {
-            if (playerStats == null)
+            CachePlayer();
+
+            if (playerHealth == null)
             {
-                Log("Player stats not found.");
-                return;
-            }
-
-            Log("=== PLAYER STATS ===");
-
-            foreach (StatType statType in Enum.GetValues(typeof(StatType)))
-            {
-                Stat stat = playerStats.GetStat(statType);
-                Log($"{statType}: {stat.GetValue()}");
-            }
-
-            Log($"Health: {playerStats.CurrentHealth}/{playerStats.GetMaxHealthValue()}");
-            Log($"MP: {playerStats.CurrentMP}/{playerStats.MaxMP.GetValue()}");
-        }
-
-        private void FullHeal()
-        {
-            if (playerStats == null)
-            {
-                Log("Player stats not found.");
-                return;
-            }
-
-            playerStats.IncreaseHealthBy(playerStats.GetMaxHealthValue());
-            Log("Player healed to full.");
-        }
-
-        private void FullMana()
-        {
-            if (playerStats == null)
-            {
-                Log("Player stats not found.");
-                return;
-            }
-
-            playerStats.IncreaseMagicBy(playerStats.MaxMP.GetValue());
-            Log("Player MP restored.");
-        }
-
-        private void KillPlayer()
-        {
-            if (playerStats == null)
-            {
-                Log("Player stats not found.");
-                return;
-            }
-
-            playerStats.DecreaseHealthBy(999999);
-            Log("Player killed.");
-        }
-
-        private void HandlePlayerStatCommand(string command)
-        {
-            // player.stat Speed 20
-
-            if (playerStats == null)
-            {
-                Log("Player stats not found.");
+                Log("Player health not found.");
                 return;
             }
 
             string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-            if (parts.Length < 3)
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int damage))
             {
-                Log("Usage: player.stat Speed 20");
+                Log("Usage: player.damage Amount");
                 return;
             }
 
-            string statName = parts[1];
-            string valueText = parts[2];
-
-            if (!Enum.TryParse(statName, true, out StatType statType))
-            {
-                Log($"Invalid stat: {statName}");
-                return;
-            }
-
-            if (!int.TryParse(valueText, out int newValue))
-            {
-                Log("Invalid stat value.");
-                return;
-            }
-
-            Stat stat = playerStats.GetStat(statType);
-
-            int oldValue = stat.GetValue();
-            int difference = newValue - oldValue;
-
-            stat.AddModifier(difference);
-
-            if (statType == StatType.MaxHP)
-            {
-                playerStats.CurrentHealth = playerStats.GetMaxHealthValue();
-                playerStats.OnHealthChanged?.Invoke();
-            }
-
-            if (statType == StatType.MaxMP)
-            {
-                playerStats.CurrentMP = playerStats.MaxMP.GetValue();
-                playerStats.OnMagicChanged?.Invoke();
-            }
-
-            Log($"{statType} changed from {oldValue} to {newValue}");
+            playerHealth.TakeDamage(damage, true);
+            Log($"Player took {damage} damage.");
         }
 
-        #endregion
+        private void HandlePlayerHealCommand(string command)
+        {
+            CachePlayer();
 
-        #region Inventory
+            if (playerHealth == null)
+            {
+                Log("Player health not found.");
+                return;
+            }
+
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int amount))
+            {
+                Log("Usage: player.heal Amount");
+                return;
+            }
+
+            playerHealth.Heal(amount);
+            Log($"Player healed {amount} hearts.");
+        }
+
+        private void FullHeal()
+        {
+            CachePlayer();
+
+            if (playerHealth == null)
+            {
+                Log("Player health not found.");
+                return;
+            }
+
+            playerHealth.RestoreFullHealth();
+            Log("Player healed to full.");
+        }
+
+        private void HandleMaxHeartsCommand(string command)
+        {
+            CachePlayer();
+
+            if (playerHealth == null)
+            {
+                Log("Player health not found.");
+                return;
+            }
+
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int maxHearts))
+            {
+                Log("Usage: player.hearts.max Amount");
+                return;
+            }
+
+            playerHealth.SetMaxHearts(maxHearts, true);
+            Log($"Player max hearts set to {maxHearts}.");
+        }
+
+        private void KillPlayer()
+        {
+            CachePlayer();
+
+            if (playerHealth == null)
+            {
+                Log("Player health not found.");
+                return;
+            }
+
+            playerHealth.TakeDamage(9999, false);
+            Log("Player killed.");
+        }
+
+        private void HandleCurrencyCommand(string command)
+        {
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !int.TryParse(parts[1], out int amount))
+            {
+                Log("Usage: currency.add Amount");
+                return;
+            }
+
+            Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(amount));
+            Log($"Added {amount} gold.");
+        }
 
         private void HandleAddItemCommand(string command)
         {
@@ -482,12 +425,6 @@ namespace ShiftedSignal.Garden.Debugging
 
             itemName = itemName.Replace("\"", "").Trim();
 
-            if (amount <= 0)
-            {
-                Log("Amount must be greater than 0.");
-                return;
-            }
-
             ItemData item = FindItemByNameOrID(itemName);
 
             if (item == null)
@@ -496,14 +433,7 @@ namespace ShiftedSignal.Garden.Debugging
                 return;
             }
 
-            for (int i = 0; i < amount; i++)
-            {
-                Inventory.Instance.AddItem(item, false);
-            }
-
-            Inventory.Instance.AddItem(item, true);
-            Inventory.Instance.RemoveItem(item, false);
-
+            Inventory.Instance.AddItem(item, amount, true);
             Log($"Added {amount} x {item.name}");
         }
 
@@ -527,13 +457,9 @@ namespace ShiftedSignal.Garden.Debugging
             return null;
         }
 
-        #endregion
-
-        #region Noclip
-
         private void HandleNoclipCommand(string command)
         {
-            string[] parts = command.Split(' ');
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length < 2)
             {
@@ -541,9 +467,7 @@ namespace ShiftedSignal.Garden.Debugging
                 return;
             }
 
-            string mode = parts[1].ToLower();
-
-            switch (mode)
+            switch (parts[1].ToLower())
             {
                 case "on":
                     SetNoclip(true);
@@ -579,13 +503,9 @@ namespace ShiftedSignal.Garden.Debugging
             Log(enabled ? "Noclip enabled." : "Noclip disabled.");
         }
 
-        #endregion
-
-        #region Quests
-
         private void HandleQuestCommand(string command)
         {
-            string[] parts = command.Split(' ');
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length < 2)
             {
@@ -634,9 +554,21 @@ namespace ShiftedSignal.Garden.Debugging
 
                 default:
                     Log("Unknown quest command.");
-                    Log("Use: quest.receive/start/advance/finish/status QuestID");
                     break;
             }
+        }
+
+        private string NormalizeQuestID(string questID)
+        {
+            if (string.IsNullOrWhiteSpace(questID))
+                return questID;
+
+            questID = questID.Trim();
+
+            if (!questID.EndsWith("quest", StringComparison.OrdinalIgnoreCase))
+                questID += "quest";
+
+            return questID;
         }
 
         private void LogQuestStatus(Quest quest)
@@ -648,9 +580,77 @@ namespace ShiftedSignal.Garden.Debugging
             Log($"Received: {quest.IsReceived}");
         }
 
-        #endregion
+        private void HandleTeleportCommand(string command)
+        {
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        #region Output Paging
+            if (parts.Length < 2)
+            {
+                Log("Usage: tp start");
+                Log("Usage: tp farm");
+                return;
+            }
+
+            CachePlayer();
+
+            if (player == null)
+            {
+                Log("Player not found.");
+                return;
+            }
+
+            string destinationName = parts[1].ToLower();
+
+            Transform destination = destinationName switch
+            {
+                "start" => StartTeleportPoint,
+                "farm" => FarmTeleportPoint,
+                _ => null
+            };
+
+            if (destination == null)
+            {
+                Log($"Unknown destination: {destinationName}");
+                return;
+            }
+
+            player.transform.position = destination.position;
+
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.linearVelocity = Vector3.zero;
+                playerRigidbody.angularVelocity = Vector3.zero;
+            }
+
+            Log($"Teleported to {destinationName}");
+        }
+
+        private void CycleCommandHistory(int direction)
+        {
+            if (commandHistory.Count == 0)
+                return;
+
+            if (commandHistoryIndex == -1)
+                commandHistoryIndex = commandHistory.Count;
+
+            commandHistoryIndex += direction;
+
+            if (commandHistoryIndex < 0)
+                commandHistoryIndex = commandHistory.Count - 1;
+
+            if (commandHistoryIndex >= commandHistory.Count)
+            {
+                commandHistoryIndex = commandHistory.Count;
+                inputField.text = "";
+                inputField.ActivateInputField();
+                inputField.caretPosition = inputField.text.Length;
+                return;
+            }
+
+            inputField.text = commandHistory[commandHistoryIndex];
+            inputField.ActivateInputField();
+            inputField.caretPosition = inputField.text.Length;
+        }
 
         private void BeginCommandOutput()
         {
@@ -672,19 +672,17 @@ namespace ShiftedSignal.Garden.Debugging
         {
             List<string> visibleLines = new();
 
-            int linesToShow = maxOutputLines;
-
-            while (pendingOutputLines.Count > 0 && visibleLines.Count < linesToShow)
+            while (pendingOutputLines.Count > 0 && visibleLines.Count < maxOutputLines)
             {
-                string line = pendingOutputLines.Dequeue();         
+                string line = pendingOutputLines.Dequeue();
                 visibleLines.Add(line);
                 outputHistory.Add(line);
             }
 
             waitingForNextPage = pendingOutputLines.Count > 0;
 
-            if (waitingForNextPage)         
-            {       
+            if (waitingForNextPage)
+            {
                 visibleLines.Add("");
                 visibleLines.Add("[Press Space To Continue]");
             }
@@ -703,55 +701,6 @@ namespace ShiftedSignal.Garden.Debugging
 
             outputText.text = "";
         }
-
-        #endregion
-
-        #region Teleport
-
-        private void HandleTeleportCommand(string command)
-        {
-            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            if (parts.Length < 2)
-            {
-                Log("Usage: tp start");
-                Log("Usage: tp farm");
-                return;
-            }
-
-            if (Player.Instance == null)
-            {
-                Log("Player not found.");
-                return;
-            }
-
-            string destinationName = parts[1].ToLower();
-
-            Transform destination = destinationName switch
-            {
-                "start" => StartTeleportPoint,
-                "farm" => FarmTeleportPoint,
-                _ => null
-            };
-
-            if (destination == null)
-            {
-                Log($"Unknown destination: {destinationName}");
-                return;
-            }
-
-            Player.Instance.transform.position = destination.position;
-
-            if (playerRigidbody != null)
-            {
-                playerRigidbody.linearVelocity = Vector3.zero;
-                playerRigidbody.angularVelocity = Vector3.zero;
-            }
-
-            Log($"Teleported to {destinationName}");
-        }
-
-        #endregion
 
         private void OnDisable()
         {

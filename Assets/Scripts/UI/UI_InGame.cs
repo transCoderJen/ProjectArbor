@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -6,7 +7,6 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.QuestSystem;
-using System;
 
 namespace ShiftedSignal.Garden.UserInterface
 {
@@ -27,23 +27,25 @@ namespace ShiftedSignal.Garden.UserInterface
         [SerializeField] private Sprite EveningSprite;
         [SerializeField] private Sprite NightSprite;
 
-        [Header("Player Stats UI")]
-        [SerializeField] private TextMeshProUGUI HealthText;
-        [SerializeField] private TextMeshProUGUI MpText;
+        [Header("Heart UI")]
+        [SerializeField] private Transform HeartParent;
+        [SerializeField] private GameObject HeartPrefab;
+
+        [Header("Currency UI")]
         [SerializeField] private TextMeshProUGUI CurrencyText;
-        [SerializeField] private TextMeshProUGUI LevelText;
 
         [Header("Number Scroll Settings")]
         [SerializeField] private float NumberScrollSpeed = 75f;
 
-        private CharacterStats playerStats;
+        private readonly List<UI_HeartSlot> heartSlots = new();
+
+        private CharacterHealth playerHealth;
+        private bool subscribedToHealth;
+
         private Quest trackedQuest;
 
-        private float displayedHealth;
-        private float targetHealth;
-
-        private float displayedMp;
-        private float targetMp;
+        private int lastDisplayedHearts = -1;
+        private int lastMaxHearts = -1;
 
         private float displayedCurrency;
         private float targetCurrency;
@@ -51,55 +53,70 @@ namespace ShiftedSignal.Garden.UserInterface
         private float displayedDay;
         private float targetDay;
 
-        private float displayedLevel;
-        private float targetLevel;
-
         private void Start()
         {
-            CachePlayerStats();
-            UpdateAllUIImmediate();
+            CachePlayerHealth();
             CacheTrackedQuest();
+            UpdateAllUIImmediate();
         }
 
         private void OnEnable()
         {
             AddEventHandlers();
-            CachePlayerStats();
+
+            playerHealth = null;
+            subscribedToHealth = false;
+
+            CachePlayerHealth();
             CacheTrackedQuest();
+            UpdateAllUIImmediate();
         }
 
         private void OnDisable()
         {
             RemoveEventHandlers();
-
-            if (playerStats != null)
-            {
-                playerStats.OnHealthChanged -= UpdateHealthUI;
-                playerStats.OnMagicChanged -= UpdateMpUI;
-            }
+            UnsubscribeFromHealth();
         }
 
         private void Update()
         {
-            ScrollHealthUI();
-            ScrollMpUI();
             ScrollCurrencyUI();
             ScrollDayUI();
-            ScrollLevelUI();
         }
 
-        private void CachePlayerStats()
+        private void CachePlayerHealth()
         {
-            if (playerStats != null)
+            if (PlayerManager.Instance == null ||
+                PlayerManager.Instance.Player == null)
                 return;
 
-            if (PlayerManager.Instance == null || PlayerManager.Instance.Player == null)
+            CharacterHealth foundHealth =
+                PlayerManager.Instance.Player.GetComponent<CharacterHealth>();
+
+            if (foundHealth == null)
                 return;
 
-            playerStats = PlayerManager.Instance.Player.Stats;
+            if (playerHealth != null &&
+                playerHealth != foundHealth)
+            {
+                UnsubscribeFromHealth();
+            }
 
-            playerStats.OnHealthChanged += UpdateHealthUI;
-            playerStats.OnMagicChanged += UpdateMpUI;
+            playerHealth = foundHealth;
+
+            if (!subscribedToHealth)
+            {
+                playerHealth.OnHealthChanged += UpdateHeartUI;
+                subscribedToHealth = true;
+            }
+        }
+
+        private void UnsubscribeFromHealth()
+        {
+            if (playerHealth != null && subscribedToHealth)
+                playerHealth.OnHealthChanged -= UpdateHeartUI;
+
+            subscribedToHealth = false;
         }
 
         private void CacheTrackedQuest()
@@ -121,14 +138,11 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DayChangedEvent>.OnEvent += UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent += UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent += HandleCurrencyUpdate;
-            Bus<PlayerLevelUpEvent>.OnEvent += UpdateLevelUI;
+
             Bus<QuestStepStateChangedEvent>.OnEvent += UpdateQuestStepUI;
             Bus<TrackedQuestChangedEvent>.OnEvent += HandleTrackedQuestChanged;
             Bus<QuestStepAdvancedEvent>.OnEvent += UpdateQuestStepUI;
-
         }
-
-        
 
         private void RemoveEventHandlers()
         {
@@ -137,11 +151,160 @@ namespace ShiftedSignal.Garden.UserInterface
             Bus<DayChangedEvent>.OnEvent -= UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent -= UpdateDayPeriodUI;
             Bus<CurrencyUpdatedEvent>.OnEvent -= HandleCurrencyUpdate;
-            Bus<PlayerLevelUpEvent>.OnEvent -= UpdateLevelUI;
-            Bus<QuestStepStateChangedEvent>.OnEvent -= UpdateQuestStepUI;          
+
+            Bus<QuestStepStateChangedEvent>.OnEvent -= UpdateQuestStepUI;
             Bus<TrackedQuestChangedEvent>.OnEvent -= HandleTrackedQuestChanged;
             Bus<QuestStepAdvancedEvent>.OnEvent -= UpdateQuestStepUI;
         }
+
+        private void UpdateAllUIImmediate()
+        {
+            UpdateTimeUI();
+
+            if (TimeManger.Instance != null)
+            {
+                SetDayImmediate(TimeManger.Instance.CurrentDay);
+                UpdateDayPeriodUI(new DayPeriodChangedEvent(TimeManger.Instance.CurrentDayPeriod));
+            }
+
+            if (PlayerManager.Instance != null)
+                SetCurrencyImmediate(PlayerManager.Instance.Currency);
+
+            RebuildHeartUI();
+            UpdateHeartUIImmediate();
+
+            RefreshTrackedQuestUI();
+        }
+
+        #region Heart UI
+
+        private void RebuildHeartUI()
+        {
+            if (HeartParent == null || HeartPrefab == null || playerHealth == null)
+                return;
+
+            ClearHeartUI();
+
+            for (int i = 0; i < playerHealth.MaxHearts; i++)
+            {
+                GameObject heartObject = Instantiate(HeartPrefab, HeartParent);
+
+                UI_HeartSlot heartSlot = heartObject.GetComponent<UI_HeartSlot>();
+
+                if (heartSlot == null)
+                {
+                    Debug.LogWarning("Heart prefab is missing UI_HeartSlot.", heartObject);
+                    continue;
+                }
+
+                heartSlots.Add(heartSlot);
+            }
+
+            lastMaxHearts = playerHealth.MaxHearts;
+            lastDisplayedHearts = -1;
+        }
+
+        private void UpdateHeartUIImmediate()
+        {
+            if (playerHealth == null)
+                return;
+
+            if (heartSlots.Count != playerHealth.MaxHearts ||
+                lastMaxHearts != playerHealth.MaxHearts)
+            {
+                RebuildHeartUI();
+            }
+
+            for (int i = 0; i < heartSlots.Count; i++)
+            {
+                if (heartSlots[i] == null)
+                    continue;
+
+                bool shouldBeFilled = i < playerHealth.CurrentHearts;
+
+                if (shouldBeFilled)
+                    heartSlots[i].Show(false);
+                else
+                    heartSlots[i].Hide(false);
+            }
+
+            lastDisplayedHearts = playerHealth.CurrentHearts;
+            lastMaxHearts = playerHealth.MaxHearts;
+        }
+
+        private void UpdateHeartUI()
+        {
+            if (playerHealth == null)
+                return;
+
+            if (heartSlots.Count != playerHealth.MaxHearts ||
+                lastMaxHearts != playerHealth.MaxHearts)
+            {
+                RebuildHeartUI();
+                UpdateHeartUIImmediate();
+                return;
+            }
+
+            bool lostHealth =
+                lastDisplayedHearts >= 0 &&
+                playerHealth.CurrentHearts < lastDisplayedHearts;
+
+            bool gainedHealth =
+                lastDisplayedHearts >= 0 &&
+                playerHealth.CurrentHearts > lastDisplayedHearts;
+
+            for (int i = 0; i < heartSlots.Count; i++)
+            {
+                if (heartSlots[i] == null)
+                    continue;
+
+                bool shouldBeFilled = i < playerHealth.CurrentHearts;
+
+                bool wasFilled =
+                    lastDisplayedHearts < 0 ||
+                    i < lastDisplayedHearts;
+
+                if (shouldBeFilled)
+                {
+                    bool animateIn = gainedHealth && !wasFilled;
+                    heartSlots[i].Show(animateIn);
+                }
+                else
+                {
+                    bool animateOut =
+                        lostHealth &&
+                        wasFilled &&
+                        i >= playerHealth.CurrentHearts;
+
+                    heartSlots[i].Hide(animateOut);
+                }
+            }
+
+            lastDisplayedHearts = playerHealth.CurrentHearts;
+            lastMaxHearts = playerHealth.MaxHearts;
+        }
+
+        private void ClearHeartUI()
+        {
+            heartSlots.Clear();
+
+            if (HeartParent == null)
+                return;
+
+            for (int i = HeartParent.childCount - 1; i >= 0; i--)
+            {
+                GameObject child = HeartParent.GetChild(i).gameObject;
+
+                if (Application.isPlaying)
+                    Destroy(child);
+                else
+                    DestroyImmediate(child);
+            }
+        }
+
+        #endregion
+
+        #region Quest UI
 
         private void HandleTrackedQuestChanged(TrackedQuestChangedEvent evt)
         {
@@ -182,7 +345,6 @@ namespace ShiftedSignal.Garden.UserInterface
                 return;
             }
 
-            // Only show active quests
             if (trackedQuest.State == QuestState.CAN_FINISH)
             {
                 CurrentQuestStep.text =
@@ -201,27 +363,30 @@ namespace ShiftedSignal.Garden.UserInterface
                 trackedQuest.GetCurrentStepStatusText();
         }
 
-        private void UpdateAllUIImmediate()
+        #endregion
+
+        #region Time UI
+
+        private void UpdateTimeUI(TimeChangedEvent evt)
         {
             UpdateTimeUI();
+        }
 
+        private void UpdateTimeUI()
+        {
+            if (TimeText != null && TimeManger.Instance != null)
+                TimeText.text = TimeManger.Instance.FormattedTime;
+        }
+
+        private void UpdateDayUI(DayStartedEvent args)
+        {
             if (TimeManger.Instance != null)
-            {
-                SetDayImmediate(TimeManger.Instance.CurrentDay);
-                UpdateDayPeriodUI(new DayPeriodChangedEvent(TimeManger.Instance.CurrentDayPeriod));
-            }
+                targetDay = TimeManger.Instance.CurrentDay;
+        }
 
-            if (playerStats != null)
-            {
-                SetHealthImmediate(playerStats.CurrentHealth);
-                SetMpImmediate(playerStats.CurrentMP);
-            }
-
-            if (PlayerManager.Instance != null)
-                SetCurrencyImmediate(PlayerManager.Instance.Currency);
-
-            if (playerStats is PlayerStats pStats)
-                SetLevelImmediate(pStats.Level);
+        private void UpdateDayUI(DayChangedEvent evt)
+        {
+            targetDay = evt.Day;
         }
 
         private void UpdateDayPeriodUI(DayPeriodChangedEvent evt)
@@ -253,71 +418,14 @@ namespace ShiftedSignal.Garden.UserInterface
             }
         }
 
-        private void UpdateDayUI(DayStartedEvent args)
-        {
-            if (TimeManger.Instance != null)
-                targetDay = TimeManger.Instance.CurrentDay;
-        }
+        #endregion
 
-        private void UpdateDayUI(DayChangedEvent evt)
-        {
-            targetDay = evt.Day;
-        }
-
-        private void UpdateTimeUI(TimeChangedEvent evt)
-        {
-            UpdateTimeUI();
-        }
-
-        private void UpdateTimeUI()
-        {
-            if (TimeText != null && TimeManger.Instance != null)
-                TimeText.text = TimeManger.Instance.FormattedTime;
-        }
-
-        private void UpdateHealthUI()
-        {
-            if (playerStats != null)
-                targetHealth = playerStats.CurrentHealth;
-        }
-
-        private void UpdateMpUI()
-        {
-            if (playerStats != null)
-                targetMp = playerStats.CurrentMP;
-        }
+        #region Currency UI
 
         private void HandleCurrencyUpdate(CurrencyUpdatedEvent evt)
         {
             if (PlayerManager.Instance != null)
                 targetCurrency = PlayerManager.Instance.Currency;
-        }
-
-        private void UpdateLevelUI(PlayerLevelUpEvent evt)
-        {
-            targetLevel = evt.Level;
-        }
-
-        private void ScrollHealthUI()
-        {
-            if (HealthText == null || playerStats == null)
-                return;
-
-            displayedHealth = ScrollNumber(displayedHealth, targetHealth);
-
-            HealthText.text =
-                $"{Mathf.RoundToInt(displayedHealth)} / {playerStats.GetMaxHealthValue()}";
-        }
-
-        private void ScrollMpUI()
-        {
-            if (MpText == null || playerStats == null)
-                return;
-
-            displayedMp = ScrollNumber(displayedMp, targetMp);
-
-            MpText.text =
-                $"{Mathf.RoundToInt(displayedMp)} / {playerStats.MaxMP.GetValue()}";
         }
 
         private void ScrollCurrencyUI()
@@ -329,6 +437,10 @@ namespace ShiftedSignal.Garden.UserInterface
             CurrencyText.text = Mathf.RoundToInt(displayedCurrency).ToString();
         }
 
+        #endregion
+
+        #region Day UI
+
         private void ScrollDayUI()
         {
             if (DayText == null)
@@ -338,14 +450,9 @@ namespace ShiftedSignal.Garden.UserInterface
             DayText.text = "Day " + Mathf.RoundToInt(displayedDay);
         }
 
-        private void ScrollLevelUI()
-        {
-            if (LevelText == null)
-                return;
+        #endregion
 
-            displayedLevel = ScrollNumber(displayedLevel, targetLevel);
-            LevelText.text = "Lvl " + Mathf.RoundToInt(displayedLevel);
-        }
+        #region Helpers
 
         private float ScrollNumber(float current, float target)
         {
@@ -356,24 +463,6 @@ namespace ShiftedSignal.Garden.UserInterface
                 current,
                 target,
                 NumberScrollSpeed * Time.unscaledDeltaTime);
-        }
-
-        private void SetHealthImmediate(int value)
-        {
-            displayedHealth = value;
-            targetHealth = value;
-
-            if (HealthText != null && playerStats != null)
-                HealthText.text = $"{value} / {playerStats.GetMaxHealthValue()}";
-        }
-
-        private void SetMpImmediate(int value)
-        {
-            displayedMp = value;
-            targetMp = value;
-
-            if (MpText != null && playerStats != null)
-                MpText.text = $"{value} / {playerStats.MaxMP.GetValue()}";
         }
 
         private void SetCurrencyImmediate(int value)
@@ -394,13 +483,6 @@ namespace ShiftedSignal.Garden.UserInterface
                 DayText.text = "Day " + value;
         }
 
-        private void SetLevelImmediate(int value)
-        {
-            displayedLevel = value;
-            targetLevel = value;
-
-            if (LevelText != null)
-                LevelText.text = "Lvl " + value;
-        }
+        #endregion
     }
 }

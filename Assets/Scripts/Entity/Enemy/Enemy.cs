@@ -27,6 +27,8 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace
         private float defaultMoveSpeed;
 
         [Header("Attack Info")]
+        [SerializeField] private int attackDamage = 1;
+        public int AttackDamage => attackDamage;
         
         [HideInInspector] public float lastTimeAttacked;
 

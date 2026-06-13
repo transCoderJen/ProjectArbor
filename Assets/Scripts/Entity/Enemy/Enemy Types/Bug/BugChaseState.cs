@@ -45,13 +45,18 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
             Enemy.Hover();
             UpdateStoppingDistance();
 
-            if (PlayerManager.Instance.Player == null)
+            Player player = PlayerManager.Instance != null
+                ? PlayerManager.Instance.Player
+                : null;
+
+            if (player == null)
             {
                 Enemy.StateMachine.ChangeState(Enemy.IdleState);
                 return;
             }
 
-            Vector3 playerPosition = PlayerManager.Instance.Player.transform.position;
+            Vector3 playerPosition = player.transform.position;
+
             Enemy.SetBoidData(BugBoidMode.Chase, playerPosition);
 
             CheckIfHitPlayer();
@@ -110,8 +115,11 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
 
         private void CheckIfHitPlayer()
         {
+            if (Enemy.AttackCheck == null)
+                return;
+
             int hitCount = Physics.OverlapSphereNonAlloc(
-                Enemy.AttackCheck.transform.position,
+                Enemy.AttackCheck.position,
                 Enemy.AttackCheckRadius,
                 playerHits,
                 Enemy.WhatIsPlayer
@@ -124,13 +132,17 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
                 if (!hit.TryGetComponent(out Player player))
                     continue;
 
-                if (!player.TryGetComponent(out PlayerStats playerStats))
+                CharacterHealth playerHealth = player.Health;
+
+                if (playerHealth == null)
+                    playerHealth = player.GetComponent<CharacterHealth>();
+
+                if (playerHealth == null)
                     continue;
 
-                if (!Enemy.TryGetComponent(out EnemyStats enemyStats))
-                    continue;
+                int damage = Enemy.AttackDamage;
 
-                enemyStats.DoDamage(playerStats, false);
+                playerHealth.TakeDamage(damage, false, Enemy.transform);
             }
         }
 
