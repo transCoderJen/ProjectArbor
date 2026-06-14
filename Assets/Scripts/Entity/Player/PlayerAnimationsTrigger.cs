@@ -42,7 +42,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Collider hit = enemyHits[i];
 
                 TryDamageTarget(hit);
-                // TryDamageBuildable(hit);
             }
         }
 
@@ -63,18 +62,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             StartCoroutine(SlowDownTime());
         }
-
-        private void TryDamageBuildable(Collider hit)
-        {
-            BaseBuildable buildable =
-                hit.GetComponentInParent<BaseBuildable>();
-
-            if (buildable == null)
-                return;
-
-            buildable.DoDamage(1);
-        }
-
+        
         private IEnumerator SlowDownTime()
         {
             Time.timeScale = 0.5f;

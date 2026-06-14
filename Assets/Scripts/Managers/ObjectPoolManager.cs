@@ -270,7 +270,9 @@ namespace ShiftedSignal.Garden.Managers
         HitRedSparks,
         Pickup,
         HealArea,
-        HeartRoot
+        HeartRoot,
+        WolfEnemy,
+        VillagerEnemy
     }
 
     public class PoolRuntimeData

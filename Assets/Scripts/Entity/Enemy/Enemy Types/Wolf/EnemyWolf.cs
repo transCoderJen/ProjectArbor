@@ -1,12 +1,12 @@
 using System.Collections;
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
-using Unity.VisualScripting;
+using ShiftedSignal.Garden.Interfaces;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 {
-    public class EnemyWolf : Enemy
+    
+    public class EnemyWolf : Enemy, IRaidEnemy
     {
         #region States
 
@@ -14,6 +14,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         public WolfMoveState MoveState { get; private set; }
         public WolfAttackState1 AttackState1 { get; private set; }
         public WolfChaseState ChaseState { get; private set; }
+        public WolfRaidState RaidState { get; private set; }
 
         #endregion
 
@@ -45,9 +46,26 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         [SerializeField] private Vector2 RecoveryCircleRadiusRange = new Vector2(7f, 13f);
         [SerializeField] private Vector2 RecoveryCircleSpeedRange = new Vector2(10f, 20f);
 
+        
+
+
+        public Transform CurrentRaidTarget { get; private set; }
+
+        public float GetRaidAttackDistance() => RaidAttackDistance;
+
         private Coroutine lungeCoroutine;
 
         public bool IsLunging { get; private set; }
+
+        public void SetRaidTarget(Transform target)
+        {
+            CurrentRaidTarget = target;
+        }
+
+        public bool HasRaidTarget()
+        {
+            return CurrentRaidTarget != null;
+        }
 
         protected override void Awake()
         {
@@ -60,12 +78,49 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             MoveState = new WolfMoveState(this, StateMachine, "Move", this);
             AttackState1 = new WolfAttackState1(this, StateMachine, "Attack1", this);
             ChaseState = new WolfChaseState(this, StateMachine, "Move", this);
+            RaidState = new WolfRaidState(this, StateMachine, "Move", this);
         }
 
         protected override void Start()
         {
             base.Start();
-            StateMachine.Initialize(IdleState);
+
+            if (StateMachine.CurrentState == null)
+                StateMachine.Initialize(IdleState);
+        }
+
+        [ContextMenu("StartRaid")]
+        public void StartRaid()
+        {
+            IRaiderTarget target = FindBestRaiderTarget();
+
+            if (target == null)
+            {
+                Debug.LogWarning("No valid raider target found.", this);
+
+                if (StateMachine.CurrentState == null)
+                    StateMachine.Initialize(IdleState);
+                else
+                    StateMachine.ChangeState(IdleState);
+
+                return;
+            }
+
+            SetRaidTarget(target.TargetTransform);
+
+            if (RaidState == null)
+            {
+                Debug.LogWarning("Wolf RaidState is null.", this);
+                return;
+            }
+
+            if (StateMachine.CurrentState == null)
+            {
+                StateMachine.Initialize(RaidState);
+                return;
+            }
+
+            StateMachine.ChangeState(RaidState);
         }
 
         public bool TryGetRandomWanderPoint(out Vector3 point)
@@ -301,6 +356,19 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             );
         }
 
+        public void TryFindAndSetBestRaiderTarget()
+        {
+            IRaiderTarget target = FindBestRaiderTarget();
+
+            if (target == null)
+            {
+                SetRaidTarget(null);
+                return;
+            }
+
+            SetRaidTarget(target.TargetTransform);
+        }
+
         protected override void OnDrawGizmosSelected()
         {
             base.OnDrawGizmosSelected();
@@ -310,6 +378,9 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
 
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, AttackTriggerRadius);
+            
         }
+
+
     }
 }

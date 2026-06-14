@@ -101,6 +101,43 @@ namespace ShiftedSignal.Garden.GridSystem
             GridManager.Instance.UpdateGrid();
         }
 
+        public void UpdateInfoFromGrid()
+        {
+            EnsureGridMatchesScene();
+
+            for (int y = 0; y < GridManager.Instance.BlockRows.Count; y++)
+            {
+                for (int x = 0; x < GridManager.Instance.BlockRows[y].Blocks.Count; x++)
+                {
+                    GrowBlock block = GridManager.Instance.BlockRows[y].Blocks[x];
+                    UpdateInfo(block, x, y);
+                }
+            }
+        }
+
+        private void EnsureGridMatchesScene()
+        {
+            if (Grid == null)
+                Grid = new List<InfoRow>();
+
+            if (Grid.Count != GridManager.Instance.BlockRows.Count)
+            {
+                DestroyGrid();
+                CreateGrid();
+                return;
+            }
+
+            for (int y = 0; y < GridManager.Instance.BlockRows.Count; y++)
+            {
+                if (Grid[y].Blocks.Count != GridManager.Instance.BlockRows[y].Blocks.Count)
+                {
+                    DestroyGrid();
+                    CreateGrid();
+                    return;
+                }
+            }
+        }
+
         public void DestroyGrid()
         {
             Grid.Clear();

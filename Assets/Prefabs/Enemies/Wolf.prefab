@@ -166,7 +166,7 @@ MonoBehaviour:
     m_Bits: 2048
   GroundDist: 0
   UI: {fileID: 0}
-  BaseMoveSpeed: 8
+  MoveSpeed: 100
   FacingDir: {x: 1, y: 0, z: 0}
   LastFacingDir: {x: 1, y: 0}
   RotationAdjustmentDirection: 2
@@ -191,9 +191,14 @@ MonoBehaviour:
   moveSpeed: 12
   idleTime: 2
   battleTime: 20
+  attackDamage: 1
   lastTimeAttacked: 0
   AttackTriggerRadius: 50
   ChaseTriggerRadius: 100
+  FarmTarget: {fileID: 0}
+  RaidAttackDistance: 1.25
+  raidTargetPointSampleRadius: 2
+  raidTargetPointRefreshTime: 0.75
   WanderRadius: 465.99
   MinIdleWaitTime: 1
   MaxIdleWaitTime: 3
@@ -203,9 +208,15 @@ MonoBehaviour:
   LungeSpeed: 25
   LungeRecoveryTime: 2
   AttackStopDistanceFromPlayer: 0.75
+  LungeTimeout: 2
+  LoseTargetTime: 3
   RecoveryCircleRadius: 10
   RecoveryCircleSpeed: 15
   CircleClockwise: 1
+  LungeDistanceRange: {x: 8, y: 12}
+  LungeSpeedRange: {x: 20, y: 30}
+  RecoveryCircleRadiusRange: {x: 7, y: 13}
+  RecoveryCircleSpeedRange: {x: 10, y: 20}
 --- !u!195 &2850250329184669183
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -227,7 +238,7 @@ NavMeshAgent:
   m_Height: 3.47
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 0
 --- !u!54 &159000011968864555
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -319,33 +330,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d21a083fe69096439bff872f2e28b2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxHP:
-    baseValue: 100
-  MaxMP:
-    baseValue: 0
-  Power:
-    baseValue: 0
-  Vitality:
-    baseValue: 0
-  Defense:
-    baseValue: 0
-  Speed:
-    baseValue: 0
-  CritChance:
-    baseValue: 0
-  CritPower:
-    baseValue: 0
-  Evasion:
-    baseValue: 0
-  MagicResistance:
-    baseValue: 0
-  CurrentHealth: 0
-  CurrentMP: 0
-  Vulnerable: 0
-  soulsDropAmount:
-    baseValue: 0
-  level: 1
-  percentageModifier: 0.2
+  maxHearts: 3
+  currentHearts: 0
+  isInvincible: 0
+  team: 0
 --- !u!1 &8391065821975845796
 GameObject:
   m_ObjectHideFlags: 0

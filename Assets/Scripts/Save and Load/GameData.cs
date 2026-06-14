@@ -31,6 +31,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public float currentTime;
         public int currentDay;
         public int weaponDamageLevel;
+        public int villageReputation;
+        public int corruption;
 
         public GameData()
         {
@@ -48,6 +50,8 @@ namespace ShiftedSignal.Garden.SaveAndLoad
             lostCurrencyX = 0;
             lostCurrencyY = 0;
             unlockedFarmingArea = 0;
+            villageReputation = 0;
+            corruption = 0;
             showPopupText = true;
 
             playerPosition = Vector3.zero;

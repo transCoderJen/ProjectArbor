@@ -457,6 +457,14 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                 UpdateSlotUI();
         }
 
+        public void RemoveItem(ItemData item, int amount)
+        {
+            for (int i =0; i < amount; i++)
+            {
+                RemoveItem(item);
+            }
+        }
+
         public bool CanAddInventoryItem()
         {
             return inventoryItemSlot == null || inventory.Count < inventoryItemSlot.Length;

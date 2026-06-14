@@ -14,7 +14,6 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private GrowBlock BaseGridBlock;
         [SerializeField] private Transform GridParent;
         [SerializeField] private LayerMask GridBlockers;
-        [SerializeField] private LayerMask ActivationBlocks;
         [SerializeField] private LayerMask InteractionLayer;
         private GrowBlock currentHoveredBlock;
         public List<BlockRow> BlockRows = new List<BlockRow>();
@@ -109,12 +108,6 @@ namespace ShiftedSignal.Garden.Managers
                     {
                         newBlock.PreventUse = true;
                         newBlock.gameObject.SetActive(false);
-                    }
-
-                    if (Physics.CheckBox(spawnPos, GetCellHalfExtents(), Quaternion.identity, ActivationBlocks, QueryTriggerInteraction.Collide))
-                    {
-                        newBlock.IsActive = true;
-                        newBlock.IsActivationBlock = true;
                     }
                 }
             }
@@ -249,6 +242,34 @@ namespace ShiftedSignal.Garden.Managers
         {
             return GetBlockFromWorldPosition(
                 PlayerManager.Instance.Player.GrowBlockCheck.position);
+        }
+
+        public void ActivateBlocksInRadius(Vector3 worldPosition, float radius)
+        {
+            float radiusSqr = radius * radius;
+
+            for (int y = 0; y < BlockRows.Count; y++)
+            {
+                for (int x = 0; x < BlockRows[y].Blocks.Count; x++)
+                {
+                    GrowBlock block = BlockRows[y].Blocks[x];
+
+                    if (block == null || block.PreventUse)
+                        continue;
+
+                    float distanceSqr = (block.transform.position - worldPosition).sqrMagnitude;
+
+                    if (distanceSqr <= radiusSqr)
+                    {
+                        block.IsActive = true;
+                        block.SetSoilSprite(false);
+                        block.UpdateSelectionBoxColor();
+                    }
+                }
+            }
+
+            GridInfo.Instance.UpdateInfoFromGrid();
+            UpdateGrid();
         }
     }
 

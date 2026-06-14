@@ -212,7 +212,7 @@ namespace ShiftedSignal.Garden.Managers
                 }
                 else
                 {
-                    Bus<NightStartedEvent>.Raise(new NightStartedEvent());
+                    Bus<NightStartedEvent>.Raise(new NightStartedEvent(currentDay));
                 }
 
                 wasDay = isCurrentlyDay;
@@ -396,7 +396,7 @@ namespace ShiftedSignal.Garden.Managers
             }
             else
             {
-                Bus<NightStartedEvent>.Raise(new NightStartedEvent());
+                Bus<NightStartedEvent>.Raise(new NightStartedEvent(currentDay));
             }
         }
 
