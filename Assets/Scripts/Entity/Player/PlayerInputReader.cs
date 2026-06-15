@@ -16,14 +16,41 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public Vector2 MoveInput { get; private set; }
         public Vector2 PointerPosition { get; private set; }
 
+        public bool InteractHeld { get; private set; }
+        public bool ActionHeld { get; private set; }
+        public bool AttackHeld =>
+            PlayerInput != null &&
+            PlayerInput.actions != null &&
+            PlayerInput.actions["Attack"].IsPressed();
+
         public PlayerInput PlayerInput { get; private set; }
+
+        private InputAction attackAction;
+        private bool previousAttackHeld;
 
         private void Awake()
         {
             PlayerInput = GetComponent<PlayerInput>();
+
+            if (PlayerInput != null && PlayerInput.actions != null)
+                attackAction = PlayerInput.actions["Attack"];
         }
 
-        #region Input Actions
+        private void Update()
+        {
+            UpdateHeldInputs();
+        }
+
+        private void UpdateHeldInputs()
+        {
+            if (attackAction == null)
+                return;
+
+            if (AttackHeld && !previousAttackHeld)
+                AttackPressed?.Invoke();
+
+            previousAttackHeld = AttackHeld;
+        }
 
         public void OnMove(InputValue value)
         {
@@ -33,6 +60,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnInteract(InputValue value)
         {
+            InteractHeld = value.isPressed;
+
             if (!value.isPressed)
                 return;
 
@@ -42,6 +71,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnAction(InputValue value)
         {
+            ActionHeld = value.isPressed;
+
             if (!value.isPressed)
                 return;
 
@@ -50,6 +81,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnAttack(InputValue value)
         {
+            Debug.Log($"OnAttack: {value.isPressed}");
+
             if (!value.isPressed)
                 return;
 
@@ -64,20 +97,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             CancelPressed?.Invoke();
         }
 
-        /// <summary>
-        /// Mouse position for building placement.
-        /// This should be bound to:
-        /// Mouse/Position
-        /// Pointer/Position
-        /// </summary>
         public void OnPointerPosition(InputValue value)
         {
             PointerPosition = value.Get<Vector2>();
         }
-
-        #endregion
-
-        #region Helpers
 
         public void ClearMoveInput()
         {
@@ -85,6 +108,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             MoveChanged?.Invoke(Vector2.zero);
         }
 
-        #endregion
+        public void ClearHeldInputs()
+        {
+            InteractHeld = false;
+            ActionHeld = false;
+            previousAttackHeld = false;
+        }
     }
 }

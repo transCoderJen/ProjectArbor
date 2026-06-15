@@ -161,6 +161,11 @@ namespace ShiftedSignal.Garden.EntitySpace
             Rb.linearVelocity = Vector3.zero;
         }
 
+        public void SetMoveSpeed(float speed)
+        {
+            this.MoveSpeed = speed;
+        }
+
         public virtual void SlowEntityBy(float slowPercentage, float slowDuration)
         {
             StartCoroutine(SlowCoroutine(slowPercentage, slowDuration));

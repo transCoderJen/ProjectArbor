@@ -1,11 +1,12 @@
 using System.Collections;
+using ShiftedSignal.Garden.EntitySpace.EnemySpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
+namespace ShiftedSignal.Garden.Raids
 {
     public class NightRaidSpawner : MonoBehaviour
     {
@@ -29,6 +30,10 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
         [SerializeField] private Transform southSpawn;
         [SerializeField] private Transform eastSpawn;
         [SerializeField] private Transform westSpawn;
+
+        [Header("Performance")]
+        [SerializeField] private int maxActiveRaidEnemies = 25;
+        [SerializeField] private float activeEnemyCheckDelay = 1f;
 
         [Header("Pools")]
         [SerializeField] private PooledObjectList animalPool = PooledObjectList.WolfEnemy;
@@ -67,6 +72,8 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
         private int eastSpawnCount;
         private int westSpawnCount;
 
+        private bool IsRaidRunning => raidRoutine != null;
+
         private void OnEnable()
         {
             Bus<NightStartedEvent>.OnEvent += HandleNightStarted;
@@ -75,6 +82,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
         private void OnDisable()
         {
             Bus<NightStartedEvent>.OnEvent -= HandleNightStarted;
+            StopNightRaid();
         }
 
         private void HandleNightStarted(NightStartedEvent evt)
@@ -132,6 +140,39 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
             raidRoutine = null;
         }
 
+        public void DebugStartRaid(int difficulty, int reputation, int corruption)
+        {
+            debugNightNumber = Mathf.Max(1, difficulty);
+            villageReputation = Mathf.Clamp(reputation, -100, 100);
+            this.corruption = Mathf.Clamp(corruption, 0, 100);
+
+            debugRaidActive = true;
+            previousDebugRaidActive = true;
+
+            Debug.Log(
+                $"Debug raid started manually | Difficulty/Night: {debugNightNumber}, Reputation: {villageReputation}, Corruption: {this.corruption}",
+                this
+            );
+
+            StartNightRaid(
+                debugNightNumber,
+                villageReputation,
+                this.corruption,
+                true
+            );
+        }
+
+        public void DebugStopRaid()
+        {
+            debugRaidActive = false;
+            previousDebugRaidActive = false;
+
+            Debug.Log("Debug raid stopped manually.", this);
+
+            StopNightRaid();
+            LogSpawnCounts();
+        }
+
         private IEnumerator RaidRoutine(int nightNumber, bool loopUntilStopped)
         {
             RaidType raidType = ChooseRaidType();
@@ -141,7 +182,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
             float spawnDelay = CalculateSpawnDelay(difficulty);
 
             Debug.Log(
-                $"Raid Started | Type: {raidType} | Difficulty: {difficulty} | Enemy Count Per Wave: {enemyCount} | Delay: {spawnDelay}",
+                $"Raid Started | Type: {raidType} | Difficulty: {difficulty} | Enemy Count Per Wave: {enemyCount} | Delay: {spawnDelay} | Max Active: {maxActiveRaidEnemies}",
                 this
             );
 
@@ -149,6 +190,14 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
             {
                 for (int i = 0; i < enemyCount; i++)
                 {
+                    while (GetActiveRaidEnemyCount() >= maxActiveRaidEnemies)
+                    {
+                        yield return new WaitForSeconds(activeEnemyCheckDelay);
+
+                        if (!IsRaidRunning)
+                            yield break;
+                    }
+
                     PooledObjectList selectedPool = ChoosePoolForRaid(raidType);
                     SpawnEnemy(selectedPool);
 
@@ -160,6 +209,16 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
             } while (loopUntilStopped);
 
             raidRoutine = null;
+        }
+
+        private int GetActiveRaidEnemyCount()
+        {
+            Enemy[] enemies = FindObjectsByType<Enemy>(
+                FindObjectsInactive.Exclude,
+                FindObjectsSortMode.None
+            );
+
+            return enemies.Length;
         }
 
         private RaidType ChooseRaidType()
@@ -249,7 +308,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.Raids
             AddSpawnCount(direction);
 
             Debug.Log(
-                $"Spawned {poolType} from {direction}. Counts | N:{northSpawnCount} S:{southSpawnCount} E:{eastSpawnCount} W:{westSpawnCount}",
+                $"Spawned {poolType} from {direction}. Active: {GetActiveRaidEnemyCount()}/{maxActiveRaidEnemies} | Counts N:{northSpawnCount} S:{southSpawnCount} E:{eastSpawnCount} W:{westSpawnCount}",
                 this
             );
         }

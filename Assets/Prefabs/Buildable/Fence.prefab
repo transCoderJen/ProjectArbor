@@ -154,7 +154,10 @@ MonoBehaviour:
   RunOnTimeChanged: 0
   RunOnNightStarted: 0
   Durability: 0
-  MaxHP: 10
+  MaxHP: 5
+  targetType: 2
+  raidPriority: 50
+  raidTargetPoint: {fileID: 0}
   Planks:
   - {fileID: 3583985446689041662}
   - {fileID: 7823458227203339463}

@@ -1,18 +1,11 @@
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.Buildings
+namespace ShiftedSignal.Garden.Buildable
 {
-    public class Farm : Building
+    public class Farm : BaseBuildable
     {
         [Header("Farm")]
         [SerializeField] private bool triggerGameOverOnDeath = true;
-
-        protected override void Awake()
-        {
-            base.Awake();
-
-            priority = 100;
-        }
 
         protected override void Die()
         {

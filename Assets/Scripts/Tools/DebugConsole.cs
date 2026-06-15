@@ -9,6 +9,8 @@ using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.UserInterface;
+using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Raids;
 
 namespace ShiftedSignal.Garden.Debugging
 {
@@ -42,6 +44,7 @@ namespace ShiftedSignal.Garden.Debugging
         private bool isOpen;
         private bool noclipEnabled;
         private bool waitingForNextPage;
+        private float storedGameSpeed = 1f;
 
         private void Start()
         {
@@ -109,6 +112,8 @@ namespace ShiftedSignal.Garden.Debugging
 
             if (isOpen)
             {
+                storedGameSpeed = Time.timeScale;
+
                 Bus<EnablePlayerMovementEvent>.Raise(new EnablePlayerMovementEvent(false));
                 Time.timeScale = 0f;
 
@@ -125,7 +130,7 @@ namespace ShiftedSignal.Garden.Debugging
             else
             {
                 Bus<EnablePlayerMovementEvent>.Raise(new EnablePlayerMovementEvent(true));
-                Time.timeScale = 1f;
+                Time.timeScale = storedGameSpeed <= 0f ? 1f : storedGameSpeed;
 
                 if (UI.Instance != null)
                     UI.Instance.SwitchToInGameUI();
@@ -208,15 +213,45 @@ namespace ShiftedSignal.Garden.Debugging
                 return;
             }
 
+            if (lower.StartsWith("player.speed"))
+            {
+                HandlePlayerSpeedCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("game.speed"))
+            {
+                HandleGameSpeedCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("gold.add"))
+            {
+                HandleGoldCommand(command);
+                return;
+            }
+
             if (lower.StartsWith("currency.add"))
             {
-                HandleCurrencyCommand(command);
+                Log("Use gold.add Amount instead.");
                 return;
             }
 
             if (lower.StartsWith("item.add"))
             {
                 HandleAddItemCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("grid.unlock"))
+            {
+                HandleGridUnlockCommand(command);
+                return;
+            }
+
+            if (lower.StartsWith("raid."))
+            {
+                HandleRaidCommand(command);
                 return;
             }
 
@@ -249,12 +284,25 @@ namespace ShiftedSignal.Garden.Debugging
             Log("player.heal 1");
             Log("player.heal.full");
             Log("player.hearts.max 5");
+            Log("player.speed 8");
             Log("player.kill");
 
-            Log("=== ITEMS / CURRENCY ===");
-            Log("currency.add 1000");
+            Log("=== GAME ===");
+            Log("game.speed 1");
+            Log("game.speed 2");
+            Log("game.speed 0.5");
+
+            Log("=== ITEMS / GOLD ===");
+            Log("gold.add 1000");
             Log("item.add Wood 50");
             Log("item.add \"Blood Essence\" 10");
+
+            Log("=== GRID ===");
+            Log("grid.unlock 12");
+
+            Log("=== RAID ===");
+            Log("raid.start 3 50 20");
+            Log("raid.stop");
 
             Log("=== NOCLIP ===");
             Log("noclip on");
@@ -370,6 +418,58 @@ namespace ShiftedSignal.Garden.Debugging
             Log($"Player max hearts set to {maxHearts}.");
         }
 
+        private void HandlePlayerSpeedCommand(string command)
+        {
+            CachePlayer();
+
+            if (player == null)
+            {
+                Log("Player not found.");
+                return;
+            }
+
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !float.TryParse(parts[1], out float speed))
+            {
+                Log("Usage: player.speed Amount");
+                return;
+            }
+
+            if (speed < 0f)
+            {
+                Log("Player speed cannot be negative.");
+                return;
+            }
+
+            player.SetMoveSpeed(speed);
+            Log($"Player speed set to {speed}.");
+        }
+
+        private void HandleGameSpeedCommand(string command)
+        {
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !float.TryParse(parts[1], out float speed))
+            {
+                Log("Usage: game.speed Amount");
+                return;
+            }
+
+            if (speed < 0f)
+            {
+                Log("Game speed cannot be negative.");
+                return;
+            }
+
+            storedGameSpeed = speed;
+
+            if (!isOpen)
+                Time.timeScale = storedGameSpeed;
+
+            Log($"Game speed set to {storedGameSpeed}.");
+        }
+
         private void KillPlayer()
         {
             CachePlayer();
@@ -384,13 +484,13 @@ namespace ShiftedSignal.Garden.Debugging
             Log("Player killed.");
         }
 
-        private void HandleCurrencyCommand(string command)
+        private void HandleGoldCommand(string command)
         {
             string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length < 2 || !int.TryParse(parts[1], out int amount))
             {
-                Log("Usage: currency.add Amount");
+                Log("Usage: gold.add Amount");
                 return;
             }
 
@@ -455,6 +555,90 @@ namespace ShiftedSignal.Garden.Debugging
             }
 
             return null;
+        }
+
+        private void HandleGridUnlockCommand(string command)
+        {
+            CachePlayer();
+
+            if (player == null)
+            {
+                Log("Player not found.");
+                return;
+            }
+
+            if (GridManager.Instance == null)
+            {
+                Log("GridManager not found.");
+                return;
+            }
+
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 2 || !float.TryParse(parts[1], out float radius))
+            {
+                Log("Usage: grid.unlock Radius");
+                return;
+            }
+
+            if (radius <= 0f)
+            {
+                Log("Radius must be greater than 0.");
+                return;
+            }
+
+            GridManager.Instance.ActivateBlocksInRadius(player.transform.position, radius);
+            Log($"Unlocked grid blocks within radius {radius} around player.");
+        }
+
+        private void HandleRaidCommand(string command)
+        {
+            string[] parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length < 1)
+            {
+                Log("Usage: raid.start Difficulty Reputation Corruption");
+                Log("Usage: raid.stop");
+                return;
+            }
+
+            string raidCommand = parts[0].ToLower();
+
+            NightRaidSpawner raidSpawner = FindFirstObjectByType<NightRaidSpawner>();
+
+            if (raidSpawner == null)
+            {
+                Log("NightRaidSpawner not found.");
+                return;
+            }
+
+            switch (raidCommand)
+            {
+                case "raid.start":
+                    if (parts.Length < 4 ||
+                        !int.TryParse(parts[1], out int difficulty) ||
+                        !int.TryParse(parts[2], out int reputation) ||
+                        !int.TryParse(parts[3], out int corruption))
+                    {
+                        Log("Usage: raid.start Difficulty Reputation Corruption");
+                        return;
+                    }
+
+                    raidSpawner.DebugStartRaid(difficulty, reputation, corruption);
+                    Log($"Started debug raid. Difficulty: {difficulty}, Reputation: {reputation}, Corruption: {corruption}");
+                    break;
+
+                case "raid.stop":
+                    raidSpawner.DebugStopRaid();
+                    Log("Stopped debug raid.");
+                    break;
+
+                default:
+                    Log("Unknown raid command.");
+                    Log("Usage: raid.start Difficulty Reputation Corruption");
+                    Log("Usage: raid.stop");
+                    break;
+            }
         }
 
         private void HandleNoclipCommand(string command)

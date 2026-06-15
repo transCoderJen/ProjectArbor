@@ -10,6 +10,7 @@ using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -99,6 +100,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         [SerializeField] private float buildRotationStep = 90f;
 
+        [Header("Build Drag")]
+        [SerializeField] private float dragBuildCooldown = 0.05f;
+
+        private float nextDragBuildTime;
+
         private float currentBuildYRotation;
 
         private GameObject ghostInstance;
@@ -111,6 +117,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public bool ControlsEnabled => controlsEnabled;
 
         private IInteractable currentHighlightedInteractable;
+        private readonly HashSet<GrowBlock> dragVisitedBlocks = new();
 
         protected override void Awake()
         {
@@ -209,11 +216,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             StateMachine.CurrentState?.Update();
 
             UpdateInteractableHighlight();
-
             HandleDebugInputs();
 
             CreateGhost();
             HandleGhost();
+            HandleBuildDrag();
         }
 
         protected override void FixedUpdate()
@@ -252,6 +259,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (!controlsEnabled)
                 return;
 
+            if (InManagementState)
+                return;
+
             AttackBuffered = true;
         }
 
@@ -261,6 +271,90 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             DestroyGhost();
+        }
+
+        private void HandleBuildDrag()
+        {
+            Debug.Log(
+                $"[BuildDrag] ENTER | " +
+                $"InManagementState={InManagementState} | " +
+                $"inputReader={(inputReader != null ? "OK" : "NULL")} | " +
+                $"AttackHeld={(inputReader != null ? inputReader.AttackHeld.ToString() : "NO INPUT")}"
+            );
+
+            if (!InManagementState)
+            {
+                Debug.Log("[BuildDrag] EXIT: Not in management state.");
+                ResetBuildDrag();
+                return;
+            }
+
+            if (inputReader == null)
+            {
+                Debug.Log("[BuildDrag] EXIT: inputReader is null.");
+                return;
+            }
+
+            if (!inputReader.AttackHeld)
+            {
+                Debug.Log("[BuildDrag] EXIT: Attack is not held.");
+                ResetBuildDrag();
+                return;
+            }
+
+            // if (Time.time < nextDragBuildTime)
+            // {
+            //     Debug.Log($"[BuildDrag] EXIT: Cooldown. Time={Time.time}, Next={nextDragBuildTime}");
+            //     return;
+            // }
+
+            GrowBlock block = GetBlock();
+
+            if (block == null)
+            {
+                Debug.Log("[BuildDrag] EXIT: GetBlock returned null.");
+                return;
+            }
+
+            Debug.Log(
+                $"[BuildDrag] Block found: {block.name} | " +
+                $"Active={block.IsActive} | " +
+                $"HasBuildable={block.HasBuildable} | " +
+                $"Visited={dragVisitedBlocks.Contains(block)}"
+            );
+
+            if (dragVisitedBlocks.Contains(block))
+            {
+                Debug.Log($"[BuildDrag] EXIT: Already visited {block.name} this drag.");
+                return;
+            }
+
+            dragVisitedBlocks.Add(block);
+
+            if (block.HasBuildable)
+            {
+                Debug.Log($"[BuildDrag] EXIT: {block.name} already has buildable.");
+                return;
+            }
+
+            bool built = TryBuildOnBlock(block);
+
+            Debug.Log($"[BuildDrag] TryBuildOnBlock returned {built} for {block.name}");
+
+            if (built)
+            {
+                // nextDragBuildTime = Time.time + dragBuildCooldown;
+                Debug.Log($"[BuildDrag] SUCCESS: Built on {block.name}. Next build time={nextDragBuildTime}");
+            }
+        }
+
+        private void ResetBuildDrag()
+        {
+            if (dragVisitedBlocks.Count > 0)
+                Debug.Log($"[BuildDrag] Reset. Clearing {dragVisitedBlocks.Count} visited blocks.");
+
+            dragVisitedBlocks.Clear();
+            nextDragBuildTime = 0f;
         }
 
         private void OnControlsChanged(PlayerInput input)
@@ -277,6 +371,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 StopMovement();
                 CachedMoveInput = Vector2.zero;
                 inputReader?.ClearMoveInput();
+                inputReader?.ClearHeldInputs();
             }
         }
 
@@ -379,10 +474,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             if (InManagementState)
-            {
-                Build();
                 return;
-            }
 
             GrowBlock block = GetBlock();
 
@@ -392,25 +484,53 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             block.UseContextAction(EquippedSeed);
         }
 
-        private void Build()
+        private bool TryBuildOnBlock(GrowBlock block)
         {
-            GrowBlock block = GetBlock();
+            if (block == null)
+            {
+                Debug.Log("[TryBuild] FAIL: block is null.");
+                return false;
+            }
 
-            if (block == null || !block.IsActive)
-                return;
+            if (!block.IsActive)
+            {
+                Debug.Log($"[TryBuild] FAIL: {block.name} is not active.");
+                return false;
+            }
 
-            if (EquippedBuildable == null || EquippedBuildable.BuildablePrefab == null)
-                return;
+            if (block.HasBuildable)
+            {
+                Debug.Log($"[TryBuild] FAIL: {block.name} already has buildable.");
+                return false;
+            }
+
+            if (EquippedBuildable == null)
+            {
+                Debug.Log("[TryBuild] FAIL: EquippedBuildable is null.");
+                return false;
+            }
+
+            if (EquippedBuildable.BuildablePrefab == null)
+            {
+                Debug.Log("[TryBuild] FAIL: EquippedBuildable.BuildablePrefab is null.");
+                return false;
+            }
 
             if (!EquippedBuildable.CanAfford())
-                return;
+            {
+                Debug.Log("[TryBuild] FAIL: Cannot afford buildable.");
+                return false;
+            }
 
             GameObject builtObject = Instantiate(
                 EquippedBuildable.BuildablePrefab,
                 block.transform.position,
                 Quaternion.Euler(0f, currentBuildYRotation, 0f));
 
-            builtObject.GetComponent<BaseBuildable>().Build();
+            BaseBuildable buildable = builtObject.GetComponent<BaseBuildable>();
+
+            if (buildable != null)
+                buildable.Build();
 
             block.ResetBlock();
             block.HasBuildable = true;
@@ -419,6 +539,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             Bus<CurrencyUpdatedEvent>.Raise(
                 new CurrencyUpdatedEvent(-EquippedBuildable.Cost));
+
+            Debug.Log($"[TryBuild] SUCCESS: Built {EquippedBuildable.name} on {block.name}.");
+
+            return true;
         }
 
         private void TryInteract()

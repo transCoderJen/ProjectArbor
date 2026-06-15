@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class BaseBuildable : MonoBehaviour, IDamageable
+    public class BaseBuildable : MonoBehaviour, IDamageable, IRaiderTarget, IHealable
     {
         [Header("Build Info")]
         [SerializeField] private BuildableData buildableData;
@@ -47,7 +47,16 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] protected float Durability;
         [SerializeField] protected int MaxHP;
 
+        [Header("Raid Target")]
+        [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
+        [SerializeField] private int raidPriority = 50;
+        [SerializeField] private Transform raidTargetPoint;
+
         public CombatTeam Team => CombatTeam.Buildable;
+        public Transform TargetTransform => raidTargetPoint != null ? raidTargetPoint : transform;
+        public RaiderTargetType TargetType => targetType;
+        public int Priority => raidPriority;
+        public bool IsValidTarget => IsActive && hp > 0 && gameObject.activeInHierarchy;
 
         protected int hp;
 
@@ -69,6 +78,8 @@ namespace ShiftedSignal.Garden.Buildable
 
         private void OnEnable()
         {
+            RaiderTargetRegistry.Register(this);
+
             Bus<DayChangedEvent>.OnEvent += HandleDayChanged;
             Bus<DayStartedEvent>.OnEvent += HandleDayStarted;
             Bus<DayPeriodChangedEvent>.OnEvent += HandleDayPeriodChanged;
@@ -79,6 +90,8 @@ namespace ShiftedSignal.Garden.Buildable
 
         private void OnDisable()
         {
+            RaiderTargetRegistry.Unregister(this);
+            
             Bus<DayChangedEvent>.OnEvent -= HandleDayChanged;
             Bus<DayStartedEvent>.OnEvent -= HandleDayStarted;
             Bus<DayPeriodChangedEvent>.OnEvent -= HandleDayPeriodChanged;
@@ -91,6 +104,14 @@ namespace ShiftedSignal.Garden.Buildable
         {
             RestoreOriginalMaterials();
             IsActive = true;
+        }
+
+        public void Heal(int amount)
+        {
+            if (hp <= 0)
+                return;
+
+            hp = Mathf.Min(hp + amount, MaxHP);
         }
 
         private void CacheRenderersAndMaterials()
@@ -260,12 +281,20 @@ namespace ShiftedSignal.Garden.Buildable
 
         public virtual void DoDamage(int damage)
         {
+            if (!IsActive)
+                return;
+
             hp -= damage;
 
             if (hp <= 0)
             {
-                Destroy(this.gameObject);
+                Die();
             }
+        }
+
+        protected virtual void Die()
+        {
+            Destroy(gameObject);
         }
 
         public void TakeDamage(DamageData damageData)
