@@ -79,6 +79,13 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             CacheUIReferences();
             Invoke(nameof(AddStartingItems), 0.1f);
         }
+        
+    #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            FillUpItemDataBase();
+        }
+    #endif
 
         protected override void OnDestroy()
         {

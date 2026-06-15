@@ -7,17 +7,17 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Farm")]
         [SerializeField] private bool triggerGameOverOnDeath = true;
 
-        protected override void Die()
+        protected override void DestroyBuilding()
         {
-            base.Die();
+            if (triggerGameOverOnDeath)
+            {
+                Debug.Log("Farm destroyed. Trigger game over here.", this);
 
-            if (!triggerGameOverOnDeath)
-                return;
+                // Later:
+                // GameManager.Instance.GameOver();
+            }
 
-            Debug.Log("Farm destroyed. Trigger game over here.", this);
-
-            // Later:
-            // GameManager.Instance.GameOver();
+            base.DestroyBuilding();
         }
     }
 }

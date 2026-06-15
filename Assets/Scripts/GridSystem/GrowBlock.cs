@@ -1,4 +1,5 @@
 using System;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Effects;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
@@ -44,9 +45,55 @@ namespace ShiftedSignal.Garden.GridSystem
         [SerializeField] private SpriteRenderer SelectionBox;
         [SerializeField] private LayerMask GrowBlockMask;
         [SerializeField] private LayerMask ObjectMask;
+
         public int health = 100;
         public GameObject SpawnedPlant;
-        public bool HasBuildable;
+
+        public BaseBuildable CurrentBuildable { get; private set; }
+        public bool HasBuildable => CurrentBuildable != null;
+
+        public Vector2Int GetGridPosition()
+        {
+            return GridPosition;
+        }
+
+        public void SetGridPosition(int x, int z)
+        {
+            GridPosition = new Vector2Int(x, z);
+        }
+
+        public void SetBuildable(BaseBuildable buildable)
+        {
+            CurrentBuildable = buildable;
+
+            IsActive = false;
+
+            UpdateGridInfo();
+        }
+
+        public void ClearBuildable(bool reactivateBlock = true)
+        {
+            CurrentBuildable = null;
+
+            if (reactivateBlock && !PreventUse)
+                IsActive = true;
+
+            SetSoilSprite(false);
+            Glow(false);
+
+            UpdateGridInfo();
+        }
+
+        public void ClearBuildableWithoutSaving(bool reactivateBlock = true)
+        {
+            CurrentBuildable = null;
+
+            if (reactivateBlock && !PreventUse)
+                IsActive = true;
+
+            SetSoilSprite(false);
+            Glow(false);
+        }
 
         public void UpdateSelectionBoxColor()
         {
@@ -84,28 +131,26 @@ namespace ShiftedSignal.Garden.GridSystem
                     block.SetSoilSprite();
                 }
             }
-
-            
         }
-        
+
         public void SetActiveBlock(bool active)
         {
-            if (active && ! this.IsActive && !PreventUse)
+            if (active && !IsActive && !PreventUse)
             {
                 Bus<UnlockFarmingAreaEvent>.Raise(new UnlockFarmingAreaEvent());
             }
 
-            this.IsActive = active;
+            IsActive = active;
 
-            if (!this.IsActive)
+            if (!IsActive)
                 Glow(false);
 
             UpdateGridInfo();
         }
-        
+
         public void AdvanceStage()
         {
-            CurrentStage ++;
+            CurrentStage++;
 
             if ((int)CurrentStage >= 6)
             {
@@ -165,6 +210,7 @@ namespace ShiftedSignal.Garden.GridSystem
                             Inventory.Instance.RemoveItem(equippedSeed);
                         }
                     }
+
                     return;
                 }
             }
@@ -182,31 +228,42 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void PloughSoil()
         {
-            if (CurrentStage == GrowthStage.Barren)
-            {
-                //Check if block is clear
-                if (!IsBlockClear()) return;
+            if (CurrentStage != GrowthStage.Barren)
+                return;
 
-                CurrentStage = GrowthStage.Ploughed;
-                
-                // Explicitly set the block to an unwatered state
-                IsWatered = false; 
-                
-                SetSoilSprite();
+            if (!IsBlockClear())
+                return;
+
+            CurrentStage = GrowthStage.Ploughed;
+            IsWatered = false;
+
+            SetSoilSprite();
+
+            if (SR.material != null)
                 SR.material.SetFloat("_Alpha", 1f);
-                Player.Instance.GrassCutter.CutGrass(transform.position, GridManager.Instance.CellSize, CutShape.Box);
-            }
+
+            Player.Instance.GrassCutter.CutGrass(
+                transform.position,
+                GridManager.Instance.CellSize,
+                CutShape.Box);
         }
 
         private bool IsBlockClear()
         {
-            
             float cellSize = GridManager.Instance.CellSize;
 
             Vector3 center = transform.position;
-            Vector3 halfExtents = new Vector3(cellSize * 0.5f, cellSize * 0.5f, cellSize * 0.5f);
-            
-            bool any = Physics.CheckBox(center, halfExtents, Quaternion.identity, ObjectMask, QueryTriggerInteraction.Ignore);
+            Vector3 halfExtents = new Vector3(
+                cellSize * 0.5f,
+                cellSize * 0.5f,
+                cellSize * 0.5f);
+
+            bool any = Physics.CheckBox(
+                center,
+                halfExtents,
+                Quaternion.identity,
+                ObjectMask,
+                QueryTriggerInteraction.Ignore);
 
             return !any;
         }
@@ -216,7 +273,6 @@ namespace ShiftedSignal.Garden.GridSystem
             if (CurrentStage > GrowthStage.Barren)
             {
                 IsWatered = true;
-
                 SetSoilSprite();
             }
         }
@@ -227,13 +283,13 @@ namespace ShiftedSignal.Garden.GridSystem
             {
                 InstantiateBlock(seed);
                 CurrentStage = GrowthStage.Planted;
-                UpdateCropSprite();  
+                UpdateCropSprite();
             }
         }
 
         public void UpdateCropSprite(bool saveInfo = true)
         {
-            switch(CurrentStage)
+            switch (CurrentStage)
             {
                 case GrowthStage.Barren:
                 case GrowthStage.Ploughed:
@@ -263,57 +319,47 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void AdvanceCrop()
         {
-            if (IsWatered == true)
-            {
-                if (CurrentStage == GrowthStage.Planted
-                    || CurrentStage == GrowthStage.Growing1 
-                    || CurrentStage == GrowthStage.Growing2)
-                {
-                    CurrentStage++;
+            if (!IsWatered)
+                return;
 
-                    IsWatered = false;
-                    SetSoilSprite();
-                    UpdateCropSprite();
-                }
+            if (CurrentStage == GrowthStage.Planted ||
+                CurrentStage == GrowthStage.Growing1 ||
+                CurrentStage == GrowthStage.Growing2)
+            {
+                CurrentStage++;
+                IsWatered = false;
+
+                SetSoilSprite();
+                UpdateCropSprite();
             }
         }
 
         public void HarvestCrop()
         {
-            if(CurrentStage == GrowthStage.Ripe)
-            {
-                if (Seed.CropType == CropType.Resource)
-                {
-                    CurrentStage = GrowthStage.Ploughed;
-                    IsWatered = false; // Reset water state upon harvesting
-                    
-                    SetSoilSprite();
-                    CropSprite.sprite = null;
-                    Seed.AddResourcesToInventory();
-                    Seed = null;
-                }
-                else
-                {
-                    // TODO display harvest confirmation
-                    //confirm
-                    CurrentStage = GrowthStage.Ploughed;
-                    IsWatered = false; // Reset water state upon harvesting
-                    
-                    SetSoilSprite();
-                    CropSprite.sprite = null;
-                    ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
-                    SpawnedPlant = null;
-                    Seed = null;
-                    
-                    // TODO add resources to inventory
-                    //deny - do nothing
-                }
-            }
-        }
+            if (CurrentStage != GrowthStage.Ripe)
+                return;
 
-        public void SetGridPosition(int x, int z)
-        {
-            GridPosition = new Vector2Int(x, z);
+            if (Seed.CropType == CropType.Resource)
+            {
+                CurrentStage = GrowthStage.Ploughed;
+                IsWatered = false;
+
+                SetSoilSprite();
+                CropSprite.sprite = null;
+                Seed.AddResourcesToInventory();
+                Seed = null;
+            }
+            else
+            {
+                ResetCrop();
+                CurrentStage = GrowthStage.Ploughed;
+
+                SetSoilSprite();
+
+                ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
+                SpawnedPlant = null;
+                Seed = null;
+            }
         }
 
         public void UpdateGridInfo()
@@ -329,56 +375,50 @@ namespace ShiftedSignal.Garden.GridSystem
         public void DamageCrop(int damage)
         {
             Debug.Log("Crop being damaged");
+
             health -= damage;
+
             if (health <= 0)
             {
+                ResetCrop();
                 CurrentStage = GrowthStage.Ploughed;
             }
+
             UpdateCropSprite();
             UpdateGridInfo();
         }
 
-        /// <summary>
-        /// Completely resets this grow block back to its default state.
-        /// </summary>
         public void ResetBlock()
         {
-            // Remove any spawned ripe plant
+            ResetCrop();
+
+            PreventUse = false;
+            IsActivationBlock = false;
+
+            Glow(false);
+
+            UpdateGridInfo();
+        }
+
+        public void ResetCrop()
+        {
             if (SpawnedPlant != null)
             {
                 ObjectPoolManager.ReturnObjectToPool(SpawnedPlant);
                 SpawnedPlant = null;
             }
 
-            // Reset crop data
             Seed = null;
+
             CropSprite.sprite = null;
 
-            // Reset growth state
             CurrentStage = GrowthStage.Barren;
             IsWatered = false;
 
-            // Reset flags
-            PreventUse = false;
-            HasBuildable = false;
-            IsActivationBlock = false;
-            IsActive = false;
-
-            // Reset health
             health = 100;
 
-            // Reset visuals
-            SR.sprite = GridIndicator;
+            SetSoilSprite(false);
 
-            if (SR.material != null)
-            {
-                SR.material.SetFloat("_Alpha", 1f);
-            }
-
-            // Remove selection glow
-            Glow(false);
-
-            // Save updated state
             UpdateGridInfo();
         }
     }

@@ -10,11 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea0c59e97993e3f40b4fb8e3ed79f9e6, type: 3}
-  m_Name: DefenseTower
+  m_Name: FencePost
   m_EditorClassIdentifier: 
-  ItemID: DefenseTower
-  BuildableName: DefenseTower
-  Icon: {fileID: 0}
-  BuildablePrefab: {fileID: 1594202468451092917, guid: 1f36bd6e129e66845a29dcbf4ea41d6d, type: 3}
-  requiredMaterials: []
-  Cost: 0
+  ItemID: FencePost
+  BuildableName: Wall
+  Icon: {fileID: -580489818, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
+  BuildablePrefab: {fileID: 4478278539308690776, guid: 49ec3b7f960853a4e8367d3001627018, type: 3}
+  requiredMaterials:
+  - Material: {fileID: 11400000, guid: d415d68791b4f2743ad83d0f6c26cc41, type: 2}
+    amount: 5
+  Cost: 5

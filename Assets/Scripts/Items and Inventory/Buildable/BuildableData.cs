@@ -1,11 +1,9 @@
 using System;
 using UnityEngine;
 using ShiftedSignal.Garden.Managers;
-using ShiftedSignal.Garden.EventBus;
-using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 
-namespace ShiftedSignal.Garden.ItemsAndInventory
+namespace ShiftedSignal.Garden.Buildable
 {
     [Serializable]
     public struct RequiredMaterial
@@ -17,29 +15,29 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
     public class BuildableData : ScriptableObject
     {
+        [Header("Identity")]
+        public string ItemID;
+
+        [Header("Display")]
         public string BuildableName;
         public Sprite Icon;
-        public string ItemID;
-        public GameObject BuildablePrefab;
-        public RequiredMaterial[] requiredMaterials;
 
+        [Header("Prefab")]
+        public GameObject BuildablePrefab;
+
+        [Header("Crafting")]
+        public RequiredMaterial[] requiredMaterials;
         public int Cost;
 
         public bool CanAfford()
         {
+            if (PlayerManager.Instance == null)
+                return false;
+
             if (PlayerManager.Instance.Currency < Cost)
-            {
-                // Debug.Log("Not Enough Gold to Build " + BuildableName);
                 return false;
-            }
 
-            if (!HasRequiredMaterials())
-            {
-                // Debug.Log("Not Enough Materials to Build " + BuildableName);
-                return false;
-            }
-
-            return true;
+            return HasRequiredMaterials();
         }
 
         private bool HasRequiredMaterials()
@@ -73,11 +71,21 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                 if (required.Material == null)
                     continue;
 
-                for (int j = 0; j < required.amount; j++)
-                {
-                    Inventory.Instance.RemoveItem(required.Material, true);
-                }
+                Inventory.Instance.RemoveItem(required.Material, required.amount);
             }
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (string.IsNullOrWhiteSpace(ItemID))
+                ItemID = name;
+
+            if (string.IsNullOrWhiteSpace(BuildableName))
+                BuildableName = name;
+
+            UnityEditor.EditorUtility.SetDirty(this);
+        }
+#endif
     }
 }

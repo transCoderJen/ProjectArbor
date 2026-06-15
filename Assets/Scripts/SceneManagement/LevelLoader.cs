@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
+using ShiftedSignal.Garden.GridSystem;
+using ShiftedSignal.Garden.Managers;
 
 namespace ShiftedSignal.Garden.SceneManagement
 {
@@ -101,8 +103,12 @@ namespace ShiftedSignal.Garden.SceneManagement
 
             yield return Helpers.GetWait(1f);
 
+            CaptureGridBeforeSceneChange();
+
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
             SceneManager.Instance.SetTransitionName(targetEntranceName);
+
+            yield return null;
         }
 
         private IEnumerator FadeIn(TransitionType transitionType)
@@ -113,6 +119,22 @@ namespace ShiftedSignal.Garden.SceneManagement
                 transition.SetTrigger("End");
 
             yield return Helpers.GetWait(1f);
+        }
+
+        private void CaptureGridBeforeSceneChange()
+        {
+            if (GridInfo.Instance == null)
+                return;
+
+            if (GridManager.Instance == null)
+                return;
+
+            if (GridManager.Instance.BlockRows == null || GridManager.Instance.BlockRows.Count == 0)
+                return;
+
+            GridInfo.Instance.UpdateInfoFromGrid();
+
+            Debug.Log("[LevelLoader] Captured grid before scene change.");
         }
     }
 }

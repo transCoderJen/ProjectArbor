@@ -2,108 +2,100 @@ using System.Collections.Generic;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
+using UnityEngine.SceneManagement;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace ShiftedSignal.Garden.GridSystem
 {
-    
     public class GridInfo : Singleton<GridInfo>, ISaveManager
     {
+        #region Fields
+
+        [Header("Grid Save Data")]
         public bool HasGrid;
 
-        public List<InfoRow> Grid = new List<InfoRow>();
+        public List<InfoRow> Grid = new();
 
-        public void Start()
+        #endregion
+
+        #region Unity Lifecycle
+
+        private void Start()
         {
-            if(!HasGrid)
-            {
+            if (!HasGrid && GridManager.Instance != null && GridManager.Instance.BlockRows.Count > 0)
                 CreateGrid();
-            }
         }
-        
+        #endregion
+
+        #region Grid Creation
+
         public void CreateGrid()
         {
+            Grid.Clear();
             HasGrid = true;
+
+            if (GridManager.Instance == null)
+                return;
+
             for (int y = 0; y < GridManager.Instance.BlockRows.Count; y++)
             {
                 Grid.Add(new InfoRow());
+
                 for (int x = 0; x < GridManager.Instance.BlockRows[y].Blocks.Count; x++)
                 {
-                    // Get a reference to the physical block in the scene
                     GrowBlock physicalBlock = GridManager.Instance.BlockRows[y].Blocks[x];
-                    
-                    // Create the new info and copy the scene's starting values into it
-                    BlockInfo newInfo = new()
-                    {
-                        CurrentStage = physicalBlock.CurrentStage,
-                        IsWatered = physicalBlock.IsWatered,
-                        
-                        // This prevents your Activation Blocks from being wiped out
-                        IsActive = physicalBlock.IsActive,
-                        Health = physicalBlock.health
-                    };
-                    
-                    if (physicalBlock.Seed != null)
-                        newInfo.SeedItemID = physicalBlock.Seed.ItemID;
-                    else
-                        newInfo.SeedItemID = "";
+                    BlockInfo newInfo = CreateInfoFromBlock(physicalBlock);
 
-                    // Add the populated info to our grid system
                     Grid[y].Blocks.Add(newInfo);
                 }
             }
         }
 
-        public void UpdateInfo(GrowBlock Block, int xPos, int yPos)
+        private BlockInfo CreateInfoFromBlock(GrowBlock block)
         {
-            BlockInfo info = Grid[yPos].Blocks[xPos];
-            info.CurrentStage = Block.CurrentStage;
-            info.IsWatered = Block.IsWatered;
-            info.IsActive = Block.IsActive;
-            info.Health = Block.health;
+            BlockInfo info = new()
+            {
+                CurrentStage = block.CurrentStage,
+                IsWatered = block.IsWatered,
+                IsActive = block.IsActive,
+                Health = block.health,
+                SeedItemID = block.Seed != null ? block.Seed.ItemID : ""
+            };
 
-            // Save the seed's ID if one is planted
-            if (Block.Seed != null)
-                info.SeedItemID = Block.Seed.ItemID;
-            else
-                info.SeedItemID = "";
+            SaveBuildableInfo(block, info);
+
+            return info;
         }
 
-        [ContextMenu("Grow Crop")]
-        public void GrowCrop()
+        #endregion
+
+        #region Runtime Updates
+
+        public void UpdateInfo(GrowBlock block, int xPos, int yPos)
         {
-            for (int y = 0; y < Grid.Count; y++)
-            {
-                for (int x = 0; x < Grid[y].Blocks.Count; x++)
-                {
-                    //TODO Randomize chance based of seed stats
-                    if (Grid[y].Blocks[x].IsWatered)
-                    {
-                        switch (Grid[y].Blocks[x].CurrentStage)
-                        {
-                            case GrowBlock.GrowthStage.Planted:
-                                Grid[y].Blocks[x].CurrentStage = GrowBlock.GrowthStage.Growing1;
-                                break;
-                            case GrowBlock.GrowthStage.Growing1:
-                                Grid[y].Blocks[x].CurrentStage = GrowBlock.GrowthStage.Growing2;
-                                break;
-                            case GrowBlock.GrowthStage.Growing2:
-                                Grid[y].Blocks[x].CurrentStage = GrowBlock.GrowthStage.Ripe;
-                                break;
-                        }
+            if (block == null)
+                return;
 
-                        Grid[y].Blocks[x].IsWatered = false;
-                    }
-                }
-            }
+            if (!IsValidGridPosition(xPos, yPos))
+                return;
 
-            GridManager.Instance.UpdateGrid();
+            BlockInfo info = Grid[yPos].Blocks[xPos];
+
+            info.CurrentStage = block.CurrentStage;
+            info.IsWatered = block.IsWatered;
+            info.IsActive = block.IsActive;
+            info.Health = block.health;
+            info.SeedItemID = block.Seed != null ? block.Seed.ItemID : "";
+
+            SaveBuildableInfo(block, info);
         }
 
         public void UpdateInfoFromGrid()
         {
             EnsureGridMatchesScene();
+
+            if (GridManager.Instance == null)
+                return;
 
             for (int y = 0; y < GridManager.Instance.BlockRows.Count; y++)
             {
@@ -115,10 +107,72 @@ namespace ShiftedSignal.Garden.GridSystem
             }
         }
 
+        private void SaveBuildableInfo(GrowBlock block, BlockInfo info)
+        {
+            if (block.CurrentBuildable != null &&
+                block.CurrentBuildable.BuildableData != null)
+            {
+                info.BuildableItemID = block.CurrentBuildable.BuildableData.ItemID;
+                info.BuildableYRotation = block.CurrentBuildable.transform.eulerAngles.y;
+                info.BuildableHP = block.CurrentBuildable.CurrentHP;
+            }
+            else
+            {
+                info.BuildableItemID = "";
+                info.BuildableYRotation = 0f;
+                info.BuildableHP = 0;
+            }
+        }
+
+        #endregion
+
+        #region Crop Growth
+
+        [ContextMenu("Grow Crop")]
+        public void GrowCrop()
+        {
+            for (int y = 0; y < Grid.Count; y++)
+            {
+                for (int x = 0; x < Grid[y].Blocks.Count; x++)
+                {
+                    BlockInfo block = Grid[y].Blocks[x];
+
+                    if (!block.IsWatered)
+                        continue;
+
+                    switch (block.CurrentStage)
+                    {
+                        case GrowBlock.GrowthStage.Planted:
+                            block.CurrentStage = GrowBlock.GrowthStage.Growing1;
+                            break;
+
+                        case GrowBlock.GrowthStage.Growing1:
+                            block.CurrentStage = GrowBlock.GrowthStage.Growing2;
+                            break;
+
+                        case GrowBlock.GrowthStage.Growing2:
+                            block.CurrentStage = GrowBlock.GrowthStage.Ripe;
+                            break;
+                    }
+
+                    block.IsWatered = false;
+                }
+            }
+
+            GridManager.Instance.UpdateGrid();
+        }
+
+        #endregion
+
+        #region Validation
+
         private void EnsureGridMatchesScene()
         {
             if (Grid == null)
                 Grid = new List<InfoRow>();
+
+            if (GridManager.Instance == null)
+                return;
 
             if (Grid.Count != GridManager.Instance.BlockRows.Count)
             {
@@ -138,50 +192,113 @@ namespace ShiftedSignal.Garden.GridSystem
             }
         }
 
+        private bool IsValidGridPosition(int x, int y)
+        {
+            if (Grid == null)
+                return false;
+
+            if (y < 0 || y >= Grid.Count)
+                return false;
+
+            if (Grid[y] == null || Grid[y].Blocks == null)
+                return false;
+
+            if (x < 0 || x >= Grid[y].Blocks.Count)
+                return false;
+
+            return true;
+        }
+
+        #endregion
+
+        #region Save / Load
+
+        public void LoadData(GameData data)
+        {
+            if (data.gridRows == null || data.gridRows.Count <= 0)
+                return;
+
+            Grid = data.gridRows;
+            HasGrid = true;
+
+            if (GridManager.Instance != null)
+                GridManager.Instance.RequestGridRestore();
+        }
+
+        public void SaveData(ref GameData data)
+        {
+            UpdateInfoFromGrid();
+            data.gridRows = Grid;
+        }
+
+        #endregion
+
+        #region Reset
+
         public void DestroyGrid()
         {
             Grid.Clear();
             HasGrid = false;
         }
 
-        public void LoadData(GameData data)
+        #endregion
+
+        [ContextMenu("Debug Print Saved Buildables")]
+        public void DebugPrintSavedBuildables()
         {
-            // Check if there's existing grid data in the save file
-            if (data.gridRows != null && data.gridRows.Count > 0)
+            if (Grid == null || Grid.Count == 0)
             {
-                this.Grid = data.gridRows;
-                this.HasGrid = true;
-                
-                // Force the GridManager to immediately visually update the blocks 
-                // using the newly loaded GridInfo data.
-                if (GridManager.Instance != null)
+                Debug.Log("[GridInfo] No saved grid data.");
+                return;
+            }
+
+            int count = 0;
+
+            for (int y = 0; y < Grid.Count; y++)
+            {
+                for (int x = 0; x < Grid[y].Blocks.Count; x++)
                 {
-                    GridManager.Instance.UpdateGrid();
+                    BlockInfo info = Grid[y].Blocks[x];
+
+                    if (string.IsNullOrEmpty(info.BuildableItemID))
+                        continue;
+
+                    count++;
+
+                    Debug.Log(
+                        $"[GridInfo Saved Buildable] ({x},{y}) " +
+                        $"ItemID={info.BuildableItemID} " +
+                        $"HP={info.BuildableHP} " +
+                        $"Rotation={info.BuildableYRotation}"
+                    );
                 }
             }
-        }
 
-        public void SaveData(ref GameData data)
-        {
-            data.gridRows = this.Grid;
+            Debug.Log($"[GridInfo] Total saved buildables: {count}");
         }
     }
 
     [System.Serializable]
     public class BlockInfo
     {
+        [Header("Crop State")]
         public bool IsWatered;
         public GrowBlock.GrowthStage CurrentStage;
-        
-        // Add these new properties:
-        public string SeedItemID; 
-        public bool IsActive;
+        public string SeedItemID;
         public int Health;
+
+        [Header("Grid State")]
+        public bool IsActive;
+
+        [Header("Buildable State")]
+        public string BuildableItemID;
+        public float BuildableYRotation;
+        public int BuildableHP;
     }
 
     [System.Serializable]
     public class InfoRow
     {
-        public List<BlockInfo> Blocks = new List<BlockInfo>();
+        public List<BlockInfo> Blocks = new();
     }
 }

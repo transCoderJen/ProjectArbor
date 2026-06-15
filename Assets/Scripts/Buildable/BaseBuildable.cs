@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.GridSystem;
@@ -18,6 +19,10 @@ namespace ShiftedSignal.Garden.Buildable
 
         [Header("Ghost Preview")]
         [SerializeField] private Material GhostMaterial;
+
+        [Header("Raid Target")]
+        [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
+        [SerializeField] private int raidPriority = 50;
 
         [Header("Effects")]
         [SerializeField] private bool HasTimedEffects;
@@ -45,38 +50,37 @@ namespace ShiftedSignal.Garden.Buildable
 
         [Header("Stats")]
         [SerializeField] protected float Durability;
-        [SerializeField] protected int MaxHP;
+        [SerializeField] protected int MaxHP = 5;
 
-        [Header("Raid Target")]
-        [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
-        [SerializeField] private int raidPriority = 50;
-        [SerializeField] private Transform raidTargetPoint;
+        protected int hp;
+
+        public GrowBlock OccupiedBlock { get; private set; }
 
         public CombatTeam Team => CombatTeam.Buildable;
-        public Transform TargetTransform => raidTargetPoint != null ? raidTargetPoint : transform;
+        public Transform TargetTransform => transform;
         public RaiderTargetType TargetType => targetType;
         public int Priority => raidPriority;
         public bool IsValidTarget => IsActive && hp > 0 && gameObject.activeInHierarchy;
 
-        protected int hp;
+        public int CurrentHP => hp;
+        public int MaximumHP => MaxHP;
+        public BuildableData BuildableData => buildableData;
 
         private MeshRenderer[] meshRenderers;
         private readonly Dictionary<MeshRenderer, Material[]> originalMaterials = new();
         private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
 
-        private void Awake()
+        protected virtual void Awake()
         {
             CacheRenderersAndMaterials();
 
-            if (!IsActive)
-            {
-                ApplyGhostMaterial();
-            }
-
             hp = MaxHP;
+
+            if (!IsActive)
+                ApplyGhostMaterial();
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             RaiderTargetRegistry.Register(this);
 
@@ -88,10 +92,10 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<NightStartedEvent>.OnEvent += HandleNightStarted;
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             RaiderTargetRegistry.Unregister(this);
-            
+
             Bus<DayChangedEvent>.OnEvent -= HandleDayChanged;
             Bus<DayStartedEvent>.OnEvent -= HandleDayStarted;
             Bus<DayPeriodChangedEvent>.OnEvent -= HandleDayPeriodChanged;
@@ -100,18 +104,20 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<NightStartedEvent>.OnEvent -= HandleNightStarted;
         }
 
-        public void Build()
+        protected virtual void Update()
+        {
+        }
+
+        public virtual void Build()
         {
             RestoreOriginalMaterials();
             IsActive = true;
+            hp = MaxHP;
         }
 
-        public void Heal(int amount)
+        public void SetOccupiedBlock(GrowBlock block)
         {
-            if (hp <= 0)
-                return;
-
-            hp = Mathf.Min(hp + amount, MaxHP);
+            OccupiedBlock = block;
         }
 
         private void CacheRenderersAndMaterials()
@@ -131,10 +137,7 @@ namespace ShiftedSignal.Garden.Buildable
         private void ApplyGhostMaterial()
         {
             if (GhostMaterial == null)
-            {
-                Debug.LogWarning($"Ghost Material is missing on {gameObject.name}.", this);
                 return;
-            }
 
             foreach (MeshRenderer meshRenderer in meshRenderers)
             {
@@ -144,9 +147,7 @@ namespace ShiftedSignal.Garden.Buildable
                 Material[] ghostMaterials = new Material[meshRenderer.sharedMaterials.Length];
 
                 for (int i = 0; i < ghostMaterials.Length; i++)
-                {
                     ghostMaterials[i] = GhostMaterial;
-                }
 
                 meshRenderer.sharedMaterials = ghostMaterials;
             }
@@ -167,23 +168,35 @@ namespace ShiftedSignal.Garden.Buildable
 
         public bool AllRestrictionsPass()
         {
-            GrowBlock growBlock = PlayerManager.Instance.Player.PlayerInput.currentControlScheme == "Gamepad"
-                ? GridManager.Instance.GetBlockController()
-                : GridManager.Instance.GetBlock();
+           Player player = PlayerManager.Instance.Player;
+
+            GrowBlock growBlock =
+                player.UsingController
+                    ? GridManager.Instance.GetBlockController()
+                    : GridManager.Instance.GetBlock();
 
             if (growBlock == null)
                 return false;
 
-            if (!buildableData.CanAfford())
+            if (!growBlock.IsActive)
                 return false;
 
-            return growBlock.IsActive;
+            if (growBlock.HasBuildable)
+                return false;
+
+            if (buildableData != null && !buildableData.CanAfford())
+                return false;
+
+            return true;
         }
 
         protected virtual void BuildingEffect()
         {
             foreach (BuildableEffect effect in TimedEffects)
             {
+                if (effect == null)
+                    continue;
+
                 effect.Apply(this);
             }
         }
@@ -275,8 +288,12 @@ namespace ShiftedSignal.Garden.Buildable
             effectCooldowns[effect] = Time.time;
         }
 
-        protected virtual void Update()
+        public void TakeDamage(DamageData damageData)
         {
+            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
+                return;
+
+            DoDamage(damageData.Amount);
         }
 
         public virtual void DoDamage(int damage)
@@ -287,22 +304,51 @@ namespace ShiftedSignal.Garden.Buildable
             hp -= damage;
 
             if (hp <= 0)
-            {
-                Die();
-            }
+                DestroyBuilding();
         }
 
-        protected virtual void Die()
+        public void Heal(int amount)
         {
+            if (hp <= 0)
+                return;
+
+            hp = Mathf.Min(hp + amount, MaxHP);
+        }
+
+        protected virtual void DestroyBuilding()
+        {
+            if (OccupiedBlock != null)
+            {
+                GrowBlock block = OccupiedBlock;
+
+                OccupiedBlock.ClearBuildable(true);
+                OccupiedBlock = null;
+
+                block.UpdateGridInfo();
+
+                if (this is FencePost)
+                {
+                    FencePost.RefreshNeighbors(block);
+                }
+            }
+
             Destroy(gameObject);
         }
 
-        public void TakeDamage(DamageData damageData)
+        public virtual void RestoreFromSave(int savedHP)
         {
-            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
-                return;
+            RestoreOriginalMaterials();
 
-            DoDamage(damageData.Amount);
+            IsActive = true;
+
+            hp = savedHP > 0
+                ? Mathf.Clamp(savedHP, 1, MaxHP)
+                : MaxHP;
+        }
+
+        protected virtual void OnDestroy()
+        {
+            RaiderTargetRegistry.Unregister(this);
         }
     }
 }

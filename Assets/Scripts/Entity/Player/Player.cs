@@ -1,16 +1,17 @@
-using ShiftedSignal.Garden.Effects;
-using ShiftedSignal.Garden.GridSystem;
-using ShiftedSignal.Garden.Managers;
-using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignal.Garden.Events;
-using ShiftedSignal.Garden.EventBus;
-using ShiftedSignal.Garden.Interfaces;
-using ShiftedSignal.Garden.SaveAndLoad;
+using System.Collections.Generic;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Effects;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.GridSystem;
+using ShiftedSignal.Garden.Interfaces;
+using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.SaveAndLoad;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 {
@@ -26,6 +27,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
     {
         public static Player Instance { get; private set; }
 
+        #region Combat / Progression
+
         [Header("Attack Details")]
         public Vector2[] AttackMovement;
         public float CounterAttackDuration;
@@ -36,10 +39,27 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public int AttackDamage =>
             progression != null ? progression.CurrentWeaponDamage : 1;
 
+        [HideInInspector] public bool AttackBuffered = false;
+
+        #endregion
+
+        #region Input
+
         [Header("Input")]
         [SerializeField] private PlayerInputReader inputReader;
+
         public PlayerInputReader InputReader => inputReader;
         public PlayerInput PlayerInput => inputReader != null ? inputReader.PlayerInput : null;
+
+        public Vector2 CachedMoveInput { get; private set; }
+        public bool UsingController { get; private set; }
+
+        private bool controlsEnabled = true;
+        public bool ControlsEnabled => controlsEnabled;
+
+        #endregion
+
+        #region Components / Transforms
 
         [Header("Components")]
         public TerrainGrassCutter GrassCutter;
@@ -52,50 +72,37 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [Header("Settings")]
         public float GrowBlockCheckDistance;
 
+        #endregion
+
+        #region Farming / Tools
+
         [Header("Seed")]
         public ItemData_Seed EquippedSeed;
 
-        [Header("Water Blocking")]
-        [SerializeField] private Terrain terrain;
-        [SerializeField] private float waterLevelY = 0f;
-        [SerializeField] private float waterBorderPadding = 0.25f;
-
-        [Header("Interact")]
-        [SerializeField] private float interactRadius = 2f;
-        [SerializeField] private LayerMask interactLayer;
-        [SerializeField] private LayerMask floorLayer;
-
-        [HideInInspector] public bool AttackBuffered = false;
-
         public ToolType CurrentTool;
-
-        [SerializeField] private BuildableData EquippedBuildable;
 
         [Header("Farming")]
         [SerializeField] private float blockInteractRadius = 3f;
         public bool InManagementState = false;
 
-        [Header("State Machine")]
-        public PlayerStateMachine StateMachine { get; private set; }
-        public PlayerIdleState IdleState { get; private set; }
-        public PlayerMoveState MoveState { get; private set; }
-        public PlayerManagementState ManagementState { get; private set; }
-        public PlayerAttackState AttackState { get; private set; }
+        #endregion
 
-        public Vector2 CachedMoveInput { get; private set; }
-        public bool UsingController { get; private set; }
+        #region Building
+
+        [Header("Building")]
+        [SerializeField] private BuildableData EquippedBuildable;
 
         [Header("Building Placement Colors")]
-        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
         private Color errorTintColor = Color.red;
 
-        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
         private Color errorFresnelColor = new(4, 1.7f, 0, 2);
 
-        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
         private Color availableToPlaceTintColor = new(0.2f, 0.65f, 1, 2);
 
-        [SerializeField] [ColorUsage(showAlpha: true, hdr: true)]
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
         private Color availableToPlaceFresnelColor = new(.02f, 0.65f, 1, 2);
 
         [SerializeField] private float buildRotationStep = 90f;
@@ -104,20 +111,50 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [SerializeField] private float dragBuildCooldown = 0.05f;
 
         private float nextDragBuildTime;
-
         private float currentBuildYRotation;
 
         private GameObject ghostInstance;
         private MeshRenderer[] ghostRenderers;
 
+        private readonly HashSet<GrowBlock> dragVisitedBlocks = new();
+
         private static readonly int TINT = Shader.PropertyToID("_Tint");
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
 
-        private bool controlsEnabled = true;
-        public bool ControlsEnabled => controlsEnabled;
+        #endregion
+
+        #region Water Blocking
+
+        [Header("Water Blocking")]
+        [SerializeField] private Terrain terrain;
+        [SerializeField] private float waterLevelY = 0f;
+        [SerializeField] private float waterBorderPadding = 0.25f;
+
+        #endregion
+
+        #region Interact
+
+        [Header("Interact")]
+        [SerializeField] private float interactRadius = 2f;
+        [SerializeField] private LayerMask interactLayer;
+        [SerializeField] private LayerMask floorLayer;
 
         private IInteractable currentHighlightedInteractable;
-        private readonly HashSet<GrowBlock> dragVisitedBlocks = new();
+
+        #endregion
+
+        #region State Machine
+
+        [Header("State Machine")]
+        public PlayerStateMachine StateMachine { get; private set; }
+        public PlayerIdleState IdleState { get; private set; }
+        public PlayerMoveState MoveState { get; private set; }
+        public PlayerManagementState ManagementState { get; private set; }
+        public PlayerAttackState AttackState { get; private set; }
+
+        #endregion
+
+        #region Unity Lifecycle
 
         protected override void Awake()
         {
@@ -243,6 +280,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             UpdateGrowBlockCheckPosition();
         }
 
+        #endregion
+
+        #region Input Handlers
+
         private void HandleMoveChanged(Vector2 moveInput)
         {
             if (!controlsEnabled)
@@ -271,90 +312,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             DestroyGhost();
-        }
-
-        private void HandleBuildDrag()
-        {
-            Debug.Log(
-                $"[BuildDrag] ENTER | " +
-                $"InManagementState={InManagementState} | " +
-                $"inputReader={(inputReader != null ? "OK" : "NULL")} | " +
-                $"AttackHeld={(inputReader != null ? inputReader.AttackHeld.ToString() : "NO INPUT")}"
-            );
-
-            if (!InManagementState)
-            {
-                Debug.Log("[BuildDrag] EXIT: Not in management state.");
-                ResetBuildDrag();
-                return;
-            }
-
-            if (inputReader == null)
-            {
-                Debug.Log("[BuildDrag] EXIT: inputReader is null.");
-                return;
-            }
-
-            if (!inputReader.AttackHeld)
-            {
-                Debug.Log("[BuildDrag] EXIT: Attack is not held.");
-                ResetBuildDrag();
-                return;
-            }
-
-            // if (Time.time < nextDragBuildTime)
-            // {
-            //     Debug.Log($"[BuildDrag] EXIT: Cooldown. Time={Time.time}, Next={nextDragBuildTime}");
-            //     return;
-            // }
-
-            GrowBlock block = GetBlock();
-
-            if (block == null)
-            {
-                Debug.Log("[BuildDrag] EXIT: GetBlock returned null.");
-                return;
-            }
-
-            Debug.Log(
-                $"[BuildDrag] Block found: {block.name} | " +
-                $"Active={block.IsActive} | " +
-                $"HasBuildable={block.HasBuildable} | " +
-                $"Visited={dragVisitedBlocks.Contains(block)}"
-            );
-
-            if (dragVisitedBlocks.Contains(block))
-            {
-                Debug.Log($"[BuildDrag] EXIT: Already visited {block.name} this drag.");
-                return;
-            }
-
-            dragVisitedBlocks.Add(block);
-
-            if (block.HasBuildable)
-            {
-                Debug.Log($"[BuildDrag] EXIT: {block.name} already has buildable.");
-                return;
-            }
-
-            bool built = TryBuildOnBlock(block);
-
-            Debug.Log($"[BuildDrag] TryBuildOnBlock returned {built} for {block.name}");
-
-            if (built)
-            {
-                // nextDragBuildTime = Time.time + dragBuildCooldown;
-                Debug.Log($"[BuildDrag] SUCCESS: Built on {block.name}. Next build time={nextDragBuildTime}");
-            }
-        }
-
-        private void ResetBuildDrag()
-        {
-            if (dragVisitedBlocks.Count > 0)
-                Debug.Log($"[BuildDrag] Reset. Clearing {dragVisitedBlocks.Count} visited blocks.");
-
-            dragVisitedBlocks.Clear();
-            nextDragBuildTime = 0f;
+            // ResetBuildDrag();
         }
 
         private void OnControlsChanged(PlayerInput input)
@@ -372,8 +330,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 CachedMoveInput = Vector2.zero;
                 inputReader?.ClearMoveInput();
                 inputReader?.ClearHeldInputs();
+                // ResetBuildDrag();
             }
         }
+
+        #endregion
+
+        #region Debug Inputs
 
         private void HandleDebugInputs()
         {
@@ -402,12 +365,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                     StateMachine.ChangeState(IdleState);
                 else
                     StateMachine.ChangeState(ManagementState);
+
+                // ResetBuildDrag();
             }
 
             if (Keyboard.current.kKey.isPressed)
                 GridInfo.Instance.GrowCrop();
 #endif
         }
+
+        #endregion
+
+        #region Events
 
         private void HandleSeedEquipped(SeedEquipEvent evt)
         {
@@ -418,6 +387,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             CurrentTool = evt.Tool;
         }
+
+        #endregion
+
+        #region Movement
 
         public override void ApplyMovement(Vector2 input, bool normalized = true)
         {
@@ -468,6 +441,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Vector3.up * CheckHeight;
         }
 
+        #endregion
+
+        #region Tools
+
         private void UseTool()
         {
             if (!controlsEnabled)
@@ -484,43 +461,57 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             block.UseContextAction(EquippedSeed);
         }
 
-        private bool TryBuildOnBlock(GrowBlock block)
+        #endregion
+
+        #region Build Drag
+
+        private void HandleBuildDrag()
         {
-            if (block == null)
+            if (!InManagementState)
             {
-                Debug.Log("[TryBuild] FAIL: block is null.");
-                return false;
+                ResetBuildDrag();
+                return;
             }
 
-            if (!block.IsActive)
+            if (inputReader == null)
+                return;
+
+            if (!inputReader.AttackHeld)
             {
-                Debug.Log($"[TryBuild] FAIL: {block.name} is not active.");
-                return false;
+                ResetBuildDrag();
+                return;
             }
+
+            // if (Time.time < nextDragBuildTime)
+            //     return;
+
+            GrowBlock block = GetBlock();
+
+            if (block == null)
+                return;
+
+            if (dragVisitedBlocks.Contains(block))
+                return;
+
+            dragVisitedBlocks.Add(block);
 
             if (block.HasBuildable)
-            {
-                Debug.Log($"[TryBuild] FAIL: {block.name} already has buildable.");
-                return false;
-            }
+                return;
 
-            if (EquippedBuildable == null)
-            {
-                Debug.Log("[TryBuild] FAIL: EquippedBuildable is null.");
-                return false;
-            }
+            TryBuildOnBlock(block);
+            // if (TryBuildOnBlock(block))
+            //     nextDragBuildTime = Time.time + dragBuildCooldown;
+        }
 
-            if (EquippedBuildable.BuildablePrefab == null)
-            {
-                Debug.Log("[TryBuild] FAIL: EquippedBuildable.BuildablePrefab is null.");
-                return false;
-            }
+        private void ResetBuildDrag()
+        {
+            dragVisitedBlocks.Clear();
+        }
 
-            if (!EquippedBuildable.CanAfford())
-            {
-                Debug.Log("[TryBuild] FAIL: Cannot afford buildable.");
+        private bool TryBuildOnBlock(GrowBlock block)
+        {
+            if (!CanBuildOnBlock(block))
                 return false;
-            }
 
             GameObject builtObject = Instantiate(
                 EquippedBuildable.BuildablePrefab,
@@ -529,21 +520,76 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             BaseBuildable buildable = builtObject.GetComponent<BaseBuildable>();
 
-            if (buildable != null)
-                buildable.Build();
+            if (buildable == null)
+            {
+                Destroy(builtObject);
+                return false;
+            }
 
-            block.ResetBlock();
-            block.HasBuildable = true;
+            buildable.Build();
+            buildable.SetOccupiedBlock(block);
+
+            block.ResetCrop();
+            block.SetBuildable(buildable);
+
+            if (buildable is FencePost)
+            {
+                FencePost.RefreshNeighbors(block);
+            }
 
             EquippedBuildable.RemoveRequiredMaterials();
 
             Bus<CurrencyUpdatedEvent>.Raise(
                 new CurrencyUpdatedEvent(-EquippedBuildable.Cost));
 
-            Debug.Log($"[TryBuild] SUCCESS: Built {EquippedBuildable.name} on {block.name}.");
+            return true;
+        }
+
+        private bool CanBuildOnBlock(GrowBlock block)
+        {
+            if (block == null)
+                return false;
+
+            if (!block.IsActive)
+                return false;
+
+            if (block.HasBuildable)
+                return false;
+
+            if (EquippedBuildable == null)
+                return false;
+
+            if (EquippedBuildable.BuildablePrefab == null)
+                return false;
+
+            if (!EquippedBuildable.CanAfford())
+                return false;
 
             return true;
         }
+
+        private void RefreshNeighborFencePosts(GrowBlock block)
+        {
+            TryRefreshFencePost(block, Vector2Int.up);
+            TryRefreshFencePost(block, Vector2Int.down);
+            TryRefreshFencePost(block, Vector2Int.left);
+            TryRefreshFencePost(block, Vector2Int.right);
+        }
+
+        private void TryRefreshFencePost(GrowBlock block, Vector2Int direction)
+        {
+            GrowBlock neighbor = GridManager.Instance.GetNeighbor(block, direction);
+
+            if (neighbor == null)
+                return;
+
+            if (neighbor.CurrentBuildable is FencePost fencePost)
+                fencePost.RefreshConnections(neighbor);
+        }
+
+        #endregion
+
+        #region Interact
 
         private void TryInteract()
         {
@@ -556,14 +602,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             closestInteractable.Interact(this);
-        }
-
-        public void TryCutGrass(Vector3 hitPoint)
-        {
-            if (GrassCutter == null)
-                return;
-
-            GrassCutter.CutGrass(LastFacingDir);
         }
 
         private IInteractable GetClosestInteractable()
@@ -608,6 +646,22 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             currentHighlightedInteractable?.Highlight(true);
         }
 
+        #endregion
+
+        #region Grass
+
+        public void TryCutGrass(Vector3 hitPoint)
+        {
+            if (GrassCutter == null)
+                return;
+
+            GrassCutter.CutGrass(LastFacingDir);
+        }
+
+        #endregion
+
+        #region Grid Lookup
+
         public GrowBlock GetBlock()
         {
             bool usingController =
@@ -618,6 +672,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 ? GridManager.Instance.GetBlockController()
                 : GridManager.Instance.GetBlock();
         }
+
+        #endregion
+
+        #region Ghost
 
         private void CreateGhost()
         {
@@ -642,22 +700,28 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Ray cameraRay =
                 Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayer))
+            if (!Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayer))
+                return;
+
+            GrowBlock growBlock = GridManager.Instance.GetBlock();
+
+            if (growBlock != null)
+                ghostInstance.transform.position = growBlock.transform.position;
+            else
+                ghostInstance.transform.position = hit.point;
+
+            if (ghostInstance.TryGetComponent(out FencePost fencePostGhost) &&
+                growBlock != null)
             {
-                GrowBlock growBlock = GridManager.Instance.GetBlock();
-
-                if (growBlock != null)
-                    ghostInstance.transform.position = growBlock.transform.position;
-                else
-                    ghostInstance.transform.position = hit.point;
-
-                HandleBuildRotationInput();
-
-                ghostInstance.transform.rotation =
-                    Quaternion.Euler(0f, currentBuildYRotation, 0f);
-
-                UpdateGhostColor();
+                fencePostGhost.RefreshGhostConnections(growBlock);
             }
+
+            HandleBuildRotationInput();
+
+            ghostInstance.transform.rotation =
+                Quaternion.Euler(0f, currentBuildYRotation, 0f);
+
+            UpdateGhostColor();
         }
 
         private void HandleBuildRotationInput()
@@ -726,6 +790,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             ghostRenderers = null;
         }
 
+        #endregion
+
+        #region Damage / Animation
+
         public override void DamageEffect(bool knockback, Transform attacker = null)
         {
             base.DamageEffect(knockback, attacker);
@@ -747,6 +815,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 Fx.CreatePopUpText(healAmount.ToString(), Color.green);
         }
 
+        #endregion
+
+        #region Save / Load
+
         public void LoadData(GameData data)
         {
             if (data.playerPosition != Vector3.zero)
@@ -757,5 +829,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             data.playerPosition = transform.position;
         }
+
+        #endregion
     }
 }
