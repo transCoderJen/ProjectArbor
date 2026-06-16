@@ -14,15 +14,17 @@ namespace ShiftedSignal.Garden.Buildable
     public class BaseBuildable : MonoBehaviour, IDamageable, IRaiderTarget, IHealable
     {
         [Header("Build Info")]
-        [SerializeField] private BuildableData buildableData;
+        public BuildableData BuildableData;
+        public virtual Transform ProjectileSpawnPoint => transform;
         [SerializeField] protected bool IsActive;
 
         [Header("Ghost Preview")]
         [SerializeField] private Material GhostMaterial;
 
         [Header("Raid Target")]
+        
         [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
-        [SerializeField] private int raidPriority = 50;
+        [SerializeField] private int RaidPriority = 50;
 
         [Header("Effects")]
         [SerializeField] private bool HasTimedEffects;
@@ -59,15 +61,14 @@ namespace ShiftedSignal.Garden.Buildable
         public CombatTeam Team => CombatTeam.Buildable;
         public Transform TargetTransform => transform;
         public RaiderTargetType TargetType => targetType;
-        public int Priority => raidPriority;
+        public int Priority => RaidPriority;
         public bool IsValidTarget => IsActive && hp > 0 && gameObject.activeInHierarchy;
 
         public int CurrentHP => hp;
         public int MaximumHP => MaxHP;
-        public BuildableData BuildableData => buildableData;
 
-        private MeshRenderer[] meshRenderers;
-        private readonly Dictionary<MeshRenderer, Material[]> originalMaterials = new();
+        private Renderer[] cachedRenderers;
+        private readonly Dictionary<Renderer, Material[]> originalMaterials = new();
         private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
 
         protected virtual void Awake()
@@ -111,6 +112,7 @@ namespace ShiftedSignal.Garden.Buildable
         public virtual void Build()
         {
             RestoreOriginalMaterials();
+
             IsActive = true;
             hp = MaxHP;
         }
@@ -122,16 +124,24 @@ namespace ShiftedSignal.Garden.Buildable
 
         private void CacheRenderersAndMaterials()
         {
-            meshRenderers = GetComponentsInChildren<MeshRenderer>(true);
+            cachedRenderers = GetComponentsInChildren<Renderer>(true);
             originalMaterials.Clear();
 
-            foreach (MeshRenderer meshRenderer in meshRenderers)
+            foreach (Renderer cachedRenderer in cachedRenderers)
             {
-                if (meshRenderer == null)
+                if (!IsSupportedGhostRenderer(cachedRenderer))
                     continue;
 
-                originalMaterials[meshRenderer] = meshRenderer.sharedMaterials;
+                originalMaterials[cachedRenderer] = cachedRenderer.sharedMaterials;
             }
+        }
+
+        private bool IsSupportedGhostRenderer(Renderer targetRenderer)
+        {
+            if (targetRenderer == null)
+                return false;
+
+            return targetRenderer is MeshRenderer || targetRenderer is SpriteRenderer;
         }
 
         private void ApplyGhostMaterial()
@@ -139,36 +149,44 @@ namespace ShiftedSignal.Garden.Buildable
             if (GhostMaterial == null)
                 return;
 
-            foreach (MeshRenderer meshRenderer in meshRenderers)
+            foreach (Renderer cachedRenderer in cachedRenderers)
             {
-                if (meshRenderer == null)
+                if (!IsSupportedGhostRenderer(cachedRenderer))
                     continue;
 
-                Material[] ghostMaterials = new Material[meshRenderer.sharedMaterials.Length];
+                Material[] currentMaterials = cachedRenderer.sharedMaterials;
+
+                if (currentMaterials == null || currentMaterials.Length == 0)
+                {
+                    cachedRenderer.sharedMaterial = GhostMaterial;
+                    continue;
+                }
+
+                Material[] ghostMaterials = new Material[currentMaterials.Length];
 
                 for (int i = 0; i < ghostMaterials.Length; i++)
                     ghostMaterials[i] = GhostMaterial;
 
-                meshRenderer.sharedMaterials = ghostMaterials;
+                cachedRenderer.sharedMaterials = ghostMaterials;
             }
         }
 
         private void RestoreOriginalMaterials()
         {
-            foreach (KeyValuePair<MeshRenderer, Material[]> cachedRenderer in originalMaterials)
+            foreach (KeyValuePair<Renderer, Material[]> cachedRendererPair in originalMaterials)
             {
-                MeshRenderer meshRenderer = cachedRenderer.Key;
+                Renderer cachedRenderer = cachedRendererPair.Key;
 
-                if (meshRenderer == null)
+                if (!IsSupportedGhostRenderer(cachedRenderer))
                     continue;
 
-                meshRenderer.sharedMaterials = cachedRenderer.Value;
+                cachedRenderer.sharedMaterials = cachedRendererPair.Value;
             }
         }
 
         public bool AllRestrictionsPass()
         {
-           Player player = PlayerManager.Instance.Player;
+            Player player = PlayerManager.Instance.Player;
 
             GrowBlock growBlock =
                 player.UsingController
@@ -184,7 +202,7 @@ namespace ShiftedSignal.Garden.Buildable
             if (growBlock.HasBuildable)
                 return false;
 
-            if (buildableData != null && !buildableData.CanAfford())
+            if (BuildableData != null && !BuildableData.CanAfford())
                 return false;
 
             return true;

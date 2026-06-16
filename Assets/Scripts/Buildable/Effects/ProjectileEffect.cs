@@ -7,108 +7,111 @@ namespace ShiftedSignal.Garden.Buildable
     public class ProjectileEffect : BuildableEffect
     {
         [Header("Targeting")]
-        [SerializeField] private float Range = 5f;
         [SerializeField] private LayerMask EnemyLayer;
-
-        [Header("Attack")]
-        [SerializeField] private float AttackCooldown = 1f;
 
         public override void Apply(BaseBuildable buildable)
         {
-            Debug.Log($"[{name}] Apply() called");
-
             if (buildable == null)
-            {
-                Debug.LogWarning($"[{name}] Buildable is NULL");
                 return;
-            }
 
-            Debug.Log($"[{name}] Buildable = {buildable.name}");
-
-            if (!buildable.IsEffectReady(this, AttackCooldown))
-            {
-                Debug.Log($"[{name}] Effect on cooldown");
+            if (buildable is not DefenseTower tower)
                 return;
-            }
 
-            Debug.Log($"[{name}] Cooldown passed");
+            if (!buildable.IsEffectReady(this, tower.AttackCooldown))
+                return;
 
-            Collider[] hits = Physics.OverlapSphere(
-                buildable.transform.position,
-                Range,
+            Transform spawnPoint = buildable.ProjectileSpawnPoint;
+
+            int hitCount = Physics.OverlapSphereNonAlloc(
+                spawnPoint.position,
+                tower.AttackRange,
+                tower.EnemyBuffer,
                 EnemyLayer,
                 QueryTriggerInteraction.Ignore);
 
-            Debug.Log($"[{name}] Found {hits.Length} enemies in range");
-
-            if (hits.Length == 0)
-            {
-                Debug.Log($"[{name}] No enemies detected");
+            if (hitCount <= 0)
                 return;
-            }
 
-            foreach (Collider hit in hits)
-            {
-                Debug.Log($"[{name}] Hit: {hit.name}");
-            }
+            Collider targetCollider = GetNearestEnemyCollider(
+                spawnPoint.position,
+                tower.EnemyBuffer,
+                hitCount);
 
-            Transform target = GetNearestEnemy(buildable.transform.position, hits);
-
-            if (target == null)
-            {
-                Debug.LogWarning($"[{name}] Target was null");
+            if (targetCollider == null)
                 return;
-            }
 
-            Debug.Log($"[{name}] Target selected: {target.name}");
+            Vector3 targetPoint = GetTargetGroundPoint(targetCollider);
+            Vector3 direction = targetPoint - spawnPoint.position;
 
-            Vector3 direction = target.position - buildable.transform.position;
-            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.001f)
+                return;
 
-            Debug.Log($"[{name}] Direction: {direction}");
+            Quaternion rotation = Quaternion.LookRotation(
+                direction.normalized,
+                Vector3.up);
 
-            Quaternion rotation = Quaternion.LookRotation(direction);
-
-            Debug.Log($"[{name}] Spawning projectile");
-
-            GameObject projectile = ObjectPoolManager.SpawnObject(
+            GameObject projectileObject = ObjectPoolManager.SpawnObject(
                 PooledObjectList.Bullet,
-                buildable.transform.position,
+                spawnPoint.position,
                 rotation,
                 null,
                 1);
 
-            Debug.Log($"[{name}] Spawn result: {(projectile != null ? projectile.name : "NULL")}");
+            if (projectileObject == null)
+                return;
+
+            if (projectileObject.TryGetComponent(out Projectile projectile))
+            {
+                projectile.Initialize(
+                    speed: tower.ProjectileSpeed,
+                    accuracy: tower.ProjectileAccuracy,
+                    buildUpTime: tower.ProjectileBuildUpTime,
+                    rotate: tower.ProjectileRotate,
+                    rotateAmount: tower.ProjectileRotateAmount,
+                    bounce: tower.ProjectileBounce,
+                    bounceForce: tower.ProjectileBounceForce,
+                    maxLifetime: tower.ProjectileLifetime);
+            }
 
             buildable.MarkEffectUsed(this);
-
-            Debug.Log($"[{name}] Attack complete");
         }
 
-        private Transform GetNearestEnemy(Vector3 origin, Collider[] enemies)
+        private Collider GetNearestEnemyCollider(
+            Vector3 origin,
+            Collider[] enemies,
+            int hitCount)
         {
-            Transform nearestEnemy = null;
-            float nearestDistance = Mathf.Infinity;
+            Collider nearestEnemy = null;
+            float nearestDistanceSqr = Mathf.Infinity;
 
-            foreach (Collider enemy in enemies)
+            for (int i = 0; i < hitCount; i++)
             {
-                float distance = Vector3.Distance(origin, enemy.transform.position);
+                Collider enemy = enemies[i];
 
-                Debug.Log($"Checking {enemy.name} : {distance}");
+                if (enemy == null)
+                    continue;
 
-                if (distance < nearestDistance)
+                Vector3 targetGroundPoint = GetTargetGroundPoint(enemy);
+                float distanceSqr = (targetGroundPoint - origin).sqrMagnitude;
+
+                if (distanceSqr < nearestDistanceSqr)
                 {
-                    nearestDistance = distance;
-                    nearestEnemy = enemy.transform;
+                    nearestDistanceSqr = distanceSqr;
+                    nearestEnemy = enemy;
                 }
             }
 
-            if (nearestEnemy != null)
-            {
-                Debug.Log($"Nearest enemy: {nearestEnemy.name} ({nearestDistance})");
-            }
-
             return nearestEnemy;
+        }
+
+        private Vector3 GetTargetGroundPoint(Collider targetCollider)
+        {
+            Bounds bounds = targetCollider.bounds;
+
+            return new Vector3(
+                bounds.center.x,
+                bounds.min.y,
+                bounds.center.z);
         }
     }
 }

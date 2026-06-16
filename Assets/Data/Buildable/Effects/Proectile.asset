@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e41125ef68070a44aa94c85be35bf6f9, type: 3}
   m_Name: Proectile
   m_EditorClassIdentifier: 
-  Range: 25.13
   EnemyLayer:
     serializedVersion: 2
     m_Bits: 128

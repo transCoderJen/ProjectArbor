@@ -210,6 +210,8 @@ MonoBehaviour:
   buildableData: {fileID: 11400000, guid: dcd1db66e48ce674baabc4346e644792, type: 2}
   IsActive: 0
   GhostMaterial: {fileID: 2100000, guid: 3b8f1c2dc2cf72d43a644e392f9fdccd, type: 2}
+  targetType: 2
+  raidPriority: 20
   HasTimedEffects: 0
   HasConstantEffects: 0
   TimedEffects: []
@@ -224,14 +226,12 @@ MonoBehaviour:
   RunOnTimeChanged: 0
   RunOnNightStarted: 0
   Durability: 0
-  MaxHP: 100
-  targetType: 2
-  raidPriority: 20
-  raidTargetPoint: {fileID: 0}
+  MaxHP: 10
   northRail: {fileID: 6052264982088801476}
   southRail: {fileID: 640865659279958312}
   eastRail: {fileID: 3438057153373739316}
   westRail: {fileID: 3661498467455658819}
+  damagePieces: []
 --- !u!1 &2410019538964200867
 GameObject:
   m_ObjectHideFlags: 0

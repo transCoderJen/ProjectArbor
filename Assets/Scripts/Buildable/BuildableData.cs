@@ -12,6 +12,27 @@ namespace ShiftedSignal.Garden.Buildable
         public int amount;
     }
 
+    [Serializable]
+    public struct TowerStats
+    {
+        [Header("Targeting")]
+        public float AttackRange;
+        public float AttackCooldown;
+
+        [Header("Projectile")]
+        public float ProjectileSpeed;
+
+        [Range(0f, 100f)]
+        public float ProjectileAccuracy;
+
+        public float ProjectileBuildUpTime;
+        public bool ProjectileRotate;
+        public float ProjectileRotateAmount;
+        public bool ProjectileBounce;
+        public float ProjectileBounceForce;
+        public float ProjectileLifetime;
+    }
+
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
     public class BuildableData : ScriptableObject
     {
@@ -28,6 +49,10 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Crafting")]
         public RequiredMaterial[] requiredMaterials;
         public int Cost;
+
+        [Header("Tower Stats")]
+        public bool HasTowerStats;
+        public TowerStats BaseTowerStats;
 
         public bool CanAfford()
         {
