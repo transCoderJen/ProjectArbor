@@ -4,26 +4,55 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class FencePost : BaseBuildable
+    public class FencePost2D : BaseBuildable
     {
-        [Header("Fence Connections")]
-        [SerializeField] private GameObject northRail;
-        [SerializeField] private GameObject southRail;
-        [SerializeField] private GameObject eastRail;
-        [SerializeField] private GameObject westRail;
+        [Header("Fence 2D Sprites")]
+        [SerializeField] private GameObject leftRightFence;
+        [SerializeField] private GameObject northSouthFence;
 
-        [Header("Damage Visuals")]
-        [SerializeField] private GameObject[] damagePieces;
+        [Header("Fallback")]
+        [SerializeField] private bool showLeftRightWhenAlone = true;
 
-        private bool firstDamageStageTriggered;
-        private bool secondDamageStageTriggered;
+        [Header("Debug")]
+        [SerializeField] private bool debugFence;
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            ShowDefaultVisual("OnEnable");
+        }
+
+        private void Start()
+        {
+            if (OccupiedBlock != null)
+                RefreshConnections(OccupiedBlock);
+            else
+                ShowDefaultVisual("Start No OccupiedBlock");
+        }
 
         public void RefreshConnections(GrowBlock block)
         {
-            SetRailActive(northRail, HasFencePost(block, Vector2Int.up));
-            SetRailActive(southRail, HasFencePost(block, Vector2Int.down));
-            SetRailActive(eastRail, HasFencePost(block, Vector2Int.right));
-            SetRailActive(westRail, HasFencePost(block, Vector2Int.left));
+            if (block == null)
+            {
+                ShowDefaultVisual("Null Block");
+                return;
+            }
+
+            bool hasNorth = HasFencePost(block, Vector2Int.up);
+            bool hasSouth = HasFencePost(block, Vector2Int.down);
+            bool hasEast = HasFencePost(block, Vector2Int.right);
+            bool hasWest = HasFencePost(block, Vector2Int.left);
+
+            bool showNorthSouth = hasNorth || hasSouth;
+            bool showLeftRight = hasEast || hasWest;
+
+            if (!showNorthSouth && !showLeftRight)
+                showLeftRight = showLeftRightWhenAlone;
+
+            SetVisuals(showLeftRight, showNorthSouth);
+
+            DebugState("RefreshConnections", block, hasNorth, hasSouth, hasEast, hasWest);
+            EnsureAtLeastOneVisual("RefreshConnections");
         }
 
         public void RefreshGhostConnections(GrowBlock previewBlock)
@@ -31,26 +60,18 @@ namespace ShiftedSignal.Garden.Buildable
             RefreshConnections(previewBlock);
         }
 
-        public override void DoDamage(int damage)
+        public void ShowDefaultVisual(string reason = "Default")
         {
-            base.DoDamage(damage);
+            SetVisuals(showLeftRightWhenAlone, !showLeftRightWhenAlone);
 
-            if (hp <= 0)
-                return;
+            DebugState(reason);
+            EnsureAtLeastOneVisual(reason);
+        }
 
-            if (hp <= MaxHP * 0.5f && !firstDamageStageTriggered)
-            {
-                DestroyRandomActiveRail();
-                DestroyDamagePiece(0);
-                firstDamageStageTriggered = true;
-            }
-
-            if (hp <= MaxHP * 0.25f && !secondDamageStageTriggered)
-            {
-                DestroyRandomActiveRail();
-                DestroyDamagePiece(1);
-                secondDamageStageTriggered = true;
-            }
+        private void SetVisuals(bool showLeftRight, bool showNorthSouth)
+        {
+            SetActive(leftRightFence, showLeftRight);
+            SetActive(northSouthFence, showNorthSouth);
         }
 
         protected override void DestroyBuilding()
@@ -60,35 +81,19 @@ namespace ShiftedSignal.Garden.Buildable
             base.DestroyBuilding();
 
             if (blockToRefreshFrom != null)
-                RefreshNeighborFencePosts(blockToRefreshFrom);
-        }
-
-        private void RefreshNeighborFencePosts(GrowBlock block)
-        {
-            TryRefreshFencePost(block, Vector2Int.up);
-            TryRefreshFencePost(block, Vector2Int.down);
-            TryRefreshFencePost(block, Vector2Int.left);
-            TryRefreshFencePost(block, Vector2Int.right);
+                RefreshNeighbors(blockToRefreshFrom);
         }
 
         public static void RefreshNeighbors(GrowBlock centerBlock)
         {
-            if (centerBlock == null)
+            if (centerBlock == null || GridManager.Instance == null)
                 return;
 
             RefreshFenceAt(centerBlock);
-
-            RefreshFenceAt(
-                GridManager.Instance.GetNorthNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetSouthNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetEastNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetWestNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetNorthNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetSouthNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetEastNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetWestNeighbor(centerBlock));
         }
 
         private static void RefreshFenceAt(GrowBlock block)
@@ -96,77 +101,73 @@ namespace ShiftedSignal.Garden.Buildable
             if (block == null)
                 return;
 
-            if (block.CurrentBuildable is FencePost fencePost)
-            {
+            if (block.CurrentBuildable is FencePost2D fencePost)
                 fencePost.RefreshConnections(block);
-            }
-        }
-
-        private void TryRefreshFencePost(GrowBlock block, Vector2Int direction)
-        {
-            GrowBlock neighbor = GridManager.Instance.GetNeighbor(block, direction);
-
-            if (neighbor == null)
-                return;
-
-            if (neighbor.CurrentBuildable is FencePost fencePost)
-                fencePost.RefreshConnections(neighbor);
         }
 
         private bool HasFencePost(GrowBlock block, Vector2Int direction)
         {
+            if (block == null || GridManager.Instance == null)
+                return false;
+
             GrowBlock neighbor = GridManager.Instance.GetNeighbor(block, direction);
 
             if (neighbor == null)
                 return false;
 
-            return neighbor.CurrentBuildable is FencePost;
+            return neighbor.CurrentBuildable is FencePost2D;
         }
 
-        private void DestroyRandomActiveRail()
+        private void EnsureAtLeastOneVisual(string reason)
         {
-            GameObject[] rails =
+            bool leftRightActive =
+                leftRightFence != null && leftRightFence.activeSelf;
+
+            bool northSouthActive =
+                northSouthFence != null && northSouthFence.activeSelf;
+
+            if (leftRightActive || northSouthActive)
+                return;
+
+            Debug.LogWarning(
+                $"FencePost2D: Both visuals were off. Forcing default. Reason: {reason}. Object: {name}",
+                this);
+
+            SetVisuals(true, false);
+        }
+
+        private void SetActive(GameObject target, bool active)
+        {
+            if (target == null)
             {
-                northRail,
-                southRail,
-                eastRail,
-                westRail
-            };
+                if (debugFence)
+                    Debug.LogWarning($"FencePost2D: Missing visual reference on {name}.", this);
 
-            int startIndex = Random.Range(0, rails.Length);
-
-            for (int i = 0; i < rails.Length; i++)
-            {
-                int index = (startIndex + i) % rails.Length;
-
-                if (rails[index] != null && rails[index].activeSelf)
-                {
-                    Destroy(rails[index]);
-                    return;
-                }
+                return;
             }
+
+            target.SetActive(active);
         }
 
-        private void DestroyDamagePiece(int index)
+        private void DebugState(
+            string reason,
+            GrowBlock block = null,
+            bool hasNorth = false,
+            bool hasSouth = false,
+            bool hasEast = false,
+            bool hasWest = false)
         {
-            if (damagePieces == null)
+            if (!debugFence)
                 return;
 
-            if (index < 0 || index >= damagePieces.Length)
-                return;
-
-            if (damagePieces[index] == null)
-                return;
-
-            Destroy(damagePieces[index]);
-        }
-
-        private void SetRailActive(GameObject rail, bool active)
-        {
-            if (rail == null)
-                return;
-
-            rail.SetActive(active);
+            Debug.Log(
+                $"FencePost2D Debug: {reason}\n" +
+                $"Object: {name}\n" +
+                $"Block: {(block != null ? block.name : "null")}\n" +
+                $"Neighbors - N:{hasNorth} S:{hasSouth} E:{hasEast} W:{hasWest}\n" +
+                $"LeftRight assigned:{leftRightFence != null}, active:{(leftRightFence != null && leftRightFence.activeSelf)}\n" +
+                $"NorthSouth assigned:{northSouthFence != null}, active:{(northSouthFence != null && northSouthFence.activeSelf)}",
+                this);
         }
     }
 }

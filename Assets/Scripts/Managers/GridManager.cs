@@ -379,9 +379,9 @@ namespace ShiftedSignal.Garden.Managers
 
             block.SetBuildable(buildable);
 
-            if (buildable is FencePost)
+            if (buildable is FencePost2D)
             {
-                FencePost.RefreshNeighbors(block);
+                FencePost2D.RefreshNeighbors(block);
             }
 
             if (!string.IsNullOrEmpty(info.BuildableItemID))
@@ -421,7 +421,7 @@ namespace ShiftedSignal.Garden.Managers
                     if (block == null)
                         continue;
 
-                    if (block.CurrentBuildable is FencePost fencePost)
+                    if (block.CurrentBuildable is FencePost2D fencePost)
                         fencePost.RefreshConnections(block);
                 }
             }

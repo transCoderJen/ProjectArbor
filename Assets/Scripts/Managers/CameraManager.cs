@@ -78,6 +78,9 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private float followOffsetSwitchThreshold = 0.05f;
         [SerializeField] private float maxResetWaitTime = 1.5f;
 
+        [Header("Camera Angle")]
+        [SerializeField] private float followOffsetX = 0f;
+
         [Header("Free Look Movement")]
         [SerializeField] private Transform freeLookTarget;
         [SerializeField] private float freeLookPanSpeed = 20f;
@@ -254,6 +257,8 @@ namespace ShiftedSignal.Garden.Managers
             {
                 targetFollowOffset = follow.FollowOffset;
 
+                targetFollowOffset.x = followOffsetX;
+
                 targetFollowOffset.y = Mathf.Clamp(
                     targetFollowOffset.y,
                     currentVCamera.MinFollowOffsetY,
@@ -329,6 +334,8 @@ namespace ShiftedSignal.Garden.Managers
                 targetFollowOffset.y + scrollInput * followOffsetScrollSpeed,
                 currentVCamera.MinFollowOffsetY,
                 currentVCamera.MaxFollowOffsetY);
+
+            targetFollowOffset.x = followOffsetX;
         }
 
         public void ChangeFreeLookOffsetXZ(Vector2 movement)
@@ -386,7 +393,10 @@ namespace ShiftedSignal.Garden.Managers
             if (follow == null)
                 return;
 
-            targetFollowOffset = new Vector3(0f, follow.FollowOffset.y, -30f);
+            targetFollowOffset = new Vector3(
+                followOffsetX,
+                follow.FollowOffset.y,
+                -30f);
         }
 
         private void HandleScrollInput()
@@ -459,6 +469,8 @@ namespace ShiftedSignal.Garden.Managers
 
             if (follow == null)
                 return;
+
+            targetFollowOffset.x = followOffsetX;
 
             Vector3 offset = Vector3.Lerp(
                 follow.FollowOffset,

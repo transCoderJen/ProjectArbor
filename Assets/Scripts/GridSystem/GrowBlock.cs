@@ -68,6 +68,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
             IsActive = false;
 
+            HideGroundSprite();
+
             UpdateGridInfo();
         }
 
@@ -77,6 +79,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (reactivateBlock && !PreventUse)
                 IsActive = true;
+
+            ShowGroundSprite();
 
             SetSoilSprite(false);
             Glow(false);
@@ -90,6 +94,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (reactivateBlock && !PreventUse)
                 IsActive = true;
+
+            ShowGroundSprite();
 
             SetSoilSprite(false);
             Glow(false);
@@ -420,6 +426,18 @@ namespace ShiftedSignal.Garden.GridSystem
             SetSoilSprite(false);
 
             UpdateGridInfo();
+        }
+
+        public void HideGroundSprite()
+        {
+            if (SR != null)
+                SR.enabled = false;
+        }
+
+        public void ShowGroundSprite()
+        {
+            if (SR != null)
+                SR.enabled = true;
         }
     }
 }

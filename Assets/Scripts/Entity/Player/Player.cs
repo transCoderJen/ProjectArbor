@@ -115,6 +115,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private GameObject ghostInstance;
         private MeshRenderer[] ghostRenderers;
+        private SpriteRenderer[] ghostSpriteRenderers;
 
         private readonly HashSet<GrowBlock> dragVisitedBlocks = new();
 
@@ -532,9 +533,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             block.ResetCrop();
             block.SetBuildable(buildable);
 
-            if (buildable is FencePost)
+            if (buildable is FencePost2D fence)
             {
-                FencePost.RefreshNeighbors(block);
+                Debug.Log(
+                    $"Placed Fence at {block.name}. " +
+                    $"HasBuildable={block.HasBuildable} " +
+                    $"CurrentBuildable={block.CurrentBuildable?.name}");
+
+                fence.RefreshConnections(block);
+                FencePost2D.RefreshNeighbors(block);
             }
 
             EquippedBuildable.RemoveRequiredMaterials();
@@ -583,7 +590,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (neighbor == null)
                 return;
 
-            if (neighbor.CurrentBuildable is FencePost fencePost)
+            if (neighbor.CurrentBuildable is FencePost2D fencePost)
                 fencePost.RefreshConnections(neighbor);
         }
 
@@ -690,6 +697,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             ghostInstance = Instantiate(EquippedBuildable.BuildablePrefab);
             ghostRenderers = ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
+            ghostSpriteRenderers = ghostInstance.GetComponentsInChildren<SpriteRenderer>(true);
         }
 
         private void HandleGhost()
@@ -710,16 +718,28 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             else
                 ghostInstance.transform.position = hit.point;
 
-            if (ghostInstance.TryGetComponent(out FencePost fencePostGhost) &&
-                growBlock != null)
+            bool isFenceGhost = ghostInstance.TryGetComponent(out FencePost2D fencePostGhost);
+
+            if (isFenceGhost && growBlock != null)
             {
                 fencePostGhost.RefreshGhostConnections(growBlock);
+            }
+            else if (isFenceGhost)
+            {
+                fencePostGhost.ShowDefaultVisual();
             }
 
             HandleBuildRotationInput();
 
-            ghostInstance.transform.rotation =
-                Quaternion.Euler(0f, currentBuildYRotation, 0f);
+            if (isFenceGhost)
+            {
+                ghostInstance.transform.rotation = Quaternion.identity;
+            }
+            else
+            {
+                ghostInstance.transform.rotation =
+                    Quaternion.Euler(0f, currentBuildYRotation, 0f);
+            }
 
             UpdateGhostColor();
         }
@@ -777,6 +797,17 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                         material.SetColor(FRESNEL, fresnelColor);
                 }
             }
+
+            if (ghostSpriteRenderers == null)
+                return;
+
+            foreach (SpriteRenderer spriteRenderer in ghostSpriteRenderers)
+            {
+                if (spriteRenderer == null)
+                    continue;
+
+                spriteRenderer.color = tintColor;
+            }
         }
 
         public void DestroyGhost()
@@ -788,6 +819,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             ghostInstance = null;
             ghostRenderers = null;
+            ghostSpriteRenderers = null;
         }
 
         #endregion

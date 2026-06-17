@@ -344,9 +344,9 @@ namespace ShiftedSignal.Garden.Buildable
 
                 block.UpdateGridInfo();
 
-                if (this is FencePost)
+                if (this is FencePost2D)
                 {
-                    FencePost.RefreshNeighbors(block);
+                    FencePost2D.RefreshNeighbors(block);
                 }
             }
 

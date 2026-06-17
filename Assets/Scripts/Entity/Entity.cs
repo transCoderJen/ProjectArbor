@@ -133,25 +133,42 @@ namespace ShiftedSignal.Garden.EntitySpace
         #region Movement
 
         public virtual void ApplyMovement(Vector2 input, bool normalized = true)
-        {
-            if (IsKnocked || IsDead || Rb == null)
-                return;
+{
+    if (IsKnocked || IsDead || Rb == null)
+        return;
 
-            Vector3 moveDirection = normalized
-                ? new Vector3(input.x, 0f, input.y).normalized
-                : new Vector3(input.x, 0f, input.y);
+    Vector3 moveDirection = Vector3.zero;
 
-            Vector3 velocity = moveDirection * MoveSpeed;
+    if (input.sqrMagnitude > 0.01f)
+    {
+        Transform cameraTransform = Camera.main.transform;
 
-            Rb.linearVelocity = new Vector3(
-                velocity.x,
-                Rb.linearVelocity.y,
-                velocity.z);
+        Vector3 cameraForward = cameraTransform.forward;
+        Vector3 cameraRight = cameraTransform.right;
 
-            UpdateAnimationDirection(input);
-            UpdateFacingData();
-            UpdateAttackCheckPosition();
-        }
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
+        moveDirection = cameraRight * input.x + cameraForward * input.y;
+
+        if (normalized)
+            moveDirection.Normalize();
+    }
+
+    Vector3 velocity = moveDirection * MoveSpeed;
+
+    Rb.linearVelocity = new Vector3(
+        velocity.x,
+        Rb.linearVelocity.y,
+        velocity.z);
+
+    UpdateAnimationDirection(new Vector2(moveDirection.x, moveDirection.z));
+    UpdateFacingData();
+    UpdateAttackCheckPosition();
+}
 
         public void StopMovement()
         {

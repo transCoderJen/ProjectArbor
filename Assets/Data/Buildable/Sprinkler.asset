@@ -20,3 +20,15 @@ MonoBehaviour:
   - Material: {fileID: 11400000, guid: d415d68791b4f2743ad83d0f6c26cc41, type: 2}
     amount: 10
   Cost: 10
+  HasTowerStats: 0
+  BaseTowerStats:
+    AttackRange: 0
+    AttackCooldown: 0
+    ProjectileSpeed: 0
+    ProjectileAccuracy: 0
+    ProjectileBuildUpTime: 0
+    ProjectileRotate: 0
+    ProjectileRotateAmount: 0
+    ProjectileBounce: 0
+    ProjectileBounceForce: 0
+    ProjectileLifetime: 0

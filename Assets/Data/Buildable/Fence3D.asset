@@ -10,13 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea0c59e97993e3f40b4fb8e3ed79f9e6, type: 3}
-  m_Name: FencePost
+  m_Name: Fence3D
   m_EditorClassIdentifier: 
-  ItemID: FencePost
+  ItemID: Fence
   BuildableName: Wall
   Icon: {fileID: -580489818, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
-  BuildablePrefab: {fileID: 4478278539308690776, guid: 49ec3b7f960853a4e8367d3001627018, type: 3}
+  BuildablePrefab: {fileID: 2173957321852232242, guid: 2cfa74a27540767459e1395e59f07418, type: 3}
   requiredMaterials:
   - Material: {fileID: 11400000, guid: d415d68791b4f2743ad83d0f6c26cc41, type: 2}
     amount: 5
   Cost: 5
+  HasTowerStats: 0
+  BaseTowerStats:
+    AttackRange: 0
+    AttackCooldown: 0
+    ProjectileSpeed: 0
+    ProjectileAccuracy: 0
+    ProjectileBuildUpTime: 0
+    ProjectileRotate: 0
+    ProjectileRotateAmount: 0
+    ProjectileBounce: 0
+    ProjectileBounceForce: 0
+    ProjectileLifetime: 0
