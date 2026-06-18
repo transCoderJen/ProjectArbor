@@ -109,6 +109,17 @@ namespace ShiftedSignal.Garden.SceneManagement
             SceneManager.Instance.SetTransitionName(targetEntranceName);
 
             yield return null;
+            yield return null;
+
+            if (GridManager.Instance != null)
+            {
+                Debug.Log("[LevelLoader] Requesting grid restore after scene load.");
+                GridManager.Instance.RequestGridRestore();
+            }
+            else
+            {
+                Debug.LogWarning("[LevelLoader] GridManager missing after scene load.");
+            }
         }
 
         private IEnumerator FadeIn(TransitionType transitionType)

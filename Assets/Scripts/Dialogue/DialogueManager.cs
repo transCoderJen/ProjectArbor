@@ -2,12 +2,13 @@ using System.Collections;
 using Ink.Runtime;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
-    public class DialogueManager : MonoBehaviour
+    public class DialogueManager : Singleton<DialogueManager>
     {
         [Header("Ink Story")]
         [SerializeField] private TextAsset InkJson;
@@ -19,15 +20,16 @@ namespace ShiftedSignal.Garden.Dialogue
         private InkExternalFunctions inkExternalFunctions;
         private InkDialogueVariables inkDialogueVariables;
 
-        private void Awake()
+        override protected void Awake()
         {
+            
             story = new Story(InkJson.text);
             inkExternalFunctions = new InkExternalFunctions();
             inkExternalFunctions.Bind(story);
             inkDialogueVariables = new InkDialogueVariables(story);
         }
 
-        private void OnDestroy()
+        override protected void OnDestroy()
         {
             inkExternalFunctions.Unbind(story);
         }

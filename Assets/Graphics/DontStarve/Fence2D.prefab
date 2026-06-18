@@ -55,7 +55,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 08c1be50c8598fc49bb60085a7ce4b4e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -135,7 +135,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BuildableData: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
   IsActive: 0
-  GhostMaterial: {fileID: 2100000, guid: 3b8f1c2dc2cf72d43a644e392f9fdccd, type: 2}
+  GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
   targetType: 2
   RaidPriority: 20
   HasTimedEffects: 0
@@ -156,7 +156,7 @@ MonoBehaviour:
   leftRightFence: {fileID: 7629881641326541474}
   northSouthFence: {fileID: 2822045323679761344}
   showLeftRightWhenAlone: 1
-  debugFence: 1
+  debugFence: 0
 --- !u!1 &7629881641326541474
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,7 +212,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+  - {fileID: 2100000, guid: 08c1be50c8598fc49bb60085a7ce4b4e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

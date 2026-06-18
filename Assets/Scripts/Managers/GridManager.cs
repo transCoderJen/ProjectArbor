@@ -34,8 +34,8 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private List<BuildableData> buildableDatabase = new();
 
         [Header("Debug")]
-        [SerializeField] private bool logGridRestore;
-        [SerializeField] private bool logBuildableRestore;
+        [SerializeField] private bool logGridRestore = true;
+        [SerializeField] private bool logBuildableRestore = true;
 
         [Header("Runtime")]
         public List<BlockRow> BlockRows = new();
@@ -70,12 +70,22 @@ namespace ShiftedSignal.Garden.Managers
 
         public void RequestGridRestore()
         {
+            if (logGridRestore)
+            {
+                Debug.Log(
+                    $"[GridManager Restore] RequestGridRestore | " +
+                    $"HasGrid={GridInfo.Instance?.HasGrid} | " +
+                    $"SavedRows={GridInfo.Instance?.Grid?.Count ?? -1} | " +
+                    $"SavedBuildables={CountSavedBuildables()} | " +
+                    $"BlockRows={BlockRows?.Count ?? -1} | " +
+                    $"DatabaseCount={buildableDatabase?.Count ?? -1}",
+                    this);
+            }
+
             if (restoreRoutine != null)
                 StopCoroutine(restoreRoutine);
 
             restoreRoutine = StartCoroutine(RestoreGridWhenReady());
-
-            Debug.Log("[GridManager] RequestGridRestore called.");
         }
 
         private IEnumerator RestoreGridWhenReady()
@@ -84,14 +94,32 @@ namespace ShiftedSignal.Garden.Managers
 
             int attempts = 0;
             const int maxAttempts = 30;
+            string lastWaitReason = "";
 
             while (attempts < maxAttempts)
             {
-                if (CanRestoreGrid())
+                if (CanRestoreGrid(out string waitReason))
                 {
+                    if (logGridRestore)
+                    {
+                        Debug.Log(
+                            $"[GridManager Restore] Ready after {attempts + 1} attempts | " +
+                            $"SavedBuildables={CountSavedBuildables()}",
+                            this);
+                    }
+
                     UpdateGrid();
                     restoreRoutine = null;
                     yield break;
+                }
+
+                if (waitReason != lastWaitReason && logGridRestore)
+                {
+                    Debug.Log(
+                        $"[GridManager Restore] Waiting: {waitReason}",
+                        this);
+
+                    lastWaitReason = waitReason;
                 }
 
                 attempts++;
@@ -99,26 +127,41 @@ namespace ShiftedSignal.Garden.Managers
             }
 
             Debug.LogWarning(
-                "[GridManager] Could not restore grid. GridInfo or BlockRows were not ready.",
+                $"[GridManager Restore] FAILED after {maxAttempts} attempts | " +
+                $"LastReason={lastWaitReason} | " +
+                $"SavedBuildables={CountSavedBuildables()}",
                 this);
 
             restoreRoutine = null;
         }
 
-        private bool CanRestoreGrid()
+        private bool CanRestoreGrid(out string reason)
         {
             if (GridInfo.Instance == null)
+            {
+                reason = "GridInfo.Instance is null";
                 return false;
+            }
 
             if (!GridInfo.Instance.HasGrid)
+            {
+                reason = "GridInfo.HasGrid is false";
                 return false;
+            }
 
             if (GridInfo.Instance.Grid == null || GridInfo.Instance.Grid.Count == 0)
+            {
+                reason = "GridInfo.Grid is null or empty";
                 return false;
+            }
 
             if (BlockRows == null || BlockRows.Count == 0)
+            {
+                reason = "BlockRows are null or empty";
                 return false;
+            }
 
+            reason = "";
             return true;
         }
 
@@ -243,21 +286,30 @@ namespace ShiftedSignal.Garden.Managers
         [ContextMenu("Update Grid")]
         public void UpdateGrid()
         {
-            Debug.Log(
-                $"[GridManager] UpdateGrid | " +
-                $"HasGrid={GridInfo.Instance?.HasGrid} | " +
-                $"GridRows={GridInfo.Instance?.Grid?.Count ?? -1} | " +
-                $"BlockRows={BlockRows?.Count ?? -1}"
-            );
-            if (!CanRestoreGrid())
+            if (logGridRestore)
             {
-                if (logGridRestore)
-                    Debug.Log("[GridManager] UpdateGrid skipped. Grid not ready.", this);
+                Debug.Log(
+                    $"[GridManager Restore] UpdateGrid START | " +
+                    $"HasGrid={GridInfo.Instance?.HasGrid} | " +
+                    $"SavedRows={GridInfo.Instance?.Grid?.Count ?? -1} | " +
+                    $"BlockRows={BlockRows?.Count ?? -1} | " +
+                    $"SavedBuildables={CountSavedBuildables()}",
+                    this);
+            }
+
+            if (!CanRestoreGrid(out string reason))
+            {
+                Debug.LogWarning(
+                    $"[GridManager Restore] UpdateGrid skipped | Reason={reason}",
+                    this);
 
                 return;
             }
 
             int rowCount = Mathf.Min(BlockRows.Count, GridInfo.Instance.Grid.Count);
+
+            int restoredBuildables = 0;
+            int restoreFailures = 0;
 
             for (int y = 0; y < rowCount; y++)
             {
@@ -278,7 +330,11 @@ namespace ShiftedSignal.Garden.Managers
 
                     RestoreBlockState(block, storedBlock);
                     RestoreSeed(block, storedBlock);
-                    RestoreBuildableFromInfo(block, storedBlock);
+
+                    if (RestoreBuildableFromInfo(block, storedBlock))
+                        restoredBuildables++;
+                    else if (!string.IsNullOrEmpty(storedBlock.BuildableItemID))
+                        restoreFailures++;
 
                     block.SetSoilSprite(false);
                     block.UpdateCropSprite(false);
@@ -286,10 +342,15 @@ namespace ShiftedSignal.Garden.Managers
                 }
             }
 
-            RefreshAllFencePostConnections();
+            int refreshedFences = RefreshAllFencePostConnections();
 
-            if (logGridRestore)
-                Debug.Log("[GridManager] Grid restore complete.", this);
+            Debug.Log(
+                $"[GridManager Restore] UpdateGrid COMPLETE | " +
+                $"SavedBuildables={CountSavedBuildables()} | " +
+                $"RestoredBuildables={restoredBuildables} | " +
+                $"RestoreFailures={restoreFailures} | " +
+                $"RefreshedFences={refreshedFences}",
+                this);
         }
 
         private void RestoreBlockState(GrowBlock block, BlockInfo storedBlock)
@@ -323,38 +384,48 @@ namespace ShiftedSignal.Garden.Managers
             }
         }
 
-        private void RestoreBuildableFromInfo(GrowBlock block, BlockInfo info)
+        private bool RestoreBuildableFromInfo(GrowBlock block, BlockInfo info)
         {
             if (block == null || info == null)
-                return;
-
-            if (block.CurrentBuildable != null)
-                Destroy(block.CurrentBuildable.gameObject);
+                return false;
 
             block.ClearBuildableWithoutSaving(false);
 
             if (string.IsNullOrEmpty(info.BuildableItemID))
-                return;
+                return false;
+
+            Debug.Log(
+                $"[Buildable Restore] FOUND saved buildable | " +
+                $"Grid={block.GetGridPosition()} | " +
+                $"ItemID={info.BuildableItemID} | " +
+                $"HP={info.BuildableHP} | " +
+                $"Rot={info.BuildableYRotation}",
+                this);
 
             BuildableData buildableData = FindBuildableDataByItemID(info.BuildableItemID);
 
             if (buildableData == null)
             {
                 Debug.LogWarning(
-                    $"[RestoreBuildable] No BuildableData found for ItemID: {info.BuildableItemID}",
+                    $"[Buildable Restore] FAILED lookup | " +
+                    $"Grid={block.GetGridPosition()} | " +
+                    $"ItemID={info.BuildableItemID} | " +
+                    $"DatabaseCount={buildableDatabase?.Count ?? -1}",
                     this);
 
                 DebugLogBuildableDatabase();
-                return;
+                return false;
             }
 
             if (buildableData.BuildablePrefab == null)
             {
                 Debug.LogWarning(
-                    $"[RestoreBuildable] BuildableData has no prefab: {buildableData.name}",
+                    $"[Buildable Restore] FAILED missing prefab | " +
+                    $"ItemID={info.BuildableItemID} | " +
+                    $"Data={buildableData.name}",
                     buildableData);
 
-                return;
+                return false;
             }
 
             GameObject builtObject = Instantiate(
@@ -367,30 +438,26 @@ namespace ShiftedSignal.Garden.Managers
             if (buildable == null)
             {
                 Debug.LogWarning(
-                    $"[RestoreBuildable] Prefab missing BaseBuildable: {builtObject.name}",
+                    $"[Buildable Restore] FAILED prefab missing BaseBuildable | " +
+                    $"Object={builtObject.name}",
                     builtObject);
 
                 Destroy(builtObject);
-                return;
+                return false;
             }
 
             buildable.SetOccupiedBlock(block);
             buildable.RestoreFromSave(info.BuildableHP);
-
             block.SetBuildable(buildable);
 
-            if (buildable is FencePost2D)
-            {
-                FencePost2D.RefreshNeighbors(block);
-            }
+            Debug.Log(
+                $"[Buildable Restore] SUCCESS | " +
+                $"Grid={block.GetGridPosition()} | " +
+                $"Object={builtObject.name} | " +
+                $"Data={buildableData.name}",
+                builtObject);
 
-            if (!string.IsNullOrEmpty(info.BuildableItemID))
-            {
-                Debug.Log(
-                    $"[RestoreBuildable] Attempting restore at {block.GetGridPosition()} " +
-                    $"ItemID={info.BuildableItemID}"
-                );
-            }
+            return true;
         }
 
         private BuildableData FindBuildableDataByItemID(string itemID)
@@ -410,10 +477,15 @@ namespace ShiftedSignal.Garden.Managers
             return null;
         }
 
-        private void RefreshAllFencePostConnections()
+        private int RefreshAllFencePostConnections()
         {
+            int refreshedCount = 0;
+
             for (int y = 0; y < BlockRows.Count; y++)
             {
+                if (BlockRows[y] == null)
+                    continue;
+
                 for (int x = 0; x < BlockRows[y].Blocks.Count; x++)
                 {
                     GrowBlock block = BlockRows[y].Blocks[x];
@@ -422,9 +494,50 @@ namespace ShiftedSignal.Garden.Managers
                         continue;
 
                     if (block.CurrentBuildable is FencePost2D fencePost)
+                    {
                         fencePost.RefreshConnections(block);
+                        refreshedCount++;
+                    }
                 }
             }
+
+            if (refreshedCount > 0)
+            {
+                Debug.Log(
+                    $"[Fence Restore] Refreshed fence connections | Count={refreshedCount}",
+                    this);
+            }
+
+            return refreshedCount;
+        }
+
+        private int CountSavedBuildables()
+        {
+            if (GridInfo.Instance == null || GridInfo.Instance.Grid == null)
+                return 0;
+
+            int count = 0;
+
+            for (int y = 0; y < GridInfo.Instance.Grid.Count; y++)
+            {
+                InfoRow row = GridInfo.Instance.Grid[y];
+
+                if (row == null || row.Blocks == null)
+                    continue;
+
+                for (int x = 0; x < row.Blocks.Count; x++)
+                {
+                    BlockInfo info = row.Blocks[x];
+
+                    if (info == null)
+                        continue;
+
+                    if (!string.IsNullOrEmpty(info.BuildableItemID))
+                        count++;
+                }
+            }
+
+            return count;
         }
 
         private void DebugLogBuildableDatabase()
@@ -461,6 +574,9 @@ namespace ShiftedSignal.Garden.Managers
         {
             for (int y = 0; y < BlockRows.Count; y++)
             {
+                if (BlockRows[y] == null)
+                    continue;
+
                 for (int x = 0; x < BlockRows[y].Blocks.Count; x++)
                 {
                     if (BlockRows[y].Blocks[x] != null)
@@ -556,6 +672,9 @@ namespace ShiftedSignal.Garden.Managers
 
             for (int y = 0; y < BlockRows.Count; y++)
             {
+                if (BlockRows[y] == null)
+                    continue;
+
                 for (int x = 0; x < BlockRows[y].Blocks.Count; x++)
                 {
                     GrowBlock block = BlockRows[y].Blocks[x];

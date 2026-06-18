@@ -25,6 +25,7 @@ namespace ShiftedSignal.Garden.Misc
 
             if (Application.isPlaying && DontDestroyOnLoadEnabled)
             {
+                transform.SetParent(null);
                 DontDestroyOnLoad(gameObject);
             }
         }
