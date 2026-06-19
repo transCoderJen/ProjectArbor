@@ -300,7 +300,7 @@ MonoBehaviour:
     m_Bits: 2048
   GroundDist: 0
   UI: {fileID: 0}
-  BaseMoveSpeed: 4
+  MoveSpeed: 4
   FacingDir: {x: 1, y: 0, z: 0}
   LastFacingDir: {x: 1, y: 0}
   RotationAdjustmentDirection: 2
@@ -310,25 +310,39 @@ MonoBehaviour:
   AttackCheckRadius: 0.74
   AttackCheckDistance: 0
   CheckHeight: 0
+  AttackCoolDown: 0
+  AttackTimer: 0
   IsDead: 0
   WhatIsPlayer:
     serializedVersion: 2
     m_Bits: 128
+  WhatIsCrop:
+    serializedVersion: 2
+    m_Bits: 0
   stunDuration: 0
   stunDirection: {x: 0, y: 0}
   counterImage: {fileID: 0}
   moveSpeed: 100
   idleTime: 0
   battleTime: 0
+  attackDamage: 1
   lastTimeAttacked: 0
   AttackTriggerRadius: 0
   ChaseTriggerRadius: 40
-  amplitude: 4
-  frequency: 1
-  offset: 6
-  verticalSpeedRange: {x: 1, y: 3}
-  speedChangeIntervalRange: {x: 1, y: 3}
-  speedSmoothTime: 2
+  FarmTarget: {fileID: 0}
+  RaidAttackDistance: 1.25
+  raidTargetPointSampleRadius: 2
+  raidTargetPointRefreshTime: 0.75
+  maxAcceptableFarmPathExtraDistance: 50
+  fenceSearchRadius: 40
+  AmplitudeRange: {x: 1, y: 8}
+  Frequency: 1
+  Offset: 6
+  MinimumGroundDistance: 2
+  VerticalSpeedRange: {x: 0.8, y: 2}
+  SpeedChangeIntervalRange: {x: 2, y: 5}
+  SpeedSmoothTime: 1.5
+  AmplitudeSmoothTime: 1.5
 --- !u!114 &5754625486864945146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -341,43 +355,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d21a083fe69096439bff872f2e28b2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxHP:
-    baseValue: 30
-    modifiers: 
-  MaxMP:
-    baseValue: 0
-    modifiers: 
-  Power:
-    baseValue: 0
-    modifiers: 
-  Vitality:
-    baseValue: 0
-    modifiers: 
-  Defense:
-    baseValue: 1
-    modifiers: 
-  Speed:
-    baseValue: 0
-    modifiers: 
-  CritChance:
-    baseValue: 0
-    modifiers: 
-  CritPower:
-    baseValue: 0
-    modifiers: 
-  Evasion:
-    baseValue: 0
-    modifiers: 
-  MagicResistance:
-    baseValue: 0
-    modifiers: 
-  CurrentHealth: 0
-  Vulnerable: 0
-  soulsDropAmount:
-    baseValue: 0
-    modifiers: 
-  level: 1
-  percentageModifier: 0.2
+  maxHearts: 3
+  currentHearts: 0
+  isInvincible: 0
+  team: 2
 --- !u!114 &3135849810575532812
 MonoBehaviour:
   m_ObjectHideFlags: 0

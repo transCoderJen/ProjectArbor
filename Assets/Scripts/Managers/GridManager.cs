@@ -36,6 +36,7 @@ namespace ShiftedSignal.Garden.Managers
         [Header("Debug")]
         [SerializeField] private bool logGridRestore = true;
         [SerializeField] private bool logBuildableRestore = true;
+        [SerializeField] private bool allowGridHighlighting = true;
 
         [Header("Runtime")]
         public List<BlockRow> BlockRows = new();
@@ -169,9 +170,45 @@ namespace ShiftedSignal.Garden.Managers
 
         #region Hover
 
+        public void SetCommanderGridMode(bool commanderMode)
+        {
+            SetGridHighlighting(!commanderMode);
+
+            if (commanderMode)
+                HideGrid();
+            else
+                ShowGrid();
+        }
+
+        public void SetGridHighlighting(bool enabled)
+        {
+            allowGridHighlighting = enabled;
+
+            if (!enabled)
+            {
+                foreach (BlockRow row in BlockRows)
+                {
+                    if (row == null)
+                        continue;
+
+                    foreach (GrowBlock block in row.Blocks)
+                    {
+                        if (block == null)
+                            continue;
+
+                        block.Glow(false);
+                    }
+                }
+
+                currentHoveredBlock = null;
+            }
+        }
+
         private void UpdateHoveredBlock()
         {
-            if (PlayerManager.Instance == null || PlayerManager.Instance.Player == null)
+            if (PlayerManager.Instance == null 
+                || PlayerManager.Instance.Player == null 
+                || !allowGridHighlighting)
                 return;
 
             GrowBlock newHoveredBlock = PlayerManager.Instance.Player.UsingController
@@ -281,7 +318,49 @@ namespace ShiftedSignal.Garden.Managers
 
         #endregion
 
-        #region Grid Update / Restore
+        #region Grid Update / Restore / Visuals
+
+        [ContextMenu("Show Grid")]
+        public void ShowGrid()
+        {
+            foreach (BlockRow row in BlockRows)
+            {
+                if (row == null)
+                    continue;
+
+                foreach (GrowBlock block in row.Blocks)
+                {
+                    if (block == null || block.SR == null)
+                        continue;
+
+                    if (block.CurrentStage == GrowBlock.GrowthStage.Barren)
+                    {
+                        block.SR.enabled = true;
+                    }
+                }
+            }
+        }
+
+        [ContextMenu("Hide Grid")]
+        public void HideGrid()
+        {
+            foreach (BlockRow row in BlockRows)
+            {
+                if (row == null)
+                    continue;
+
+                foreach (GrowBlock block in row.Blocks)
+                {
+                    if (block == null || block.SR == null)
+                        continue;
+
+                    if (block.CurrentStage == GrowBlock.GrowthStage.Barren)
+                    {
+                        block.SR.enabled = false;
+                    }
+                }
+            }
+        }
 
         [ContextMenu("Update Grid")]
         public void UpdateGrid()

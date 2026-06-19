@@ -3,6 +3,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using System;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 
 
 namespace ShiftedSignal.Garden.UserInterface
@@ -44,7 +45,6 @@ namespace ShiftedSignal.Garden.UserInterface
 
         [Header("Inputs")]
         public InputActionReference toolSelectorInput;
-        public InputActionReference weaponSelectorInput;
         public InputActionReference menuInput;
         public InputActionReference toggleMenuRight;
         public InputActionReference toggleMenuLeft;
@@ -111,20 +111,13 @@ namespace ShiftedSignal.Garden.UserInterface
                 }
             }
 
-            if (toolSelectorInput.action.IsPressed() && !IsMenuOpen())
+            if (toolSelectorInput.action.IsPressed() && !IsMenuOpen() && !Player.Instance.InManagementState && !Player.Instance.InCommanderMode)
             {
                 ToolSelectorUI.SetActive(true);
-                WeaponSelectorUI.SetActive(false);
-            }
-            else if (weaponSelectorInput.action.IsPressed()  && !IsMenuOpen() )
-            {
-                WeaponSelectorUI.SetActive(true);
-                ToolSelectorUI.SetActive(false);
             }
             else
             {
                 ToolSelectorUI.SetActive(false);
-                WeaponSelectorUI.SetActive(false);
             }
 
             if (IsMenuOpen())

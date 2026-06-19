@@ -47,7 +47,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   HighlightColor: {r: 1.2830188, g: 0.58511597, b: 0.47810605, a: 0}
   WoodMaterial: {fileID: 11400000, guid: d415d68791b4f2743ad83d0f6c26cc41, type: 2}
-  WoodAvailable: 3
+  WoodBundlesAvailable: 3
+  WoodAmountPerBundle: 5
+  MinHitsPerWood: 2
+  MaxHitsPerWood: 4
+  InteractFeedback: {fileID: 0}
   FallingLeavesVFX: {fileID: 5900966368254781339}
 --- !u!65 &7107275186959280811
 BoxCollider:
@@ -85,6 +89,7 @@ GameObject:
   - component: {fileID: -6224880701544253866}
   - component: {fileID: 480977836980175004}
   - component: {fileID: 7322816492271662372}
+  - component: {fileID: 1897290489050505500}
   m_Layer: 6
   m_Name: Tree 2
   m_TagString: Tree1
@@ -251,6 +256,22 @@ MonoBehaviour:
   leavesBorderColorProperty: _LeavesBorderColor
   trunkColorProperty: _TrunkColor
   trunkBorderColorProperty: _TrunkBorderColor
+--- !u!208 &1897290489050505500
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7367463274079047175}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 4.65, y: 16.29, z: 1}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 16.538, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &7490927804086424243
 GameObject:
   m_ObjectHideFlags: 0

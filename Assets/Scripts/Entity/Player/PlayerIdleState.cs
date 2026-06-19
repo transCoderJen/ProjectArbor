@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
@@ -23,6 +24,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             base.Update();
 
+            if (CameraIsBusy())
+                return;
+
             if (Player.AttackBuffered)
             {
                 Player.AttackBuffered = false;
@@ -34,6 +38,12 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             {
                 Player.StateMachine.ChangeState(Player.MoveState);
             }
+        }
+
+        private bool CameraIsBusy()
+        {
+            return CameraManager.Instance != null &&
+                   CameraManager.Instance.IsTransitioning;
         }
     }
 }

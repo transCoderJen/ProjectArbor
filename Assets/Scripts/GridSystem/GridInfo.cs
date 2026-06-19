@@ -22,15 +22,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
         private void Start()
         {
-            Debug.Log(
-                $"[GridInfo Start] HasGrid={HasGrid} | " +
-                $"GridRows={Grid?.Count ?? -1} | " +
-                $"SavedBuildables={CountSavedBuildables()}");
-
             if (HasGrid)
             {
-                Debug.Log("[GridInfo Start] Existing grid found. Requesting restore.");
-
                 if (GridManager.Instance != null)
                     GridManager.Instance.RequestGridRestore();
 
@@ -42,10 +35,6 @@ namespace ShiftedSignal.Garden.GridSystem
                 SaveManager.Instance.gameData.gridRows != null &&
                 SaveManager.Instance.gameData.gridRows.Count > 0)
             {
-                Debug.Log(
-                    $"[GridInfo Start] SaveManager has gridRows={SaveManager.Instance.gameData.gridRows.Count}. " +
-                    "Waiting for LoadData.");
-
                 return;
             }
 
@@ -53,8 +42,6 @@ namespace ShiftedSignal.Garden.GridSystem
                 GridManager.Instance.BlockRows != null &&
                 GridManager.Instance.BlockRows.Count > 0)
             {
-                Debug.Log("[GridInfo Start] No saved grid found. Creating NEW grid.");
-
                 CreateGrid();
             }
         }
@@ -65,14 +52,13 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void CreateGrid()
         {
-            Debug.Log("[GridInfo CreateGrid] Creating grid from current scene.");
+
 
             Grid.Clear();
             HasGrid = true;
 
             if (GridManager.Instance == null)
             {
-                Debug.LogWarning("[GridInfo CreateGrid] GridManager.Instance is null.");
                 return;
             }
 
@@ -88,10 +74,6 @@ namespace ShiftedSignal.Garden.GridSystem
                     Grid[y].Blocks.Add(newInfo);
                 }
             }
-
-            Debug.Log(
-                $"[GridInfo CreateGrid] Complete | Rows={Grid.Count} | " +
-                $"SavedBuildables={CountSavedBuildables()}");
         }
 
         private BlockInfo CreateInfoFromBlock(GrowBlock block)
@@ -135,15 +117,10 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void UpdateInfoFromGrid()
         {
-            Debug.Log(
-                $"[GridInfo UpdateInfoFromGrid] START | " +
-                $"BeforeSavedBuildables={CountSavedBuildables()}");
-
             EnsureGridMatchesScene();
 
             if (GridManager.Instance == null)
             {
-                Debug.LogWarning("[GridInfo UpdateInfoFromGrid] GridManager.Instance is null.");
                 return;
             }
 
@@ -156,9 +133,6 @@ namespace ShiftedSignal.Garden.GridSystem
                 }
             }
 
-            Debug.Log(
-                $"[GridInfo UpdateInfoFromGrid] END | " +
-                $"AfterSavedBuildables={CountSavedBuildables()}");
         }
 
         private void SaveBuildableInfo(GrowBlock block, BlockInfo info, string source)
@@ -169,10 +143,6 @@ namespace ShiftedSignal.Garden.GridSystem
             {
                 if (!string.IsNullOrEmpty(info.BuildableItemID))
                 {
-                    Debug.LogWarning(
-                        $"[GridInfo SaveBuildableInfo] {source} runtime buildable missing at {block.GetGridPosition()} | " +
-                        $"Keeping SavedID={info.BuildableItemID}");
-
                     return;
                 }
 
@@ -186,18 +156,8 @@ namespace ShiftedSignal.Garden.GridSystem
             {
                 if (!string.IsNullOrEmpty(info.BuildableItemID))
                 {
-                    Debug.LogWarning(
-                        $"[GridInfo SaveBuildableInfo] {source} BuildableData missing at {block.GetGridPosition()} | " +
-                        $"Buildable={buildable.name} | Keeping SavedID={info.BuildableItemID}",
-                        buildable);
-
                     return;
                 }
-
-                Debug.LogWarning(
-                    $"[GridInfo SaveBuildableInfo] {source} found buildable with NULL data at {block.GetGridPosition()} | " +
-                    $"Buildable={buildable.name}",
-                    buildable);
 
                 info.BuildableItemID = "";
                 info.BuildableYRotation = 0f;
@@ -209,9 +169,6 @@ namespace ShiftedSignal.Garden.GridSystem
             info.BuildableYRotation = buildable.transform.eulerAngles.y;
             info.BuildableHP = buildable.CurrentHP;
 
-            Debug.Log(
-                $"[GridInfo SaveBuildableInfo] {source} SAVED buildable at {block.GetGridPosition()} | " +
-                $"Buildable={buildable.name} | ItemID={info.BuildableItemID} | HP={info.BuildableHP}");
         }
 
         #endregion
@@ -263,17 +220,11 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (GridManager.Instance == null)
             {
-                Debug.LogWarning("[GridInfo EnsureGridMatchesScene] GridManager.Instance is null.");
                 return;
             }
 
             if (Grid.Count != GridManager.Instance.BlockRows.Count)
             {
-                Debug.LogWarning(
-                    $"[GridInfo EnsureGridMatchesScene] ROW MISMATCH | " +
-                    $"SavedRows={Grid.Count} | SceneRows={GridManager.Instance.BlockRows.Count} | " +
-                    $"SavedBuildablesBefore={CountSavedBuildables()} | NOT recreating during debug.");
-
                 return;
             }
 
@@ -281,12 +232,6 @@ namespace ShiftedSignal.Garden.GridSystem
             {
                 if (Grid[y].Blocks.Count != GridManager.Instance.BlockRows[y].Blocks.Count)
                 {
-                    Debug.LogWarning(
-                        $"[GridInfo EnsureGridMatchesScene] COLUMN MISMATCH | Row={y} | " +
-                        $"SavedColumns={Grid[y].Blocks.Count} | " +
-                        $"SceneColumns={GridManager.Instance.BlockRows[y].Blocks.Count} | " +
-                        $"SavedBuildablesBefore={CountSavedBuildables()} | NOT recreating during debug.");
-
                     return;
                 }
             }
@@ -315,48 +260,25 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void LoadData(GameData data)
         {
-            Debug.Log(
-                $"[GridInfo LoadData] IncomingRows={data.gridRows?.Count ?? 0} | " +
-                $"IncomingBuildables={CountBuildablesInRows(data.gridRows)}");
-
             if (data.gridRows == null || data.gridRows.Count <= 0)
             {
-                Debug.Log("[GridInfo LoadData] No gridRows found. Skipping.");
                 return;
             }
 
             Grid = data.gridRows;
             HasGrid = true;
 
-            Debug.Log(
-                $"[GridInfo LoadData] Loaded Rows={Grid.Count} | " +
-                $"LoadedBuildables={CountSavedBuildables()}");
-
             if (GridManager.Instance != null)
             {
-                Debug.Log("[GridInfo LoadData] Requesting GridManager restore.");
                 GridManager.Instance.RequestGridRestore();
-            }
-            else
-            {
-                Debug.Log("[GridInfo LoadData] GridManager null. Restore will wait for GridInfo.Start/GridManager.Start.");
             }
         }
 
         public void SaveData(ref GameData data)
         {
-            Debug.Log(
-                $"[GridInfo SaveData] START | CurrentSavedBuildables={CountSavedBuildables()}");
-
             UpdateInfoFromGrid();
 
-            Debug.Log(
-                $"[GridInfo SaveData] AFTER UpdateInfoFromGrid | CurrentSavedBuildables={CountSavedBuildables()}");
-
             data.gridRows = Grid;
-
-            Debug.Log(
-                $"[GridInfo SaveData] WROTE TO GAMEDATA | GameDataBuildables={CountBuildablesInRows(data.gridRows)}");
         }
 
         #endregion
@@ -365,79 +287,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void DestroyGrid()
         {
-            Debug.LogWarning(
-                $"[GridInfo DestroyGrid] Destroying grid | PreviousRows={Grid?.Count ?? -1} | " +
-                $"PreviousBuildables={CountSavedBuildables()}");
-
             Grid.Clear();
             HasGrid = false;
-        }
-
-        #endregion
-
-        #region Debug Helpers
-
-        [ContextMenu("Debug Print Saved Buildables")]
-        public void DebugPrintSavedBuildables()
-        {
-            if (Grid == null || Grid.Count == 0)
-            {
-                Debug.Log("[GridInfo] No saved grid data.");
-                return;
-            }
-
-            int count = 0;
-
-            for (int y = 0; y < Grid.Count; y++)
-            {
-                for (int x = 0; x < Grid[y].Blocks.Count; x++)
-                {
-                    BlockInfo info = Grid[y].Blocks[x];
-
-                    if (string.IsNullOrEmpty(info.BuildableItemID))
-                        continue;
-
-                    count++;
-
-                    Debug.Log(
-                        $"[GridInfo Saved Buildable] ({x},{y}) " +
-                        $"ItemID={info.BuildableItemID} " +
-                        $"HP={info.BuildableHP} " +
-                        $"Rotation={info.BuildableYRotation}");
-                }
-            }
-
-            Debug.Log($"[GridInfo] Total saved buildables: {count}");
-        }
-
-        private int CountSavedBuildables()
-        {
-            return CountBuildablesInRows(Grid);
-        }
-
-        private int CountBuildablesInRows(List<InfoRow> rows)
-        {
-            if (rows == null)
-                return 0;
-
-            int count = 0;
-
-            for (int y = 0; y < rows.Count; y++)
-            {
-                if (rows[y] == null || rows[y].Blocks == null)
-                    continue;
-
-                for (int x = 0; x < rows[y].Blocks.Count; x++)
-                {
-                    if (rows[y].Blocks[x] == null)
-                        continue;
-
-                    if (!string.IsNullOrEmpty(rows[y].Blocks[x].BuildableItemID))
-                        count++;
-                }
-            }
-
-            return count;
         }
 
         #endregion

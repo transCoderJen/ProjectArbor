@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Misc;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -42,7 +41,6 @@ namespace ShiftedSignal.Garden.Managers
 
             [SerializeField] private float maxFollowOffsetY = 100f;
             public float MaxFollowOffsetY => maxFollowOffsetY;
-
             public void Validate()
             {
                 if (maxFieldOfView < minFieldOfView)
@@ -84,6 +82,10 @@ namespace ShiftedSignal.Garden.Managers
         [Header("Free Look Movement")]
         [SerializeField] private Transform freeLookTarget;
         [SerializeField] private float freeLookPanSpeed = 20f;
+
+        [SerializeField] private bool enableMouseRegionPanning = true;
+        [SerializeField] private float mouseRegionPanSize = 25f;
+        
 
         [Header("Distance Culling")]
         [SerializeField] private float cullDistance = 60f;
@@ -422,25 +424,13 @@ namespace ShiftedSignal.Garden.Managers
 
         private void HandleFreeLookMovement()
         {
-            if (currentVCamera == null || currentVCamera.CameraType != VirtualCameraType.FreeLook)
-                return;
-
-            if (Keyboard.current == null)
+            if (currentVCamera == null ||
+                currentVCamera.CameraType != VirtualCameraType.FreeLook)
                 return;
 
             Vector2 moveInput = Vector2.zero;
-
-            if (Keyboard.current.aKey.isPressed)
-                moveInput.x -= 1f;
-
-            if (Keyboard.current.dKey.isPressed)
-                moveInput.x += 1f;
-
-            if (Keyboard.current.sKey.isPressed)
-                moveInput.y -= 1f;
-
-            if (Keyboard.current.wKey.isPressed)
-                moveInput.y += 1f;
+            moveInput = KeyboardPanning(moveInput);
+            moveInput = MousePanning(moveInput);
 
             if (moveInput.sqrMagnitude > 1f)
                 moveInput.Normalize();
@@ -449,6 +439,64 @@ namespace ShiftedSignal.Garden.Managers
                 return;
 
             ChangeFreeLookOffsetXZ(moveInput);
+        }
+
+        private Vector2 MousePanning(Vector2 moveInput)
+        {
+            if (!enableMouseRegionPanning)
+                return moveInput;
+
+            if (Mouse.current == null)
+                return moveInput;
+
+            if (Helpers.IsOverUI())
+                return moveInput;
+
+            Vector2 mousePosition = Mouse.current.position.ReadValue();
+
+            bool mouseIsOnScreen =
+                mousePosition.x >= 0f &&
+                mousePosition.x <= Screen.width &&
+                mousePosition.y >= 0f &&
+                mousePosition.y <= Screen.height;
+
+            if (!mouseIsOnScreen)
+                return moveInput;
+
+            if (mousePosition.x <= mouseRegionPanSize)
+                moveInput.x -= 1f;
+
+            if (mousePosition.x >= Screen.width - mouseRegionPanSize)
+                moveInput.x += 1f;
+
+            if (mousePosition.y <= mouseRegionPanSize)
+                moveInput.y -= 1f;
+
+            if (mousePosition.y >= Screen.height - mouseRegionPanSize)
+                moveInput.y += 1f;
+
+            return moveInput;
+        }
+
+        private static Vector2 KeyboardPanning(Vector2 moveInput)
+        {
+            // Keyboard movement
+            if (Keyboard.current != null)
+            {
+                if (Keyboard.current.aKey.isPressed)
+                    moveInput.x -= 1f;
+
+                if (Keyboard.current.dKey.isPressed)
+                    moveInput.x += 1f;
+
+                if (Keyboard.current.sKey.isPressed)
+                    moveInput.y -= 1f;
+
+                if (Keyboard.current.wKey.isPressed)
+                    moveInput.y += 1f;
+            }
+
+            return moveInput;
         }
 
         private void UpdateFieldOfView()

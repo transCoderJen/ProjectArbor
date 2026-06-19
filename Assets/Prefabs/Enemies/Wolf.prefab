@@ -119,12 +119,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1059228923580360298}
-  - component: {fileID: 204620413973709183}
   - component: {fileID: 2850250329184669183}
   - component: {fileID: 159000011968864555}
   - component: {fileID: 1567521783483595243}
   - component: {fileID: 2079728425337786434}
   - component: {fileID: 6894649318326262481}
+  - component: {fileID: -7671190453675315747}
   m_Layer: 12
   m_Name: Wolf
   m_TagString: Untagged
@@ -149,74 +149,6 @@ Transform:
   - {fileID: 8031609857391600369}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &204620413973709183
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8381032496342837865}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d822d6dfe6a1484d9c8a143b564a5e0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TerrainLayer:
-    serializedVersion: 2
-    m_Bits: 2048
-  GroundDist: 0
-  UI: {fileID: 0}
-  MoveSpeed: 100
-  FacingDir: {x: 1, y: 0, z: 0}
-  LastFacingDir: {x: 1, y: 0}
-  RotationAdjustmentDirection: 2
-  KnockbackForce: 20
-  KnockbackDuration: 1
-  AttackCheck: {fileID: 8031609857391600369}
-  AttackCheckRadius: 2.88
-  AttackCheckDistance: -8.62
-  CheckHeight: 2.66
-  AttackCoolDown: 0
-  AttackTimer: 0
-  IsDead: 0
-  WhatIsPlayer:
-    serializedVersion: 2
-    m_Bits: 128
-  WhatIsCrop:
-    serializedVersion: 2
-    m_Bits: 0
-  stunDuration: 0
-  stunDirection: {x: 0, y: 0}
-  counterImage: {fileID: 0}
-  moveSpeed: 12
-  idleTime: 2
-  battleTime: 20
-  attackDamage: 1
-  lastTimeAttacked: 0
-  AttackTriggerRadius: 50
-  ChaseTriggerRadius: 100
-  FarmTarget: {fileID: 0}
-  RaidAttackDistance: 1.25
-  raidTargetPointSampleRadius: 2
-  raidTargetPointRefreshTime: 0.75
-  WanderRadius: 465.99
-  MinIdleWaitTime: 1
-  MaxIdleWaitTime: 3
-  WanderPointReachDistance: 0.35
-  WanderPointAttempts: 12
-  LungeDistance: 10
-  LungeSpeed: 25
-  LungeRecoveryTime: 2
-  AttackStopDistanceFromPlayer: 0.75
-  LungeTimeout: 2
-  LoseTargetTime: 3
-  RecoveryCircleRadius: 10
-  RecoveryCircleSpeed: 15
-  CircleClockwise: 1
-  LungeDistanceRange: {x: 8, y: 12}
-  LungeSpeedRange: {x: 20, y: 30}
-  RecoveryCircleRadiusRange: {x: 7, y: 13}
-  RecoveryCircleSpeedRange: {x: 10, y: 20}
 --- !u!195 &2850250329184669183
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -226,7 +158,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 8381032496342837865}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 5.06
+  m_Radius: 4
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -235,10 +167,10 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 3.47
+  m_Height: 4
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 0
+  m_ObstacleAvoidanceType: 2
 --- !u!54 &159000011968864555
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -314,7 +246,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1.55
+  m_Radius: 2
   m_Height: 11.14
   m_Direction: 0
   m_Center: {x: 0, y: 2.37, z: 0}
@@ -333,7 +265,35 @@ MonoBehaviour:
   maxHearts: 3
   currentHearts: 0
   isInvincible: 0
-  team: 0
+  team: 2
+--- !u!114 &-7671190453675315747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8381032496342837865}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 495fbeb880b2bba40bc409064cc7590d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team: 2
+  maxHealth: 3
+  moveSpeed: 3.5
+  stoppingDistance: 0.5
+  updateRotation: 0
+  updateUpAxis: 0
+  attackDamage: 1
+  attackRange: 1.25
+  attackCooldown: 1
+  knockbackOnAttack: 1
+  targetSearchRate: 0.2
+  targetSearchRange: 30
+  useRaidTargeting: 1
+  raidTargetPointRefreshTime: 0.5
+  raidAttackDistance: 1.25
+  wolfName: Wolf
 --- !u!1 &8391065821975845796
 GameObject:
   m_ObjectHideFlags: 0

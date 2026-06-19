@@ -407,15 +407,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "WeaponSelector",
-                    "type": "Button",
-                    "id": "0bf866bf-4eba-49ee-88fa-15a9dd0d9b50",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "ToggleMenuLeft",
                     "type": "Button",
                     "id": "662dcb99-58bb-4ae0-a710-7798c3e6a980",
@@ -889,33 +880,11 @@
                 {
                     "name": "",
                     "id": "e2ee4c3f-338e-4dfd-abda-0c81d4c4f780",
-                    "path": "<Keyboard>/ctrl",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "ToolSelector",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "1e7acf4e-9af3-4e06-b3bc-d23df2d9bf27",
-                    "path": "<Gamepad>/rightTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "WeaponSelector",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d442aa9c-dadf-4ced-8f47-d1a74a47fb67",
                     "path": "<Mouse>/middleButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "WeaponSelector",
+                    "action": "ToolSelector",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

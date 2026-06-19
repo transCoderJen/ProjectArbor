@@ -84,7 +84,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         [Header("Farming")]
         [SerializeField] private float blockInteractRadius = 3f;
         public bool InManagementState = false;
-
+        public bool InCommanderMode = false;
+        
         #endregion
 
         #region Building
@@ -107,6 +108,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         [SerializeField] private float buildRotationStep = 90f;
 
+        [Header("2D Building Placement Glow")]
+        [SerializeField] private float errorSineGlowMin = 0.25f;
+
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
+        private Color errorSineGlowColor = new(4f, 1.7f, 0f, 2f);
+
+        [SerializeField] private float availableSineGlowMin = 0.75f;
+
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
+        private Color availableSineGlowColor = new(0.02f, 0.65f, 1f, 2f);
+        
+
         [Header("Build Drag")]
         [SerializeField] private float dragBuildCooldown = 0.05f;
 
@@ -121,6 +134,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private static readonly int TINT = Shader.PropertyToID("_Tint");
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
+        private static readonly int SINE_GLOW_MIN = Shader.PropertyToID("_SineGlowMin");
+        private static readonly int SINE_GLOW_COLOR = Shader.PropertyToID("_SineGlowColor");
+
+        private MaterialPropertyBlock ghostPropertyBlock;
 
         #endregion
 
@@ -151,6 +168,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public PlayerIdleState IdleState { get; private set; }
         public PlayerMoveState MoveState { get; private set; }
         public PlayerManagementState ManagementState { get; private set; }
+        public PlayerCommanderState CommanderState { get; private set; }
         public PlayerAttackState AttackState { get; private set; }
 
         #endregion
@@ -181,6 +199,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             MoveState = new PlayerMoveState(this, StateMachine, "Move");
             ManagementState = new PlayerManagementState(this, StateMachine, "Idle");
             AttackState = new PlayerAttackState(this, StateMachine, "Attack");
+            CommanderState = new PlayerCommanderState(this, StateMachine, "Idle");
+
+            ghostPropertyBlock = new MaterialPropertyBlock();
         }
 
         protected override void Start()
@@ -362,14 +383,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 if (CameraManager.Instance.IsTransitioning)
                     return;
 
-                if (StateMachine.CurrentState == ManagementState)
-                    StateMachine.ChangeState(IdleState);
-                else
+                if (StateMachine.CurrentState != ManagementState &&
+                    StateMachine.CurrentState != CommanderState)
+                {
                     StateMachine.ChangeState(ManagementState);
-
-                // ResetBuildDrag();
+                }
             }
 
+            if (Keyboard.current.hKey.wasPressedThisFrame)
+            {
+                if (CameraManager.Instance.IsTransitioning)
+                    return;
+
+                if (StateMachine.CurrentState != CommanderState &&
+                    StateMachine.CurrentState != ManagementState)
+                {
+                    StateMachine.ChangeState(CommanderState);
+                }
+            }
+            
             if (Keyboard.current.kKey.isPressed)
                 GridInfo.Instance.GrowCrop();
 #endif
@@ -535,11 +567,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             if (buildable is FencePost2D fence)
             {
-                Debug.Log(
-                    $"Placed Fence at {block.name}. " +
-                    $"HasBuildable={block.HasBuildable} " +
-                    $"CurrentBuildable={block.CurrentBuildable?.name}");
-
                 fence.RefreshConnections(block);
                 FencePost2D.RefreshNeighbors(block);
             }
@@ -729,7 +756,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 fencePostGhost.ShowDefaultVisual();
             }
 
-            HandleBuildRotationInput();
+            // HandleBuildRotationInput();
 
             if (isFenceGhost)
             {
@@ -763,7 +790,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void UpdateGhostColor()
         {
-            if (EquippedBuildable == null || ghostRenderers == null || ghostRenderers.Length == 0)
+            if (EquippedBuildable == null)
                 return;
 
             BaseBuildable buildable =
@@ -772,7 +799,16 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (buildable == null)
                 return;
 
-            bool allRestrictionsPass = buildable.AllRestrictionsPass();
+            GrowBlock hoveredBlock = GetBlock();
+
+            bool blockedBySameBuildable =
+                hoveredBlock != null &&
+                hoveredBlock.CurrentBuildable != null &&
+                hoveredBlock.CurrentBuildable.BuildableData != null &&
+                hoveredBlock.CurrentBuildable.BuildableData.ItemID == EquippedBuildable.ItemID;
+
+            bool allRestrictionsPass =
+                buildable.AllRestrictionsPass() || blockedBySameBuildable;
 
             Color tintColor =
                 allRestrictionsPass ? availableToPlaceTintColor : errorTintColor;
@@ -780,21 +816,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Color fresnelColor =
                 allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor;
 
-            foreach (MeshRenderer renderer in ghostRenderers)
-            {
-                if (renderer == null)
-                    continue;
+            float sineGlowMin =
+                allRestrictionsPass ? availableSineGlowMin : errorSineGlowMin;
 
-                foreach (Material material in renderer.materials)
+            Color sineGlowColor =
+                allRestrictionsPass ? availableSineGlowColor : errorSineGlowColor;
+
+            if (ghostRenderers != null)
+            {
+                foreach (MeshRenderer renderer in ghostRenderers)
                 {
-                    if (material == null)
+                    if (renderer == null)
                         continue;
 
-                    if (material.HasProperty(TINT))
-                        material.SetColor(TINT, tintColor);
-
-                    if (material.HasProperty(FRESNEL))
-                        material.SetColor(FRESNEL, fresnelColor);
+                    ApplyBuildGhostPropertyBlock(
+                        renderer,
+                        tintColor,
+                        fresnelColor,
+                        sineGlowMin,
+                        sineGlowColor);
                 }
             }
 
@@ -806,8 +846,33 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 if (spriteRenderer == null)
                     continue;
 
-                spriteRenderer.color = tintColor;
+                ApplyBuildGhostPropertyBlock(
+                    spriteRenderer,
+                    tintColor,
+                    fresnelColor,
+                    sineGlowMin,
+                    sineGlowColor);
             }
+        }
+
+        private void ApplyBuildGhostPropertyBlock(
+            Renderer renderer,
+            Color tintColor,
+            Color fresnelColor,
+            float sineGlowMin,
+            Color sineGlowColor)
+        {
+            if (renderer == null)
+                return;
+
+            renderer.GetPropertyBlock(ghostPropertyBlock);
+
+            ghostPropertyBlock.SetColor(TINT, tintColor);
+            ghostPropertyBlock.SetColor(FRESNEL, fresnelColor);
+            ghostPropertyBlock.SetFloat(SINE_GLOW_MIN, sineGlowMin);
+            ghostPropertyBlock.SetColor(SINE_GLOW_COLOR, sineGlowColor);
+
+            renderer.SetPropertyBlock(ghostPropertyBlock);
         }
 
         public void DestroyGhost()

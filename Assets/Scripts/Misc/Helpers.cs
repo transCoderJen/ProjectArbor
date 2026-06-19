@@ -43,15 +43,26 @@ namespace ShiftedSignal.Garden.Misc
             return WaitDictionary[time];
         }
 
-        private static PointerEventData _eventDataCurrentPosition;
-        private static List<RaycastResult> _results;
+        private static readonly List<RaycastResult> Results = new();
+        private static PointerEventData eventDataCurrentPosition;
 
         public static bool IsOverUI()
         {
-            _eventDataCurrentPosition = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
-            _results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(_eventDataCurrentPosition, _results);
-            return _results.Count > 0;
+            if (EventSystem.current == null)
+                return false;
+
+            eventDataCurrentPosition ??=
+                new PointerEventData(EventSystem.current);
+
+            eventDataCurrentPosition.position = Input.mousePosition;
+
+            Results.Clear();
+
+            EventSystem.current.RaycastAll(
+                eventDataCurrentPosition,
+                Results);
+
+            return Results.Count > 0;
         }
 
         public static Vector2 GetWorldPositionOfCanvasElement(RectTransform element)

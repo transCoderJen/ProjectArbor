@@ -474,7 +474,7 @@ Material:
     - _SineGlowFrequency: 12
     - _SineGlowMaskToggle: 0
     - _SineGlowMax: 1
-    - _SineGlowMin: 0.8
+    - _SineGlowMin: 1
     - _SineMoveFade: 1
     - _SineRotateAngle: 15
     - _SineRotateFade: 1

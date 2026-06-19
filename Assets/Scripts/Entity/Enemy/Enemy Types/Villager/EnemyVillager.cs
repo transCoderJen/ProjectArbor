@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
+namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Villager
 {
     public class EnemyVillager : MonoBehaviour
     {
