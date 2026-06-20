@@ -12,7 +12,7 @@ namespace ShiftedSignal.Garden.Tools
 
         [Header("Fade Settings")]
         [Range(0f, 1f)]
-        [SerializeField] private float TransparentAlpha = 0.35f;
+        [SerializeField] private float TransparentAlpha = 0.6f;
 
         [SerializeField] private float FadeDuration = 0.2f;
 

@@ -1,7 +1,8 @@
 using System;
-using UnityEngine;
-using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Units;
+using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
@@ -9,7 +10,7 @@ namespace ShiftedSignal.Garden.Buildable
     public struct RequiredMaterial
     {
         public ItemData Material;
-        public int amount;
+        public int Amount;
     }
 
     [Serializable]
@@ -34,7 +35,7 @@ namespace ShiftedSignal.Garden.Buildable
     }
 
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
-    public class BuildableData : ScriptableObject
+    public class BuildableData : UnitSO
     {
         [Header("Identity")]
         public string ItemID;
@@ -47,7 +48,7 @@ namespace ShiftedSignal.Garden.Buildable
         public GameObject BuildablePrefab;
 
         [Header("Crafting")]
-        public RequiredMaterial[] requiredMaterials;
+        public RequiredMaterial[] RequiredMaterials;
         public int Cost;
 
         [Header("Tower Stats")]
@@ -70,14 +71,17 @@ namespace ShiftedSignal.Garden.Buildable
             if (Inventory.Instance == null)
                 return false;
 
-            for (int i = 0; i < requiredMaterials.Length; i++)
+            if (RequiredMaterials == null)
+                return true;
+
+            for (int i = 0; i < RequiredMaterials.Length; i++)
             {
-                RequiredMaterial required = requiredMaterials[i];
+                RequiredMaterial required = RequiredMaterials[i];
 
                 if (required.Material == null)
                     continue;
 
-                if (!Inventory.Instance.HasItem(required.Material, required.amount))
+                if (!Inventory.Instance.HasItem(required.Material, required.Amount))
                     return false;
             }
 
@@ -89,14 +93,17 @@ namespace ShiftedSignal.Garden.Buildable
             if (Inventory.Instance == null)
                 return;
 
-            for (int i = 0; i < requiredMaterials.Length; i++)
+            if (RequiredMaterials == null)
+                return;
+
+            for (int i = 0; i < RequiredMaterials.Length; i++)
             {
-                RequiredMaterial required = requiredMaterials[i];
+                RequiredMaterial required = RequiredMaterials[i];
 
                 if (required.Material == null)
                     continue;
 
-                Inventory.Instance.RemoveItem(required.Material, required.amount);
+                Inventory.Instance.RemoveItem(required.Material, required.Amount);
             }
         }
 

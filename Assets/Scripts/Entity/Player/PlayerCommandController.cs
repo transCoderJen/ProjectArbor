@@ -198,14 +198,27 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         }
 
         private void HandleLeftClick()
-        {
-            Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
+{
+    Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-            if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitsLayers)
-            && hit.collider.TryGetComponent(out ISelectable selectable))
-            {
-                selectable.Select();                
-            }
+    if (Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, selectableUnitsLayers))
+    {
+        Debug.Log($"Hit: {hit.collider.name}");
+
+        if (hit.collider.TryGetComponent(out ISelectable selectable))
+        {
+            Debug.Log($"Selectable found on {hit.collider.name}");
+            selectable.Select();
         }
+        else
+        {
+            Debug.LogWarning($"No ISelectable found on {hit.collider.name}");
+        }
+    }
+    else
+    {
+        Debug.Log("Raycast missed");
+    }
+}
     }
 }

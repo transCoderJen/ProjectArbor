@@ -35,17 +35,17 @@ namespace ShiftedSignal.Garden.Buildable
         {
             base.DoDamage(damage);
 
-            if (hp <= 0)
+            if (CurrentHealth <= 0)
                 return;
 
-            if (hp <= MaxHP * 0.5f && !firstDamageStageTriggered)
+            if (CurrentHealth <= MaxHealth * 0.5f && !firstDamageStageTriggered)
             {
                 DestroyRandomActiveRail();
                 DestroyDamagePiece(0);
                 firstDamageStageTriggered = true;
             }
 
-            if (hp <= MaxHP * 0.25f && !secondDamageStageTriggered)
+            if (CurrentHealth <= MaxHealth * 0.25f && !secondDamageStageTriggered)
             {
                 DestroyRandomActiveRail();
                 DestroyDamagePiece(1);
@@ -77,18 +77,10 @@ namespace ShiftedSignal.Garden.Buildable
                 return;
 
             RefreshFenceAt(centerBlock);
-
-            RefreshFenceAt(
-                GridManager.Instance.GetNorthNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetSouthNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetEastNeighbor(centerBlock));
-
-            RefreshFenceAt(
-                GridManager.Instance.GetWestNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetNorthNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetSouthNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetEastNeighbor(centerBlock));
+            RefreshFenceAt(GridManager.Instance.GetWestNeighbor(centerBlock));
         }
 
         private static void RefreshFenceAt(GrowBlock block)
@@ -96,10 +88,8 @@ namespace ShiftedSignal.Garden.Buildable
             if (block == null)
                 return;
 
-            if (block.CurrentBuildable is FencePost2D fencePost)
-            {
+            if (block.CurrentBuildable is FencePost fencePost)
                 fencePost.RefreshConnections(block);
-            }
         }
 
         private void TryRefreshFencePost(GrowBlock block, Vector2Int direction)
@@ -109,7 +99,7 @@ namespace ShiftedSignal.Garden.Buildable
             if (neighbor == null)
                 return;
 
-            if (neighbor.CurrentBuildable is FencePost2D fencePost)
+            if (neighbor.CurrentBuildable is FencePost fencePost)
                 fencePost.RefreshConnections(neighbor);
         }
 
@@ -120,7 +110,7 @@ namespace ShiftedSignal.Garden.Buildable
             if (neighbor == null)
                 return false;
 
-            return neighbor.CurrentBuildable is FencePost2D;
+            return neighbor.CurrentBuildable is FencePost;
         }
 
         private void DestroyRandomActiveRail()

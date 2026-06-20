@@ -22,8 +22,10 @@ namespace ShiftedSignal.Garden.Buildable
             ShowDefaultVisual("OnEnable");
         }
 
-        private void Start()
+        protected override void Start()
         {
+            base.Start();
+
             if (OccupiedBlock != null)
                 RefreshConnections(OccupiedBlock);
             else

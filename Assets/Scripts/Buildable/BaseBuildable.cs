@@ -5,16 +5,17 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Interfaces;
-using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class BaseBuildable : MonoBehaviour, IDamageable, IRaiderTarget, IHealable
+    public class BaseBuildable : AbstractCommandable, IRaiderTarget
     {
         [Header("Build Info")]
         public BuildableData BuildableData;
+        protected override UnitSO Config => BuildableData;
         public virtual Transform ProjectileSpawnPoint => transform;
         [SerializeField] protected bool IsActive;
 
@@ -22,7 +23,6 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private Material GhostMaterial;
 
         [Header("Raid Target")]
-        
         [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
         [SerializeField] private int RaidPriority = 50;
 
@@ -50,22 +50,13 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private bool RunOnTimeChanged;
         [SerializeField] private bool RunOnNightStarted;
 
-        [Header("Stats")]
-        [SerializeField] protected float Durability;
-        [SerializeField] protected int MaxHP = 5;
-
-        protected int hp;
-
         public GrowBlock OccupiedBlock { get; private set; }
 
-        public CombatTeam Team => CombatTeam.Buildable;
+        public override CombatTeam Team => CombatTeam.Buildable;
         public Transform TargetTransform => transform;
         public RaiderTargetType TargetType => targetType;
         public int Priority => RaidPriority;
-        public bool IsValidTarget => IsActive && hp > 0 && gameObject.activeInHierarchy;
-
-        public int CurrentHP => hp;
-        public int MaximumHP => MaxHP;
+        public bool IsValidTarget => IsActive && CurrentHealth > 0 && gameObject.activeInHierarchy;
 
         private Renderer[] cachedRenderers;
         private readonly Dictionary<Renderer, Material[]> originalMaterials = new();
@@ -74,8 +65,6 @@ namespace ShiftedSignal.Garden.Buildable
         protected virtual void Awake()
         {
             CacheRenderersAndMaterials();
-
-            hp = MaxHP;
 
             if (!IsActive)
                 ApplyGhostMaterial();
@@ -114,7 +103,7 @@ namespace ShiftedSignal.Garden.Buildable
             RestoreOriginalMaterials();
 
             IsActive = true;
-            hp = MaxHP;
+            SetHealth(MaxHealth, MaxHealth);
         }
 
         public void SetOccupiedBlock(GrowBlock block)
@@ -306,31 +295,33 @@ namespace ShiftedSignal.Garden.Buildable
             effectCooldowns[effect] = Time.time;
         }
 
-        public void TakeDamage(DamageData damageData)
-        {
-            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
-                return;
-
-            DoDamage(damageData.Amount);
-        }
-
-        public virtual void DoDamage(int damage)
+        public override void TakeDamage(DamageData damageData)
         {
             if (!IsActive)
                 return;
 
-            hp -= damage;
-
-            if (hp <= 0)
-                DestroyBuilding();
+            base.TakeDamage(damageData);
         }
 
-        public void Heal(int amount)
+        public override void DoDamage(int damage)
         {
-            if (hp <= 0)
+            if (!IsActive)
                 return;
 
-            hp = Mathf.Min(hp + amount, MaxHP);
+            base.DoDamage(damage);
+        }
+
+        protected override void Die()
+        {
+            DestroyBuilding();
+        }
+
+        public override void Heal(int amount)
+        {
+            if (!IsActive)
+                return;
+
+            base.Heal(amount);
         }
 
         protected virtual void DestroyBuilding()
@@ -359,9 +350,11 @@ namespace ShiftedSignal.Garden.Buildable
 
             IsActive = true;
 
-            hp = savedHP > 0
-                ? Mathf.Clamp(savedHP, 1, MaxHP)
-                : MaxHP;
+            int restoredHP = savedHP > 0
+                ? Mathf.Clamp(savedHP, 1, MaxHealth)
+                : MaxHealth;
+
+            SetHealth(restoredHP, MaxHealth);
         }
 
         protected virtual void OnDestroy()

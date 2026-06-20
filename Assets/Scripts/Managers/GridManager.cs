@@ -35,7 +35,7 @@ namespace ShiftedSignal.Garden.Managers
 
         [Header("Debug")]
         [SerializeField] private bool logGridRestore = true;
-        [SerializeField] private bool logBuildableRestore = true;
+        [SerializeField] private bool logBuildableRestore = false;
         [SerializeField] private bool allowGridHighlighting = true;
 
         [Header("Runtime")]
@@ -365,6 +365,8 @@ namespace ShiftedSignal.Garden.Managers
         [ContextMenu("Update Grid")]
         public void UpdateGrid()
         {
+            float startTime = Time.realtimeSinceStartup;
+
             if (logGridRestore)
             {
                 Debug.Log(
@@ -425,6 +427,7 @@ namespace ShiftedSignal.Garden.Managers
 
             Debug.Log(
                 $"[GridManager Restore] UpdateGrid COMPLETE | " +
+                $"Time={(Time.realtimeSinceStartup - startTime):F3}s | " +
                 $"SavedBuildables={CountSavedBuildables()} | " +
                 $"RestoredBuildables={restoredBuildables} | " +
                 $"RestoreFailures={restoreFailures} | " +
@@ -473,13 +476,16 @@ namespace ShiftedSignal.Garden.Managers
             if (string.IsNullOrEmpty(info.BuildableItemID))
                 return false;
 
-            Debug.Log(
-                $"[Buildable Restore] FOUND saved buildable | " +
-                $"Grid={block.GetGridPosition()} | " +
-                $"ItemID={info.BuildableItemID} | " +
-                $"HP={info.BuildableHP} | " +
-                $"Rot={info.BuildableYRotation}",
-                this);
+            if (logBuildableRestore)
+            {
+                Debug.Log(
+                    $"[Buildable Restore] FOUND saved buildable | " +
+                    $"Grid={block.GetGridPosition()} | " +
+                    $"ItemID={info.BuildableItemID} | " +
+                    $"HP={info.BuildableHP} | " +
+                    $"Rot={info.BuildableYRotation}",
+                    this);                
+            }
 
             BuildableData buildableData = FindBuildableDataByItemID(info.BuildableItemID);
 
@@ -507,10 +513,16 @@ namespace ShiftedSignal.Garden.Managers
                 return false;
             }
 
+            float buildableStart = Time.realtimeSinceStartup;
+
             GameObject builtObject = Instantiate(
                 buildableData.BuildablePrefab,
                 block.transform.position,
                 Quaternion.Euler(0f, info.BuildableYRotation, 0f));
+
+            Debug.Log(
+                $"Instantiate {buildableData.name}: " +
+                $"{(Time.realtimeSinceStartup - buildableStart) * 1000f:F2} ms");
 
             BaseBuildable buildable = builtObject.GetComponent<BaseBuildable>();
 
@@ -529,12 +541,15 @@ namespace ShiftedSignal.Garden.Managers
             buildable.RestoreFromSave(info.BuildableHP);
             block.SetBuildable(buildable);
 
-            Debug.Log(
-                $"[Buildable Restore] SUCCESS | " +
-                $"Grid={block.GetGridPosition()} | " +
-                $"Object={builtObject.name} | " +
-                $"Data={buildableData.name}",
-                builtObject);
+            if (logBuildableRestore)
+            {
+                Debug.Log(
+                    $"[Buildable Restore] SUCCESS | " +
+                    $"Grid={block.GetGridPosition()} | " +
+                    $"Object={builtObject.name} | " +
+                    $"Data={buildableData.name}",
+                    builtObject);
+            }
 
             return true;
         }
@@ -802,7 +817,7 @@ namespace ShiftedSignal.Garden.Managers
             string[] assetGuids =
                 AssetDatabase.FindAssets(
                     "t:BuildableData",
-                    new[] { "Assets/Data/Buildable" });
+                    new[] { "Assets/Data/Units/Buildable" });
 
             foreach (string guid in assetGuids)
             {
@@ -816,6 +831,8 @@ namespace ShiftedSignal.Garden.Managers
 
                 buildableDatabase.Add(buildable);
             }
+
+            Debug.Log($"Filled Buildable Database. Count={buildableDatabase.Count}", this);
 
             EditorUtility.SetDirty(this);
         }

@@ -1,15 +1,9 @@
-using ShiftedSignal.Garden.EventBus;
-using ShiftedSignal.Garden.Events;
-using ShiftedSignal.Garden.Interfaces;
-using Unity.VisualScripting;
-using UnityEngine;
-using UnityEngine.AI;
-using UnityEngine.Rendering.Universal;
+using ShiftedSignal.Garden.Combat;
 
 namespace ShiftedSignal.Garden.Units
 {
     public class Worker : AbstractUnit
     {
-        
+        public override CombatTeam Team => CombatTeam.Friendly;
     }
 }
