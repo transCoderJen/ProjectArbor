@@ -12,13 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea0c59e97993e3f40b4fb8e3ed79f9e6, type: 3}
   m_Name: Fence3D
   m_EditorClassIdentifier: 
+  <Health>k__BackingField: 100
   ItemID: Fence
   BuildableName: Wall
   Icon: {fileID: -580489818, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   BuildablePrefab: {fileID: 2173957321852232242, guid: 2cfa74a27540767459e1395e59f07418, type: 3}
-  requiredMaterials:
-  - Material: {fileID: 11400000, guid: d415d68791b4f2743ad83d0f6c26cc41, type: 2}
-    amount: 5
+  RequiredMaterials: []
   Cost: 5
   HasTowerStats: 0
   BaseTowerStats:

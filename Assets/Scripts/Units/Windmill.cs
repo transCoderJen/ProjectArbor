@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class Windmill : BaseBuildable
+    public class Windmill : BaseBuilding
     {
         [SerializeField] private float activationRadius;
 

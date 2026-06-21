@@ -1,7 +1,7 @@
 namespace ShiftedSignal.Garden.Buildable
 {
 
-    public class Sprinkler : BaseBuildable
+    public class Sprinkler : BaseBuilding
     {
         // protected override void BuildingEffect()
         // {

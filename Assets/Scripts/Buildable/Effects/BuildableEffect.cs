@@ -4,6 +4,6 @@ namespace ShiftedSignal.Garden.Buildable
 {
     public abstract class BuildableEffect : ScriptableObject
     {
-        public abstract void Apply(BaseBuildable buildable);
+        public abstract void Apply(BaseBuilding buildable);
     }
 }

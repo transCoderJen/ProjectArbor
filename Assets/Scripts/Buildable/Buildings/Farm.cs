@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class Farm : BaseBuildable
+    public class Farm : BaseBuilding
     {
         [Header("Farm")]
         [SerializeField] private bool triggerGameOverOnDeath = true;

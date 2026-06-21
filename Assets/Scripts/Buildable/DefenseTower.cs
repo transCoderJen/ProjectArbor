@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class DefenseTower : BaseBuildable
+    public class DefenseTower : BaseBuilding
     {
         [Header("Projectile")]
         [SerializeField] private Transform ProjectileSpawnTransform;

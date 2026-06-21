@@ -1,4 +1,6 @@
+using System.Windows.Input;
 using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -10,8 +12,9 @@ namespace ShiftedSignal.Garden.Units
     public abstract class AbstractCommandable : MonoBehaviour, ISelectable, IDamageable, IHealable
     {
         [Header("Commandable Stats")]
-        [field: SerializeField] public int MaxHealth { get; private set; } = 5;
         [field: SerializeField] public int CurrentHealth { get; private set; }
+        [field: SerializeField] public int MaxHealth { get; private set; }
+        [field: SerializeField] public BaseCommand[] AvailableCommands { get; private set; }
 
         [Header("Selection")]
         [SerializeField] private DecalProjector decalProjector;

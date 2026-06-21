@@ -137,7 +137,7 @@ namespace ShiftedSignal.Garden.GridSystem
 
         private void SaveBuildableInfo(GrowBlock block, BlockInfo info, string source)
         {
-            BaseBuildable buildable = block.CurrentBuildable;
+            BaseBuilding buildable = block.CurrentBuildable;
 
             if (buildable == null)
             {

@@ -9,7 +9,7 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Targeting")]
         [SerializeField] private LayerMask EnemyLayer;
 
-        public override void Apply(BaseBuildable buildable)
+        public override void Apply(BaseBuilding buildable)
         {
             if (buildable == null)
                 return;

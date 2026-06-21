@@ -524,7 +524,7 @@ namespace ShiftedSignal.Garden.Managers
                 $"Instantiate {buildableData.name}: " +
                 $"{(Time.realtimeSinceStartup - buildableStart) * 1000f:F2} ms");
 
-            BaseBuildable buildable = builtObject.GetComponent<BaseBuildable>();
+            BaseBuilding buildable = builtObject.GetComponent<BaseBuilding>();
 
             if (buildable == null)
             {

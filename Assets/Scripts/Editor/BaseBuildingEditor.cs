@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable.Editor
 {
-    [CustomEditor(typeof(BaseBuildable), true)]
+    [CustomEditor(typeof(BaseBuilding), true)]
     public class BaseBuildableEditor : UnityEditor.Editor
     {
         private SerializedProperty hasTimedEffects;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class FencePost2D : BaseBuildable
+    public class FencePost2D : BaseBuilding
     {
         [Header("Fence 2D Sprites")]
         [SerializeField] private GameObject leftRightFence;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    public class FencePost : BaseBuildable
+    public class FencePost : BaseBuilding
     {
         [Header("Fence Connections")]
         [SerializeField] private GameObject northRail;

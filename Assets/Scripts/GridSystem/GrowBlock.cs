@@ -48,9 +48,9 @@ namespace ShiftedSignal.Garden.GridSystem
         public GameObject SpawnedPlant;
 
         [Header("Buildable")]
-        [SerializeField] private BaseBuildable currentBuildable;
+        [SerializeField] private BaseBuilding currentBuildable;
 
-        public BaseBuildable CurrentBuildable
+        public BaseBuilding CurrentBuildable
         {
             get
             {
@@ -78,7 +78,7 @@ namespace ShiftedSignal.Garden.GridSystem
             GridPosition = new Vector2Int(x, z);
         }
 
-        public void SetBuildable(BaseBuildable buildable)
+        public void SetBuildable(BaseBuilding buildable)
         {
             currentBuildable = buildable;
 

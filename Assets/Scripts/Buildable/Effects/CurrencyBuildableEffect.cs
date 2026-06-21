@@ -9,7 +9,7 @@ namespace ShiftedSignal.Garden.Buildable
     {
         [SerializeField] private int CoinsToAdd = 5;
 
-        public override void Apply(BaseBuildable buildable)
+        public override void Apply(BaseBuilding buildable)
         {
             Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(CoinsToAdd));
         }

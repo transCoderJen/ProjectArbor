@@ -14,7 +14,7 @@ namespace ShiftedSignal.Garden.Buildable.Effects
         [SerializeField]
         private int Amount = 1;
 
-        public override void Apply(BaseBuildable buildable)
+        public override void Apply(BaseBuilding buildable)
         {
             for (int i = 0; i < Amount; i++)
             {

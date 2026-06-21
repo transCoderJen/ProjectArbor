@@ -12,11 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea0c59e97993e3f40b4fb8e3ed79f9e6, type: 3}
   m_Name: Windmill
   m_EditorClassIdentifier: 
+  <Health>k__BackingField: 100
   ItemID: Windmill
   BuildableName: Windmill
   Icon: {fileID: 0}
   BuildablePrefab: {fileID: 8292771643294621940, guid: e883cbe05273ae44a881fbab10253c6c, type: 3}
-  requiredMaterials: []
+  RequiredMaterials: []
   Cost: 0
   HasTowerStats: 0
   BaseTowerStats:

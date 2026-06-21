@@ -551,7 +551,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 block.transform.position,
                 Quaternion.Euler(0f, currentBuildYRotation, 0f));
 
-            BaseBuildable buildable = builtObject.GetComponent<BaseBuildable>();
+            BaseBuilding buildable = builtObject.GetComponent<BaseBuilding>();
 
             if (buildable == null)
             {
@@ -793,8 +793,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (EquippedBuildable == null)
                 return;
 
-            BaseBuildable buildable =
-                EquippedBuildable.BuildablePrefab.GetComponent<BaseBuildable>();
+            BaseBuilding buildable =
+                EquippedBuildable.BuildablePrefab.GetComponent<BaseBuilding>();
 
             if (buildable == null)
                 return;
