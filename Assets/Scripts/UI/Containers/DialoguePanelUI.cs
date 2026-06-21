@@ -6,8 +6,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Ink.Runtime;
+using ShiftedSignal.Garden.UserInterface.Components;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     
     public class DialoguePanelUI : MonoBehaviour

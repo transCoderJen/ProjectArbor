@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Components
 {
     
     public class UI_Tooltip : MonoBehaviour

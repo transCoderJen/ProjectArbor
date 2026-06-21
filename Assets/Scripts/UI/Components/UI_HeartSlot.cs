@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Components
 {
     public class UI_HeartSlot : MonoBehaviour
     {

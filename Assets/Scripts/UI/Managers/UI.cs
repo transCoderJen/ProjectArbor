@@ -4,9 +4,11 @@ using UnityEngine.InputSystem;
 using System;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.UserInterface.Containers;
+using ShiftedSignal.Garden.UserInterface.Components;
 
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Managers
 {
     public enum MenuName
     {

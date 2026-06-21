@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.UserInterface.Containers;
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Managers
 {
     public class PickupPopupManager : Singleton<PickupPopupManager>
     {

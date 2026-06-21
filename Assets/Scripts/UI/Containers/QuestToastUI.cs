@@ -7,7 +7,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.QuestSystem;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class QuestToastUI : MonoBehaviour
     {

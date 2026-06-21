@@ -4,8 +4,9 @@ using TMPro;
 using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.UserInterface.Components;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {  
     public class QuestLogUI : MonoBehaviour
     {

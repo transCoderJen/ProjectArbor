@@ -3,11 +3,12 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.SaveAndLoad;
+using ShiftedSignal.Garden.UserInterface.Components;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class SeedSelectorUI : MonoBehaviour, ISaveManager
     {

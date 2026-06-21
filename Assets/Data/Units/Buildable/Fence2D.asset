@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Fence2D
   m_EditorClassIdentifier: 
   <Health>k__BackingField: 100
+  <Prefab>k__BackingField: {fileID: 0}
+  <BuildTime>k__BackingField: 5
   ItemID: Fence2D
   BuildableName: Fence2D
   Icon: {fileID: 0}

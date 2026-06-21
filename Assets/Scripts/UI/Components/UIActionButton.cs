@@ -1,14 +1,15 @@
 
 using ShiftedSignal.Garden.Commands;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Components
 {
     [RequireComponent(typeof(Button))]
-    public class UIActionButton : MonoBehaviour
+    public class UIActionButton : MonoBehaviour, IUIElement<BaseCommand, UnityAction>
     {
         [SerializeField] private Image icon;
 

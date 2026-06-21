@@ -2,7 +2,7 @@ using ShiftedSignal.Garden.ItemsAndInventory;
 using TMPro;
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Components
 {
     public class UI_ItemTooltip : UI_Tooltip
     {

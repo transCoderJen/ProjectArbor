@@ -11,6 +11,7 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.UserInterface;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Raids;
+using ShiftedSignal.Garden.UserInterface.Managers;
 
 namespace ShiftedSignal.Garden.Debugging
 {

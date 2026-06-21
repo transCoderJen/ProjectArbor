@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class UI_FadeScreen : MonoBehaviour
     {

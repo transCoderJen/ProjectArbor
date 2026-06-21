@@ -1,11 +1,12 @@
 using System.Collections;
 using MoreMountains.Feedbacks;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class PickupPopupUI : MonoBehaviour
     {

@@ -7,6 +7,7 @@ using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.UserInterface;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
 public class Bush : MonoBehaviour, IInteractable

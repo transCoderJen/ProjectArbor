@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75f2fc624c83a3a44ac66ba81fcfb9cd, type: 3}
   m_Name: Build Worker
   m_EditorClassIdentifier: 
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 709330468, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   <Slot>k__BackingField: 0
-  <RequiresClickToActivate>k__BackingField: 1
-  <Unit>k__BackingField: {fileID: 0}
+  <RequiresClickToActivate>k__BackingField: 0
+  <Unit>k__BackingField: {fileID: 11400000, guid: cf01eb43afb0a2547888b5dab2f31ab4, type: 2}

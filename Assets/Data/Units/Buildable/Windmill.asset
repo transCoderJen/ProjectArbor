@@ -13,6 +13,8 @@ MonoBehaviour:
   m_Name: Windmill
   m_EditorClassIdentifier: 
   <Health>k__BackingField: 100
+  <Prefab>k__BackingField: {fileID: 0}
+  <BuildTime>k__BackingField: 5
   ItemID: Windmill
   BuildableName: Windmill
   Icon: {fileID: 0}

@@ -3,6 +3,7 @@ using System.Collections;
 using ShiftedSignal.Garden.Effects;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.UserInterface;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.EntitySpace

@@ -5,8 +5,9 @@ using UnityEngine.EventSystems;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.UserInterface.Managers;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Components
 {
     public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
     {

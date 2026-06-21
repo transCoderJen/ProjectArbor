@@ -7,8 +7,9 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.QuestSystem;
+using ShiftedSignal.Garden.UserInterface.Components;
 
-namespace ShiftedSignal.Garden.UserInterface
+namespace ShiftedSignal.Garden.UserInterface.Managers
 {
     public class UI_InGame : MonoBehaviour
     {

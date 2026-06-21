@@ -8,6 +8,8 @@ using ShiftedSignal.Garden.UserInterface;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
+using ShiftedSignal.Garden.UserInterface.Components;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
