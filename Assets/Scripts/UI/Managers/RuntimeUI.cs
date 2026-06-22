@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Units;
@@ -11,6 +13,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
     public class RuntimeUI : MonoBehaviour
     {
         [SerializeField] private ActionsUI actionsUI;
+        [SerializeField] private BuildingBuildingUI buildingBuildingUI;
         private HashSet<AbstractCommandable> selectedUnits = new (12);
 
         private void Awake()
@@ -22,6 +25,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
         void Start()
         {
             actionsUI.Disable();
+            buildingBuildingUI.Disable();
         }
 
         private void OnDestroy()
@@ -37,6 +41,11 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
                 selectedUnits.Add(commandable);
                 actionsUI.EnableFor(selectedUnits);
             }
+
+            if (selectedUnits.Count == 1 && evt.Unit is BaseBuilding building)
+            {
+                buildingBuildingUI.EnableFor(building);
+            }
         }
 
         private void HandleUnitDeselected(UnitDeselectedEvent evt)
@@ -48,10 +57,20 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
                 if (selectedUnits.Count > 0)
                 {
                     actionsUI.EnableFor(selectedUnits);
+                    
+                    if (selectedUnits.Count == 1 && selectedUnits.First() is BaseBuilding building)
+                    {
+                        buildingBuildingUI.EnableFor(building);
+                    }
+                    else
+                    {
+                        buildingBuildingUI.Disable();
+                    }
                 }
                 else
                 {
                     actionsUI.Disable();
+                    buildingBuildingUI.Disable();
                 }
             }
         }

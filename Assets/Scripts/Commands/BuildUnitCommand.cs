@@ -7,7 +7,7 @@ namespace ShiftedSignal.Garden.Commands
     [CreateAssetMenu(fileName = "Build Unit", menuName = "Buildiings/Commands/Build Unit", order = 120)]
     public class BuildUnitCommand : BaseCommand
     {
-        [field: SerializeField] public UnitSO Unit { get; private set; }
+        [field: SerializeField] public AbstractUnitSO Unit { get; private set; }
 
         public override bool CanHandle(CommandContext context)
         {

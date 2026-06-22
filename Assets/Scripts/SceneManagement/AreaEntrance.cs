@@ -34,9 +34,17 @@ namespace ShiftedSignal.Garden.SceneManagement
 
         private void SetPlayerPosition()
         {
-            Player Player = PlayerManager.Instance.Player;
-            Player.transform.position = transform.position;
-            Player.StateMachine.ChangeState(Player.IdleState);
+            Player player = Player.Instance;
+
+            if (player == null)
+            {
+                Debug.LogWarning("No Player instance found for AreaEntrance.");
+                return;
+            }
+
+            player.transform.position = transform.position;
+            player.StateMachine.ChangeState(player.IdleState);
+            SetPlayerFacingDirection(player);
         }
 
         public void SetPlayerFacingDirection(Player player)

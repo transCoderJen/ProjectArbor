@@ -261,7 +261,7 @@ namespace ShiftedSignal.Garden.Audio
 
             Vector3 spawnPos = data.playerPosition != Vector3.zero 
                 ? data.playerPosition 
-                : PlayerManager.Instance.Player.transform.position;
+                : Player.Instance.transform.position;
 
             if (boundsCollider.ClosestPoint(spawnPos) == spawnPos)
             {

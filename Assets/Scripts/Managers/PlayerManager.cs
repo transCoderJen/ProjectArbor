@@ -1,5 +1,3 @@
-using System;
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
@@ -10,17 +8,16 @@ namespace ShiftedSignal.Garden.Managers
 {
     public class PlayerManager : Singleton<PlayerManager>, ISaveManager
     {
-        public Player Player;
         public int Currency;
-        public int UnlockedFarmingArea = 0;
+        public int UnlockedFarmingArea;
 
-        void OnEnable()
+        private void OnEnable()
         {
             Bus<CurrencyUpdatedEvent>.OnEvent += HandleUpdateCurrency;
             Bus<UnlockFarmingAreaEvent>.OnEvent += HandleFarmingAreaUnlocked;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             Bus<CurrencyUpdatedEvent>.OnEvent -= HandleUpdateCurrency;
             Bus<UnlockFarmingAreaEvent>.OnEvent -= HandleFarmingAreaUnlocked;
@@ -28,31 +25,59 @@ namespace ShiftedSignal.Garden.Managers
 
         private void HandleFarmingAreaUnlocked(UnlockFarmingAreaEvent evt)
         {
-            UnlockedFarmingArea ++;
+            UnlockedFarmingArea++;
         }
 
         private void HandleUpdateCurrency(CurrencyUpdatedEvent evt)
         {
             Currency += evt.Coins;
+
+            if (Currency < 0)
+                Currency = 0;
         }
 
-        public void ResetPlayer()
+        public bool CanAfford(int amount)
         {
-            Player.gameObject.SetActive(false);
-            Player.gameObject.SetActive(true);
+            return Currency >= amount;
+        }
+
+        public void AddCurrency(int amount)
+        {
+            if (amount <= 0)
+                return;
+
+            Currency += amount;
+        }
+
+        public bool TrySpendCurrency(int amount)
+        {
+            if (amount <= 0)
+                return true;
+
+            if (!CanAfford(amount))
+                return false;
+
+            Currency -= amount;
+            return true;
+        }
+
+        public void UnlockFarmingArea()
+        {
+            UnlockedFarmingArea++;
         }
 
         public void LoadData(GameData data)
         {
             Debug.Log("Loading currency and farming area");
-            this.Currency = data.currency;
-            this.UnlockedFarmingArea = data.unlockedFarmingArea;
+
+            Currency = data.currency;
+            UnlockedFarmingArea = data.unlockedFarmingArea;
         }
 
         public void SaveData(ref GameData data)
         {
-            data.currency = this.Currency;
-            data.unlockedFarmingArea = this.UnlockedFarmingArea;
+            data.currency = Currency;
+            data.unlockedFarmingArea = UnlockedFarmingArea;
         }
     }
 }

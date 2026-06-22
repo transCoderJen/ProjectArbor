@@ -8,6 +8,7 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Stats;
 using ShiftedSignal.Garden.QuestSystem;
 using ShiftedSignal.Garden.UserInterface.Components;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 
 namespace ShiftedSignal.Garden.UserInterface.Managers
 {
@@ -87,12 +88,11 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
 
         private void CachePlayerHealth()
         {
-            if (PlayerManager.Instance == null ||
-                PlayerManager.Instance.Player == null)
+            if (Player.Instance == null)
                 return;
 
             CharacterHealth foundHealth =
-                PlayerManager.Instance.Player.GetComponent<CharacterHealth>();
+                Player.Instance.GetComponent<CharacterHealth>();
 
             if (foundHealth == null)
                 return;

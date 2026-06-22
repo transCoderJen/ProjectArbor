@@ -6,6 +6,8 @@ using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -206,12 +208,11 @@ namespace ShiftedSignal.Garden.Managers
 
         private void UpdateHoveredBlock()
         {
-            if (PlayerManager.Instance == null 
-                || PlayerManager.Instance.Player == null 
+            if (Player.Instance == null 
                 || !allowGridHighlighting)
                 return;
 
-            GrowBlock newHoveredBlock = PlayerManager.Instance.Player.UsingController
+            GrowBlock newHoveredBlock = Player.Instance.UsingController
                 ? GetBlockController()
                 : GetBlock();
 
@@ -502,7 +503,7 @@ namespace ShiftedSignal.Garden.Managers
                 return false;
             }
 
-            if (buildableData.BuildablePrefab == null)
+            if (buildableData.Prefab == null)
             {
                 Debug.LogWarning(
                     $"[Buildable Restore] FAILED missing prefab | " +
@@ -516,7 +517,7 @@ namespace ShiftedSignal.Garden.Managers
             float buildableStart = Time.realtimeSinceStartup;
 
             GameObject builtObject = Instantiate(
-                buildableData.BuildablePrefab,
+                buildableData.Prefab,
                 block.transform.position,
                 Quaternion.Euler(0f, info.BuildableYRotation, 0f));
 
@@ -655,7 +656,7 @@ namespace ShiftedSignal.Garden.Managers
                 Debug.Log(
                     $"[BuildableDatabase] Data={data.name} | " +
                     $"ItemID={data.ItemID} | " +
-                    $"Prefab={(data.BuildablePrefab != null ? data.BuildablePrefab.name : "NULL")}",
+                    $"Prefab={(data.Prefab != null ? data.Prefab.name : "NULL")}",
                     data);
             }
         }
@@ -728,11 +729,11 @@ namespace ShiftedSignal.Garden.Managers
 
         public GrowBlock GetBlockController()
         {
-            if (PlayerManager.Instance == null || PlayerManager.Instance.Player == null)
+            if (Player.Instance == null)
                 return null;
 
             return GetBlockFromWorldPosition(
-                PlayerManager.Instance.Player.GrowBlockCheck.position);
+                Player.Instance.GrowBlockCheck.position);
         }
 
         #endregion

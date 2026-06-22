@@ -32,7 +32,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
         {
             base.Update();
 
-            Transform player = PlayerManager.Instance.Player.transform;
+            Transform player = Player.Instance.transform;
 
             if (player == null)
             {

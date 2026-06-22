@@ -10,9 +10,9 @@ namespace ShiftedSignal.Garden.Units
     public abstract class AbstractUnit : AbstractCommandable, IMoveable
     {
         [Header("Unit Config")]
-        [SerializeField] private UnitSO UnitSO;
+        [SerializeField] private AbstractUnitSO UnitSO;
 
-        protected override UnitSO Config => UnitSO;
+        protected override AbstractUnitSO Config => UnitSO;
 
         public float AgentRadius => agent.radius;
 

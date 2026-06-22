@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Tools;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,7 +11,7 @@ namespace ShiftedSignal.Garden.Managers
     /// Detects foreground objects between the camera and player, then adjusts their sorting
     /// so objects whose pivots are closer to the camera render over the player.
     /// </summary>
-    public class PlayerOverlapSortingManager : MonoBehaviour
+    public class PlayerOverlapSortingManager : Singleton<PlayerOverlapSortingManager>
     {
         [Header("Detection")]
         [SerializeField] private LayerMask OverlapLayers;
@@ -29,8 +30,10 @@ namespace ShiftedSignal.Garden.Managers
         private readonly HashSet<OverlapSortable> activeSortables = new();
         private readonly HashSet<OverlapSortable> previousSortables = new();
 
-        private void Awake()
+        protected override void  Awake()
         {
+            base.Awake();
+            
             player = FindFirstObjectByType<Player>();
 
             if (player != null)

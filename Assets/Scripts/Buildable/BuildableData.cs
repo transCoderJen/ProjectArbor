@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Units;
@@ -6,6 +7,12 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
 {
+    public enum BuildPlacementMode
+    {
+        GridOnly,
+        Anywhere
+    }
+
     [Serializable]
     public struct RequiredMaterial
     {
@@ -37,15 +44,10 @@ namespace ShiftedSignal.Garden.Buildable
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
     public class BuildableData : UnitSO
     {
-        [Header("Identity")]
-        public string ItemID;
-
-        [Header("Display")]
-        public string BuildableName;
-        public Sprite Icon;
-
-        [Header("Prefab")]
-        public GameObject BuildablePrefab;
+        [Header("Placement Rules")]
+        public BuildPlacementMode PlacementMode = BuildPlacementMode.GridOnly;
+        public bool RequiresActiveGrowBlock = true;
+        public float XRotation = 30f;
 
         [Header("Crafting")]
         public RequiredMaterial[] RequiredMaterials;
@@ -106,18 +108,5 @@ namespace ShiftedSignal.Garden.Buildable
                 Inventory.Instance.RemoveItem(required.Material, required.Amount);
             }
         }
-
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (string.IsNullOrWhiteSpace(ItemID))
-                ItemID = name;
-
-            if (string.IsNullOrWhiteSpace(BuildableName))
-                BuildableName = name;
-
-            UnityEditor.EditorUtility.SetDirty(this);
-        }
-#endif
     }
 }

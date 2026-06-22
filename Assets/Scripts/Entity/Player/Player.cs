@@ -184,6 +184,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             }
 
             Instance = this;
+            DontDestroyOnLoad(gameObject);
 
             base.Awake();
 
@@ -547,9 +548,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return false;
 
             GameObject builtObject = Instantiate(
-                EquippedBuildable.BuildablePrefab,
+                EquippedBuildable.Prefab,
                 block.transform.position,
-                Quaternion.Euler(0f, currentBuildYRotation, 0f));
+                Quaternion.Euler(EquippedBuildable.XRotation, currentBuildYRotation, 0f));
 
             BaseBuilding buildable = builtObject.GetComponent<BaseBuilding>();
 
@@ -593,7 +594,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (EquippedBuildable == null)
                 return false;
 
-            if (EquippedBuildable.BuildablePrefab == null)
+            if (EquippedBuildable.Prefab == null)
                 return false;
 
             if (!EquippedBuildable.CanAfford())
@@ -719,10 +720,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (ghostInstance != null)
                 return;
 
-            if (EquippedBuildable == null || EquippedBuildable.BuildablePrefab == null)
+            if (EquippedBuildable == null || EquippedBuildable.Prefab == null)
                 return;
 
-            ghostInstance = Instantiate(EquippedBuildable.BuildablePrefab);
+            ghostInstance = Instantiate(EquippedBuildable.Prefab);
             ghostRenderers = ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
             ghostSpriteRenderers = ghostInstance.GetComponentsInChildren<SpriteRenderer>(true);
         }
@@ -765,7 +766,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             else
             {
                 ghostInstance.transform.rotation =
-                    Quaternion.Euler(0f, currentBuildYRotation, 0f);
+                    Quaternion.Euler(EquippedBuildable.XRotation, currentBuildYRotation, 0f);
             }
 
             UpdateGhostColor();
@@ -794,7 +795,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             BaseBuilding buildable =
-                EquippedBuildable.BuildablePrefab.GetComponent<BaseBuilding>();
+                EquippedBuildable.Prefab.GetComponent<BaseBuilding>();
 
             if (buildable == null)
                 return;

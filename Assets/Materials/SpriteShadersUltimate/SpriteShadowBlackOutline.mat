@@ -25,6 +25,8 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - _ADDCOLORMASKTOGGLE_ON
+  - _ADDHUEMASKTOGGLE_ON
   - _ENABLEFULLALPHADISSOLVE_ON
   - _ENABLEOUTEROUTLINE_ON
   - _ENABLEVIBRATE_ON
@@ -45,10 +47,14 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _AddColorMask:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 52d9bac64835faf47b187dcf4c074b30, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AddHueMask:
+        m_Texture: {fileID: 2800000, guid: 52d9bac64835faf47b187dcf4c074b30, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AlphaTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -186,21 +192,22 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - PixelSnap: 0
     - _AddColorContrast: 0.5
     - _AddColorContrastToggle: 0
-    - _AddColorFade: 1
-    - _AddColorMaskToggle: 0
+    - _AddColorFade: 0.58
+    - _AddColorMaskToggle: 1
     - _AddHueBrightness: 2
     - _AddHueContrast: 0.5
     - _AddHueFade: 1
-    - _AddHueMaskToggle: 0
+    - _AddHueMaskToggle: 1
     - _AddHueSaturation: 1
     - _AddHueSpeed: 1
     - _AddPrecomputedVelocity: 0
     - _AlphaClip: 0
     - _AlphaCutoff: 0.5
     - _AlphaTintFade: 1
-    - _AlphaTintMinAlpha: 0.02
+    - _AlphaTintMinAlpha: 1
     - _AlphaToMask: 0
     - _BakedMaterial: 0
     - _BlackTintFade: 1
@@ -484,7 +491,7 @@ Material:
     - _SmokeNoiseScale: 0.5
     - _SmokeSmoothness: 1
     - _SmokeVertexSeed: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SourceAlphaDissolveFade: 1
     - _SourceAlphaDissolveInvert: 0
@@ -575,8 +582,8 @@ Material:
     - _WorldTilingPixelsPerUnit: 100
     - _ZWrite: 1
     m_Colors:
-    - _AddColorColor: {r: 2.996078, g: 0, b: 0, a: 0}
-    - _AlphaTintColor: {r: 95.87451, g: 5.019608, b: 95.87451, a: 0}
+    - _AddColorColor: {r: 2.9960783, g: 0, b: 1.7154018, a: 0}
+    - _AlphaTintColor: {r: 0, g: 0, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BlackTintColor: {r: 0, g: 0, b: 1, a: 0}
     - _BurnEdgeColor: {r: 11.98431, g: 1.129412, b: 0.1254902, a: 0}

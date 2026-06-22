@@ -19,7 +19,7 @@ namespace ShiftedSignal.Garden.Buildable
         #region OTher Variables
         [Header("Build Info")]
         public BuildableData BuildableData;
-        protected override UnitSO Config => BuildableData;
+        protected override AbstractUnitSO Config => BuildableData;
         public virtual Transform ProjectileSpawnPoint => transform;
         [SerializeField] protected bool IsActive;
 
@@ -70,7 +70,15 @@ namespace ShiftedSignal.Garden.Buildable
 
         #region RTS Variables
 
-        private Queue<UnitSO> buildingQueue = new (MAX_QUEUE_SIZE);
+        public int QueueSize => buildingQueue.Count;
+        public AbstractUnitSO[] Queue => buildingQueue.ToArray();
+        [field: SerializeField] public float CurrentQueueStartTime { get; private set; }
+        [field: SerializeField] public AbstractUnitSO BuildingUnit { get; private set; }
+
+        public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
+        public event QueueUpdatedEvent OnQueueUpdated;
+
+        private List<AbstractUnitSO> buildingQueue = new (MAX_QUEUE_SIZE);
         private const int MAX_QUEUE_SIZE = 5;
         #endregion
 
@@ -188,7 +196,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         public bool AllRestrictionsPass()
         {
-            Player player = PlayerManager.Instance.Player;
+            Player player = Player.Instance;
 
             GrowBlock growBlock =
                 player.UsingController
@@ -377,18 +385,51 @@ namespace ShiftedSignal.Garden.Buildable
         #endregion
 
         #region RTS
-        public void BuildUnit(UnitSO unit)
+        public void BuildUnit(AbstractUnitSO unit)
         {
             if (buildingQueue.Count == MAX_QUEUE_SIZE)
             {
-                Debug.LogError("BuildUnit called when the queue was already full!  This is not supported!");
+                // Debug.LogError("BuildUnit called when the queue was already full!  This is not supported!");
                 return;
             }
 
-            buildingQueue.Enqueue(unit);
+            buildingQueue.Add(unit);
+
             if (buildingQueue.Count == 1)
             {
                 StartCoroutine(DoBuildUnits());
+            }
+            else
+            {
+                OnQueueUpdated?.Invoke(buildingQueue.ToArray());
+            }
+        }
+
+        public void CancelBuildingUnit(int index)
+        {
+            if (index < 0 || index > buildingQueue.Count)
+            {
+                // Debug.LogError("Attempting to cacncel building a unit outside the bounds of the queue!");
+                return;
+            }
+
+            buildingQueue.RemoveAt(index);
+            if (index == 0)
+            {
+                StopAllCoroutines();
+
+                if (buildingQueue.Count > 0)
+                {
+                    StartCoroutine(DoBuildUnits());
+                }
+                else
+                {
+                    OnQueueUpdated?.Invoke(buildingQueue.ToArray());
+                }
+            }
+            else
+            {  
+                OnQueueUpdated?.Invoke(buildingQueue.ToArray());
             }
         }
 
@@ -396,11 +437,17 @@ namespace ShiftedSignal.Garden.Buildable
         {
             while (buildingQueue.Count > 0)
             {
-                UnitSO unit = buildingQueue.Peek();
-                yield return Helpers.GetWait(unit.BuildTime);
-                Instantiate(unit.Prefab, transform.position, Quaternion.identity);
-                buildingQueue.Dequeue();
+                BuildingUnit = buildingQueue[0];
+                CurrentQueueStartTime = Time.time;
+                OnQueueUpdated?.Invoke(buildingQueue.ToArray());
+
+                yield return Helpers.GetWait(BuildingUnit.BuildTime);
+
+                Instantiate(BuildingUnit.Prefab, transform.position, Quaternion.identity);
+                buildingQueue.RemoveAt(0);
             }
+
+            OnQueueUpdated?.Invoke(buildingQueue.ToArray());
         }
         #endregion
     }

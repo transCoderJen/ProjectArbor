@@ -24,14 +24,14 @@ namespace ShiftedSignal.Garden.Managers
         protected override void Awake()
         {
             base.Awake();
-            player = PlayerManager.Instance.Player;
+            player = Player.Instance;
         }
 
         private void LateUpdate()
         {
             if (player == null)
             {
-                player = PlayerManager.Instance.Player;
+                player = Player.Instance;
             }
 
             if (CameraManager.Instance != null)

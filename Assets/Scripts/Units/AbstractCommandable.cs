@@ -21,7 +21,7 @@ namespace ShiftedSignal.Garden.Units
 
         public abstract CombatTeam Team { get; }
 
-        protected abstract UnitSO Config { get; }
+        protected abstract AbstractUnitSO Config { get; }
 
         protected virtual void Start()
         {

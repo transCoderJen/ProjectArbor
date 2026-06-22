@@ -22,7 +22,7 @@ namespace ShiftedSignal.Garden.Dialogue
 
         override protected void Awake()
         {
-            
+            base.Awake();
             story = new Story(InkJson.text);
             inkExternalFunctions = new InkExternalFunctions();
             inkExternalFunctions.Bind(story);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Misc;
 using Unity.Cinemachine;
 using UnityEngine;
@@ -278,13 +279,13 @@ namespace ShiftedSignal.Garden.Managers
                 return;
             }
 
-            if (PlayerManager.Instance == null || PlayerManager.Instance.Player == null)
+            if (Player.Instance == null)
             {
                 Debug.LogWarning("CameraManager: Could not snap FreeLook target. Player not found.");
                 return;
             }
 
-            freeLookTarget.position = PlayerManager.Instance.Player.transform.position;
+            freeLookTarget.position = Player.Instance.transform.position;
 
             CurrentVirtualCamera.Follow = freeLookTarget;
         }

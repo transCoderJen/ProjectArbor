@@ -45,9 +45,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.BugSpace
             Enemy.Hover();
             UpdateStoppingDistance();
 
-            Player player = PlayerManager.Instance != null
-                ? PlayerManager.Instance.Player
-                : null;
+            Player player = Player.Instance;
 
             if (player == null)
             {
