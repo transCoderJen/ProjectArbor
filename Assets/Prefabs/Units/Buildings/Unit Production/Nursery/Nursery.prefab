@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 975523216964746960}
   - component: {fileID: 8598109544346090588}
   m_Layer: 9
-  m_Name: BaseBuilding
+  m_Name: Nursery
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,7 +160,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <CurrentHealth>k__BackingField: 0
   <MaxHealth>k__BackingField: 0
-  <AvailableCommands>k__BackingField: []
+  <AvailableCommands>k__BackingField:
+  - {fileID: 11400000, guid: dd05d2bd1b9ba7744a9c91d2614f32b9, type: 2}
+  - {fileID: 11400000, guid: 8f8c52aff92380741b345e290ed48a21, type: 2}
   decalProjector: {fileID: 7918584590872772060}
   BuildableData: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
   IsActive: 0

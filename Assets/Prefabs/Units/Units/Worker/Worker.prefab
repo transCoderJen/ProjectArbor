@@ -69,6 +69,7 @@ GameObject:
   - component: {fileID: 9144625622762310592}
   - component: {fileID: 3067671603924402166}
   - component: {fileID: 5670770126592985931}
+  - component: {fileID: 8639410870345154675}
   m_Layer: 18
   m_Name: Worker
   m_TagString: Untagged
@@ -185,6 +186,7 @@ MonoBehaviour:
   <MaxHealth>k__BackingField: 0
   <AvailableCommands>k__BackingField:
   - {fileID: 11400000, guid: 1201e55c0527dc84c9c1210b54530000, type: 2}
+  - {fileID: 11400000, guid: 0ef9d87f17f0f304a85245e64fc6d935, type: 2}
   decalProjector: {fileID: 7309760360947077046}
   UnitSO: {fileID: 11400000, guid: cf01eb43afb0a2547888b5dab2f31ab4, type: 2}
 --- !u!136 &5670770126592985931
@@ -210,3 +212,32 @@ CapsuleCollider:
   m_Height: 10.34
   m_Direction: 1
   m_Center: {x: 0, y: 4.518195, z: 0}
+--- !u!114 &8639410870345154675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7757308472215867856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f0038c16c34866b4f9e25c9c0dc0f7e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Graph: {fileID: -5133792220357923778, guid: 079fda70ab73ec547b3a88deb6b7811d, type: 2}
+  m_BlackboardVariableOverridesList:
+  - rid: 8809582332842082545
+  m_OriginalGraph: {fileID: -5133792220357923778, guid: 079fda70ab73ec547b3a88deb6b7811d, type: 2}
+  m_IsInitialised: 0
+  m_IsStarted: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 8809582332842082545
+      type: {class: 'BlackboardVariable`1[[UnityEngine.GameObject, UnityEngine.CoreModule]]', ns: Unity.Behavior, asm: Unity.Behavior}
+      data:
+        GUID:
+          m_Value0: 1
+          m_Value1: 0
+        Name: Self
+        m_Value: {fileID: 7757308472215867856}
