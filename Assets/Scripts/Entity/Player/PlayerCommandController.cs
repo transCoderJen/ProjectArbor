@@ -20,8 +20,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
     {
         [SerializeField] private LayerMask selectableUnitsLayers;
         [SerializeField] private LayerMask floorLayers;
+        [SerializeField] private LayerMask gatherableSupplyLayers;
         [SerializeField] private RectTransform selectionBox;
-
 
         private BaseCommand activeAction;
         private bool wasMouseDownOnUI;
@@ -170,7 +170,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
             if (Mouse.current.rightButton.wasReleasedThisFrame 
-                && Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, floorLayers))
+                && Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, gatherableSupplyLayers | floorLayers))
             {
                 // find applicable command and issue that command
                 List<AbstractUnit> abstractUnits = new List<AbstractUnit>(selectedUnits.Count);
@@ -211,7 +211,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             }
             else if (activeAction != null
                 && !EventSystem.current.IsPointerOverGameObject()
-                && Physics.Raycast(cameraRay, out hit, float.MaxValue, floorLayers))
+                && Physics.Raycast(cameraRay, out hit, float.MaxValue, gatherableSupplyLayers | floorLayers))
             {
                 ActivateAction(hit);
             }
@@ -227,7 +227,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             for (int i = 0; i < abstractCommandables.Count; i++)
             {
                 CommandContext context = new(abstractCommandables[i], hit, i);
-                activeAction.Handle(context);
+                if (activeAction.CanHandle(context))
+                {
+                    activeAction.Handle(context);
+                }
             }
             activeAction = null;
         }

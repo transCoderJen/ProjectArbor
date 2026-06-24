@@ -40,7 +40,7 @@ namespace ShiftedSignal.Garden.Behavior
                 return Status.Success;
             }
 
-            return Status.Success;
+            return Status.Running;
         }
     }
 }

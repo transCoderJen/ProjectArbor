@@ -805,8 +805,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             bool blockedBySameBuildable =
                 hoveredBlock != null &&
                 hoveredBlock.CurrentBuildable != null &&
-                hoveredBlock.CurrentBuildable.BuildableData != null &&
-                hoveredBlock.CurrentBuildable.BuildableData.ItemID == EquippedBuildable.ItemID;
+                hoveredBlock.CurrentBuildable.UnitSO != null &&
+                hoveredBlock.CurrentBuildable.UnitSO.ItemID == EquippedBuildable.ItemID;
 
             bool allRestrictionsPass =
                 buildable.AllRestrictionsPass() || blockedBySameBuildable;

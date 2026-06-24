@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Commands
 {
-    [CreateAssetMenu(fileName = "Stop Action", menuName = "Units/Commands/Stop", order = 101)]
+    [CreateAssetMenu(fileName = "Stop Command", menuName = "Units/Commands/Stop", order = 101)]
     public class StopCommand : BaseCommand
     {
         public override bool CanHandle(CommandContext context)

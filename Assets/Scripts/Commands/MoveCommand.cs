@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Commands
 {
-    [CreateAssetMenu(fileName = "Move Action", menuName = "Units/Commands/Move", order = 100)]
+    [CreateAssetMenu(fileName = "Move Command", menuName = "Units/Commands/Move", order = 100)]
     public class MoveCommand :BaseCommand, ICommand
     {
         [SerializeField] private float radiusMultiplier = 3.5f;

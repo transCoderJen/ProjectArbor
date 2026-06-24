@@ -5396,7 +5396,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Supply>k__BackingField: {fileID: 11400000, guid: ce9c2f3c7c8dc274faa5ea17f01b5f91, type: 2}
-  <Amount>k__BackingField: 500
+  <Amount>k__BackingField: 0
   <IsBusy>k__BackingField: 0
 --- !u!1 &7490927804086424243
 GameObject:

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de124346672955742bffc68a4901c742, type: 3}
-  m_Name: Stop Action
+  m_Name: Stop Command
   m_EditorClassIdentifier: 
   <Icon>k__BackingField: {fileID: 21300000, guid: af5afbd56621f394b8d6017ebda9401e, type: 3}
   <Slot>k__BackingField: 8

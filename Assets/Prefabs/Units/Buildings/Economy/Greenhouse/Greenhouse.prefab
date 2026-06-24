@@ -142,7 +142,7 @@ NavMeshObstacle:
   m_Shape: 1
   m_Extents: {x: 27.5, y: 13, z: 10}
   m_MoveThreshold: 0.1
-  m_Carve: 0
+  m_Carve: 1
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
@@ -163,7 +163,7 @@ MonoBehaviour:
   <AvailableCommands>k__BackingField:
   - {fileID: 11400000, guid: dd05d2bd1b9ba7744a9c91d2614f32b9, type: 2}
   decalProjector: {fileID: 7918584590872772060}
-  BuildableData: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
+  UnitSO: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
   IsActive: 0
   GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
   targetType: 1

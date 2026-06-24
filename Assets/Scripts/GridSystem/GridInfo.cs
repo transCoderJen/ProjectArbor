@@ -160,7 +160,7 @@ namespace ShiftedSignal.Garden.GridSystem
                 return;
             }
 
-            if (buildable.BuildableData == null)
+            if (buildable.UnitSO == null)
             {
                 Debug.LogWarning(
                     $"SAVE BUILDABLE [{source}] {block.name}: CurrentBuildable exists but has no BuildableData. " +
@@ -182,7 +182,7 @@ namespace ShiftedSignal.Garden.GridSystem
                 return;
             }
 
-            info.BuildableItemID = buildable.BuildableData.ItemID;
+            info.BuildableItemID = buildable.UnitSO.ItemID;
             info.BuildableYRotation = buildable.transform.eulerAngles.y;
             info.BuildableHP = buildable.CurrentHealth;
 

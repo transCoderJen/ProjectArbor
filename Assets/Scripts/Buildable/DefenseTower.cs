@@ -41,8 +41,8 @@ namespace ShiftedSignal.Garden.Buildable
 
         private void InitializeStatsFromBuildableData()
         {
-            if (BuildableData != null && BuildableData.HasTowerStats)
-                currentStats = BuildableData.BaseTowerStats;
+            if (UnitSO != null && UnitSO.HasTowerStats)
+                currentStats = UnitSO.BaseTowerStats;
             else
                 currentStats = GetFallbackStats();
 

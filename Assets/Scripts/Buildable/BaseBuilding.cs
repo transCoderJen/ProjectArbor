@@ -18,8 +18,8 @@ namespace ShiftedSignal.Garden.Buildable
     {
         #region OTher Variables
         [Header("Build Info")]
-        public BuildableData BuildableData;
-        protected override AbstractUnitSO Config => BuildableData;
+        public BuildableData UnitSO;
+        protected override AbstractUnitSO Config => UnitSO;
         public virtual Transform ProjectileSpawnPoint => transform;
         [SerializeField] protected bool IsActive;
 
@@ -212,7 +212,7 @@ namespace ShiftedSignal.Garden.Buildable
             if (growBlock.HasBuildable)
                 return false;
 
-            if (BuildableData != null && !BuildableData.CanAfford())
+            if (UnitSO != null && !UnitSO.CanAfford())
                 return false;
 
             return true;
