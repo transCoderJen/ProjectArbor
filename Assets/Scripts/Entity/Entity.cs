@@ -134,42 +134,42 @@ namespace ShiftedSignal.Garden.EntitySpace
         #region Movement
 
         public virtual void ApplyMovement(Vector2 input, bool normalized = true)
-{
-    if (IsKnocked || IsDead || Rb == null)
-        return;
+        {
+            if (IsKnocked || IsDead || Rb == null)
+                return;
 
-    Vector3 moveDirection = Vector3.zero;
+            Vector3 moveDirection = Vector3.zero;
 
-    if (input.sqrMagnitude > 0.01f)
-    {
-        Transform cameraTransform = Camera.main.transform;
+            if (input.sqrMagnitude > 0.01f)
+            {
+                Transform cameraTransform = Camera.main.transform;
 
-        Vector3 cameraForward = cameraTransform.forward;
-        Vector3 cameraRight = cameraTransform.right;
+                Vector3 cameraForward = cameraTransform.forward;
+                Vector3 cameraRight = cameraTransform.right;
 
-        cameraForward.y = 0f;
-        cameraRight.y = 0f;
+                cameraForward.y = 0f;
+                cameraRight.y = 0f;
 
-        cameraForward.Normalize();
-        cameraRight.Normalize();
+                cameraForward.Normalize();
+                cameraRight.Normalize();
 
-        moveDirection = cameraRight * input.x + cameraForward * input.y;
+                moveDirection = cameraRight * input.x + cameraForward * input.y;
 
-        if (normalized)
-            moveDirection.Normalize();
-    }
+                if (normalized)
+                    moveDirection.Normalize();
+            }
 
-    Vector3 velocity = moveDirection * MoveSpeed;
+            Vector3 velocity = moveDirection * MoveSpeed;
 
-    Rb.linearVelocity = new Vector3(
-        velocity.x,
-        Rb.linearVelocity.y,
-        velocity.z);
+            Rb.linearVelocity = new Vector3(
+                velocity.x,
+                Rb.linearVelocity.y,
+                velocity.z);
 
-    UpdateAnimationDirection(new Vector2(moveDirection.x, moveDirection.z));
-    UpdateFacingData();
-    UpdateAttackCheckPosition();
-}
+            UpdateAnimationDirection(new Vector2(moveDirection.x, moveDirection.z));
+            UpdateFacingData();
+            UpdateAttackCheckPosition();
+        }
 
         public void StopMovement()
         {

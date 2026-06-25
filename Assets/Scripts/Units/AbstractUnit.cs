@@ -1,6 +1,7 @@
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
+using ShiftedSignal.Garden.Misc;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -11,16 +12,29 @@ namespace ShiftedSignal.Garden.Units
     public abstract class AbstractUnit : AbstractCommandable, IMoveable
     {
         [Header("Unit Config")]
-        [SerializeField] private AbstractUnitSO UnitSO;
-
         protected override AbstractUnitSO Config => UnitSO;
+        [SerializeField] private AbstractUnitSO UnitSO;
+        [SerializeField] private float AnimationUpdateRate = 0.1f;
+
+
+
         public float AgentRadius => agent.radius;
         private NavMeshAgent agent;
+        private Animator anim;
+
         protected BehaviorGraphAgent graphAgent;
+
+        private float lastAnimX;
+        private float lastAnimY;
+        private float nextAnimationUpdateTime;
 
         protected virtual void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
+            anim = GetComponent<Animator>();
+
+            agent.updateRotation = false;
+
             graphAgent = GetComponent<BehaviorGraphAgent>();
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
         }
@@ -30,6 +44,11 @@ namespace ShiftedSignal.Garden.Units
             base.Start();
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
             MoveTo(transform.position);
+        }
+
+        protected virtual void Update()
+        {
+            UpdateMovementAnimation();
         }
 
 #region Move / Stop
@@ -43,6 +62,50 @@ namespace ShiftedSignal.Garden.Units
         public virtual void Stop()
         {
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+        }
+
+        protected virtual void UpdateMovementAnimation()
+        {
+            if (anim == null || agent == null)
+                return;
+            
+            // throttle this
+            if (Time.time < nextAnimationUpdateTime)
+                return;
+
+            nextAnimationUpdateTime = Time.time + AnimationUpdateRate;
+
+            Vector2 moveDirection = new Vector2(agent.velocity.x, agent.velocity.z);
+
+            anim.SetFloat(AnimationConstants.SPEED, moveDirection.magnitude);
+
+            if (moveDirection.sqrMagnitude < 0.01f)
+                return;
+
+            moveDirection.Normalize();
+
+            float animX = Mathf.Abs(moveDirection.x) > 0.5f
+                ? Mathf.Sign(moveDirection.x)
+                : 0f;
+
+            float animY = Mathf.Abs(moveDirection.y) > 0.5f
+                ? Mathf.Sign(moveDirection.y)
+                : 0f;
+
+            if (animX == 0f && animY == 0f)
+                return;
+
+            if (animX != lastAnimX)
+            {
+                anim.SetFloat("MovementX", animX);
+                lastAnimX = animX;
+            }
+
+            if (animY != lastAnimY)
+            {
+                anim.SetFloat("MovementY", animY);
+                lastAnimY = animY;
+            }
         }
 
 #endregion

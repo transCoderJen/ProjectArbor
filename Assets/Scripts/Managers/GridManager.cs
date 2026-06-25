@@ -519,7 +519,7 @@ namespace ShiftedSignal.Garden.Managers
             GameObject builtObject = Instantiate(
                 buildableData.Prefab,
                 block.transform.position,
-                Quaternion.Euler(0f, info.BuildableYRotation, 0f));
+                Quaternion.Euler(buildableData.XRotation, info.BuildableYRotation, 0f));
 
             Debug.Log(
                 $"Instantiate {buildableData.name}: " +
@@ -809,16 +809,23 @@ namespace ShiftedSignal.Garden.Managers
         }
 
 #if UNITY_EDITOR
-
         [ContextMenu("Fill Buildable Database")]
         private void FillBuildableDatabase()
         {
             buildableDatabase.Clear();
 
+            const string rootFolder = "Assets/Prefabs/Units/Buildings";
+
+            if (!AssetDatabase.IsValidFolder(rootFolder))
+            {
+                Debug.LogError($"Buildable database folder not found: {rootFolder}", this);
+                return;
+            }
+
             string[] assetGuids =
                 AssetDatabase.FindAssets(
                     "t:BuildableData",
-                    new[] { "Assets/Data/Units/Buildable" });
+                    new[] { rootFolder });
 
             foreach (string guid in assetGuids)
             {
@@ -837,7 +844,6 @@ namespace ShiftedSignal.Garden.Managers
 
             EditorUtility.SetDirty(this);
         }
-
 #endif
 
         #endregion

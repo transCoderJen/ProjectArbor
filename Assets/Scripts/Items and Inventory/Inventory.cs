@@ -4,12 +4,12 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using ShiftedSignal.Garden.UserInterface;
-using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.UserInterface.Components;
-
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.UserInterface.Managers;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -74,6 +74,7 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             InitializeCollections();
 
             SceneManager.sceneLoaded += OnSceneLoaded;
+            Bus<SupplyEvent>.OnEvent += AddSupplies;
         }
 
         private void Start()
@@ -92,7 +93,21 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         protected override void OnDestroy()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
+            Bus<SupplyEvent>.OnEvent -= AddSupplies;
             base.OnDestroy();
+        }
+
+        private void AddSupplies(SupplyEvent evt)
+        {
+            ItemData item = evt.Supply.Item;
+            AddItem(evt.Supply.Item, evt.Amount);
+            if (PickupPopupManager.Instance != null)
+            {
+                PickupPopupManager.Instance.Show(
+                    item.Icon,
+                    evt.Amount,
+                    item.name);
+            }
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

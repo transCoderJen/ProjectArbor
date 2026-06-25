@@ -20,6 +20,7 @@ MonoBehaviour:
   <BuildTime>k__BackingField: 5
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
+  XRotation: 30
   RequiredMaterials: []
   Cost: 0
   HasTowerStats: 0

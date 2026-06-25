@@ -484,6 +484,11 @@ namespace ShiftedSignal.Garden.Managers
             return $"{hour12}:{minute:00} {amPm}";
         }
 
+        public float GetSecondsFromInGameMinutes(float inGameMinutes)
+        {
+            return GetSecondPerHour() * (inGameMinutes / 60f);
+        }
+
         public void SaveData(ref GameData data)
         {
             data.currentTime = this.currentTime;

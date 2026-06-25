@@ -66,6 +66,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1972619845757511800}
   - component: {fileID: 1099913752220286227}
+  - component: {fileID: 5177288651466799884}
   - component: {fileID: 9144625622762310592}
   - component: {fileID: 3067671603924402166}
   - component: {fileID: 5670770126592985931}
@@ -101,7 +102,7 @@ SpriteRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7757308472215867856}
   m_Enabled: 1
-  m_CastShadows: 0
+  m_CastShadows: 1
   m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -148,6 +149,28 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!95 &5177288651466799884
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7757308472215867856}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 368a290caf46e234ab58cff53028fc39, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!195 &9144625622762310592
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -185,11 +208,12 @@ MonoBehaviour:
   <CurrentHealth>k__BackingField: 0
   <MaxHealth>k__BackingField: 0
   <AvailableCommands>k__BackingField:
+  - {fileID: 11400000, guid: 89c5e6ad2859761489ae80cfaa67c8f3, type: 2}
   - {fileID: 11400000, guid: 1201e55c0527dc84c9c1210b54530000, type: 2}
   - {fileID: 11400000, guid: 0ef9d87f17f0f304a85245e64fc6d935, type: 2}
-  - {fileID: 11400000, guid: 89c5e6ad2859761489ae80cfaa67c8f3, type: 2}
   decalProjector: {fileID: 7309760360947077046}
   UnitSO: {fileID: 11400000, guid: cf01eb43afb0a2547888b5dab2f31ab4, type: 2}
+  AnimationUpdateRate: 0.1
 --- !u!136 &5670770126592985931
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -225,10 +249,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f0038c16c34866b4f9e25c9c0dc0f7e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Graph: {fileID: -5133792220357923778, guid: 079fda70ab73ec547b3a88deb6b7811d, type: 2}
+  m_Graph: {fileID: -3754380409512950006, guid: 9271b91413aff8940a6883bcec384aa4, type: 2}
   m_BlackboardVariableOverridesList:
   - rid: 8809582332842082545
-  m_OriginalGraph: {fileID: -5133792220357923778, guid: 079fda70ab73ec547b3a88deb6b7811d, type: 2}
+  m_OriginalGraph: {fileID: -3754380409512950006, guid: 9271b91413aff8940a6883bcec384aa4, type: 2}
   m_IsInitialised: 0
   m_IsStarted: 0
   references:
