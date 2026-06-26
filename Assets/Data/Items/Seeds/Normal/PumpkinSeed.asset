@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PumpkinSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Lettuce
+  ItemName: PumpklinSeed
   Description: 
   Icon: {fileID: 6761164967045977113, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: 7de73ca3e86a4ab40be440eafae9fb58
@@ -24,3 +24,16 @@ MonoBehaviour:
   CropGrowing2Sprite: {fileID: -5395861003456798081, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   CropRipeSprite: {fileID: -6800931340347744238, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
+  Harvest: []
+  Restrictions: []
+  MaxPlantHealth: 100
+  PlantedStageDuration: 60
+  Growing1StageDuration: 90
+  Growing2StageDuration: 120
+  RequiresWater: 1
+  WaterUnitsPerApplication: 1
+  RequiresFertilizer: 0
+  FertilizerUnitsPerApplication: 1
+  DryTolerance: 120
+  DryDamageAmount: 1
+  DryDamageInterval: 30

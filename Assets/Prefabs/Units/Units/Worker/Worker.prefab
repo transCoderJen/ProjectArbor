@@ -208,6 +208,7 @@ MonoBehaviour:
   <CurrentHealth>k__BackingField: 0
   <MaxHealth>k__BackingField: 0
   <AvailableCommands>k__BackingField:
+  - {fileID: 11400000, guid: 89327352dd1333b4397d7f36e183edbd, type: 2}
   - {fileID: 11400000, guid: 89c5e6ad2859761489ae80cfaa67c8f3, type: 2}
   - {fileID: 11400000, guid: 1201e55c0527dc84c9c1210b54530000, type: 2}
   - {fileID: 11400000, guid: 0ef9d87f17f0f304a85245e64fc6d935, type: 2}

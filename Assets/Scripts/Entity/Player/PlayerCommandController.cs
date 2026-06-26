@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
+
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;

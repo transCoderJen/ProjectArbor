@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: LettuceSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Lettuce
+  ItemName: LettuceSeed
   Description: 
   Icon: {fileID: 5508725064705088119, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: a0d050d4ce8294949ba3b01b335bf96f
@@ -24,6 +24,16 @@ MonoBehaviour:
   CropGrowing2Sprite: {fileID: 2069992328310058220, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   CropRipeSprite: {fileID: -862800679913824809, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
-  Resources:
-  - {fileID: 11400000, guid: a9de3f7816ed5c346a03ba7165d4e644, type: 2}
-  - {fileID: 11400000, guid: ea3e0a0a68cf62345abc6868194d8d74, type: 2}
+  Harvest: []
+  Restrictions: []
+  MaxPlantHealth: 100
+  PlantedStageDuration: 60
+  Growing1StageDuration: 90
+  Growing2StageDuration: 120
+  RequiresWater: 1
+  WaterUnitsPerApplication: 1
+  RequiresFertilizer: 0
+  FertilizerUnitsPerApplication: 1
+  DryTolerance: 120
+  DryDamageAmount: 1
+  DryDamageInterval: 30

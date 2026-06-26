@@ -9,11 +9,17 @@ using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.Units;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.Buildable
 {
+    [RequireComponent(typeof(BoxCollider))]
+    [RequireComponent(typeof(SpriteRenderer))]
+    [RequireComponent(typeof(Occludable))]
+    [RequireComponent(typeof(NavMeshObstacle))]
     public class BaseBuilding : AbstractCommandable, IRaiderTarget
     {
         #region OTher Variables

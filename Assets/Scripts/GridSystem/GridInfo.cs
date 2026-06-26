@@ -83,7 +83,7 @@ namespace ShiftedSignal.Garden.GridSystem
                 CurrentStage = block.CurrentStage,
                 IsWatered = block.IsWatered,
                 IsActive = block.IsActive,
-                Health = block.health,
+                Health = block.Health,
                 SeedItemID = block.Seed != null ? block.Seed.ItemID : ""
             };
 
@@ -109,7 +109,7 @@ namespace ShiftedSignal.Garden.GridSystem
             info.CurrentStage = block.CurrentStage;
             info.IsWatered = block.IsWatered;
             info.IsActive = block.IsActive;
-            info.Health = block.health;
+            info.Health = block.Health;
             info.SeedItemID = block.Seed != null ? block.Seed.ItemID : "";
 
             SaveBuildableInfo(block, info, "UpdateInfo");

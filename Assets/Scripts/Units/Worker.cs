@@ -16,7 +16,8 @@ namespace ShiftedSignal.Garden.Units
         {
             get
             {
-                if (graphAgent!= null && graphAgent.GetVariable("SupplyAmountHeld", out BlackboardVariable<int> heldVariable))
+                if (graphAgent != null &&
+                    graphAgent.GetVariable("SupplyAmountHeld", out BlackboardVariable<int> heldVariable))
                 {
                     return heldVariable.Value > 0;
                 }
@@ -25,15 +26,38 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
-        public void ReturnSupplies(GameObject storehouse)
+        public bool HasWater
         {
-            graphAgent.SetVariableValue("Storehouse", storehouse);
-            graphAgent.SetVariableValue("Command", UnitCommands.ReturnSupplies);
+            get
+            {
+                if (graphAgent != null &&
+                    graphAgent.GetVariable("WaterAmountHeld", out BlackboardVariable<int> heldVariable))
+                {
+                    return heldVariable.Value > 0;
+                }
+
+                return false;
+            }
+        }
+
+        public bool HasFertilizer
+        {
+            get
+            {
+                if (graphAgent != null &&
+                    graphAgent.GetVariable("FertilizerAmountHeld", out BlackboardVariable<int> heldVariable))
+                {
+                    return heldVariable.Value > 0;
+                }
+
+                return false;
+            }
         }
 
         protected override void Start()
         {
             base.Start();
+
             if (graphAgent.GetVariable("GatherSuppliesEvent", out BlackboardVariable<GatherSuppliesEventChannel> eventChannelVariable))
             {
                 eventChannelVariable.Value.Event += HandleGatherSupplies;
@@ -45,6 +69,21 @@ namespace ShiftedSignal.Garden.Units
             graphAgent.SetVariableValue("Supply", supply);
             graphAgent.SetVariableValue("TargetGameObject", supply.gameObject);
             graphAgent.SetVariableValue("Command", UnitCommands.Gather);
+        }
+
+        public void ReturnSupplies(GameObject storehouse)
+        {
+            graphAgent.SetVariableValue("Storehouse", storehouse);
+            graphAgent.SetVariableValue("Command", UnitCommands.ReturnSupplies);
+        }
+
+        public void Farm()
+        {
+            graphAgent.SetVariableValue<GameObject>("FarmTarget", null);
+            graphAgent.SetVariableValue<GameObject>("FarmSource", null);
+            graphAgent.SetVariableValue<FarmTaskType>("FarmTask", FarmTaskType.None);
+
+            graphAgent.SetVariableValue("Command", UnitCommands.Farm);
         }
 
         private void HandleGatherSupplies(GameObject self, int amount, SupplySO supply)
@@ -68,4 +107,3 @@ namespace ShiftedSignal.Garden.Units
         }
     }
 }
-

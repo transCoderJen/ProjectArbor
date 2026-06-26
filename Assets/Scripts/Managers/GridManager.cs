@@ -441,7 +441,7 @@ namespace ShiftedSignal.Garden.Managers
             block.IsWatered = storedBlock.IsWatered;
             block.CurrentStage = storedBlock.CurrentStage;
             block.IsActive = storedBlock.IsActive;
-            block.health = storedBlock.Health;
+            block.Health = storedBlock.Health;
         }
 
         private void RestoreSeed(GrowBlock block, BlockInfo storedBlock)
@@ -736,6 +736,47 @@ namespace ShiftedSignal.Garden.Managers
                 Player.Instance.GrowBlockCheck.position);
         }
 
+        public IEnumerable<GrowBlock> GetBlocksInRadius(Vector3 worldPosition, float radius)
+        {
+            if (BlockRows == null || BlockRows.Count == 0)
+                yield break;
+
+            Vector3 localPos = worldPosition - MinPoint.position;
+
+            int centerX = Mathf.FloorToInt(localPos.x / CellSize);
+            int centerY = Mathf.FloorToInt(localPos.z / CellSize);
+
+            int cellRadius = Mathf.CeilToInt(radius / CellSize);
+            float radiusSqr = radius * radius;
+
+            for (int y = centerY - cellRadius; y <= centerY + cellRadius; y++)
+            {
+                if (y < 0 || y >= BlockRows.Count)
+                    continue;
+
+                BlockRow row = BlockRows[y];
+
+                if (row == null || row.Blocks == null)
+                    continue;
+
+                for (int x = centerX - cellRadius; x <= centerX + cellRadius; x++)
+                {
+                    if (x < 0 || x >= row.Blocks.Count)
+                        continue;
+
+                    GrowBlock block = row.Blocks[x];
+
+                    if (block == null)
+                        continue;
+
+                    float distanceSqr =
+                        (block.transform.position - worldPosition).sqrMagnitude;
+
+                    if (distanceSqr <= radiusSqr)
+                        yield return block;
+                }
+            }
+        }
         #endregion
 
         #region Neighbors
