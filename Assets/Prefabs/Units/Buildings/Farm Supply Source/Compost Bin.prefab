@@ -10,13 +10,13 @@ GameObject:
   m_Component:
   - component: {fileID: 8996168765619161557}
   - component: {fileID: 3679884456932434301}
-  - component: {fileID: 1723961082734944561}
   - component: {fileID: 4086726908688178586}
   - component: {fileID: 7212221592234281673}
   - component: {fileID: 8213589740477826225}
   - component: {fileID: 2888648978168991161}
+  - component: {fileID: -2103240985421207929}
   m_Layer: 9
-  m_Name: Well
+  m_Name: Compost Bin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -82,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 38ffe2c73fae41049bec7606f36ec91c, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.7132075, g: 0.18166599, b: 0.18166599, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -92,20 +92,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1723961082734944561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7523470629771963246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5202f519ea079f847bb37b2a2de7424a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  infiniteWater: 1
-  currentWater: 100
 --- !u!65 &4086726908688178586
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -176,7 +162,7 @@ MonoBehaviour:
   <MaxHealth>k__BackingField: 0
   <AvailableCommands>k__BackingField: []
   decalProjector: {fileID: 0}
-  UnitSO: {fileID: 11400000, guid: 6f0a6faf030f41c4481020396f1a74f3, type: 2}
+  UnitSO: {fileID: 11400000, guid: 6d6bfe2a58405074887983d33503e379, type: 2}
   IsActive: 0
   GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
   targetType: 1
@@ -196,3 +182,16 @@ MonoBehaviour:
   RunOnNightStarted: 0
   <CurrentQueueStartTime>k__BackingField: 0
   <BuildingUnit>k__BackingField: {fileID: 0}
+--- !u!114 &-2103240985421207929
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523470629771963246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b5091026f705ad4198801d2bed365aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentFertilizer: 25

@@ -32,7 +32,7 @@ MonoBehaviour:
   Growing2StageDuration: 120
   RequiresWater: 1
   WaterUnitsPerApplication: 1
-  RequiresFertilizer: 0
+  RequiresFertilizer: 1
   FertilizerUnitsPerApplication: 1
   DryTolerance: 120
   DryDamageAmount: 1
