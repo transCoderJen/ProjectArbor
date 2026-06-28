@@ -104,7 +104,7 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<DayStartedEvent>.OnEvent += HandleDayStarted;
             Bus<DayPeriodChangedEvent>.OnEvent += HandleDayPeriodChanged;
             Bus<HourChangedEvent>.OnEvent += HandleHourChanged;
-            Bus<TimeChangedEvent>.OnEvent += HandleTimeChanged;
+            Bus<FiveMinuteTickEvent>.OnEvent += HandleTimeChanged;
             Bus<NightStartedEvent>.OnEvent += HandleNightStarted;
         }
 
@@ -116,7 +116,7 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<DayStartedEvent>.OnEvent -= HandleDayStarted;
             Bus<DayPeriodChangedEvent>.OnEvent -= HandleDayPeriodChanged;
             Bus<HourChangedEvent>.OnEvent -= HandleHourChanged;
-            Bus<TimeChangedEvent>.OnEvent -= HandleTimeChanged;
+            Bus<FiveMinuteTickEvent>.OnEvent -= HandleTimeChanged;
             Bus<NightStartedEvent>.OnEvent -= HandleNightStarted;
         }
 
@@ -291,7 +291,7 @@ namespace ShiftedSignal.Garden.Buildable
             }
         }
 
-        private void HandleTimeChanged(TimeChangedEvent evt)
+        private void HandleTimeChanged(FiveMinuteTickEvent evt)
         {
             if (RunOnTimeChanged)
                 RunBuildingEffect();

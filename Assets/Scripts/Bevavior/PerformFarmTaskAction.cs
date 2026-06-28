@@ -9,19 +9,22 @@ using ShiftedSignal.Garden.GridSystem;
 namespace ShiftedSignal.Garden.Behavior
 {
     [Serializable, GeneratePropertyBag]
-    [NodeDescription(name: "Perform Farm Task", story: "[Unit] performs [FarmTask] on [FarmTarget]", category: "Action/Units", id: "e3ff61f1d93910047b5543d7899c1b8f")]
+    [NodeDescription(name: "Perform Farm Task", story: "[Unit] performs [FarmTask] on [CropTarget]", category: "Action/Units", id: "e3ff61f1d93910047b5543d7899c1b8f")]
     public partial class PerformFarmTaskAction : Action
     {
         [SerializeReference] public BlackboardVariable<GameObject> Unit;
-        [SerializeReference] public BlackboardVariable<GameObject> FarmTarget;
+        [SerializeReference] public BlackboardVariable<GameObject> CropTarget;
         [SerializeReference] public BlackboardVariable<FarmTaskType> FarmTask;
 
         protected override Status OnStart()
         {
-            if (FarmTarget.Value == null)
+            if (CropTarget.Value == null)
+                return Status.Failure;
+            
+            if (!Unit.Value.TryGetComponent(out Worker worker))
                 return Status.Failure;
 
-            if (!FarmTarget.Value.TryGetComponent(out GrowBlock growBlock))
+            if (!CropTarget.Value.TryGetComponent(out GrowBlock growBlock))
                 return Status.Failure;
 
             bool success = FarmTask.Value switch
@@ -31,10 +34,12 @@ namespace ShiftedSignal.Garden.Behavior
                 _ => false
             };
 
+            growBlock.ReleaseFarmTask(worker);
+
             if (!success)
                 return Status.Failure;
 
-            FarmTarget.Value = null;
+            CropTarget.Value = null;
             FarmTask.Value = FarmTaskType.None;
 
             return Status.Success;

@@ -175,25 +175,34 @@ namespace ShiftedSignal.Garden.Managers
             int currentHourInt = CurrentHour;
             int currentMinuteInt = CurrentMinute;
 
+            // Minute-based events
             if (currentMinuteInt != lastMinute)
             {
                 int lastFive = lastMinute / 5;
-                int currentFive = CurrentMinute / 5;
+                int currentFive = currentMinuteInt / 5;
 
                 if (currentFive != lastFive)
                 {
-                    Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());
+                    Bus<FiveMinuteTickEvent>.Raise(new FiveMinuteTickEvent());
+                }
+
+                // Every 10 in-game minutes
+                if (currentMinuteInt % 10 == 0)
+                {
+                    Bus<FarmGrowthTickEvent>.Raise(new FarmGrowthTickEvent());
                 }
 
                 lastMinute = currentMinuteInt;
             }
 
+            // Hour changed
             if (currentHourInt != lastHour)
             {
                 lastHour = currentHourInt;
                 Bus<HourChangedEvent>.Raise(new HourChangedEvent(currentHourInt));
             }
 
+            // Day period changed
             DayPeriod newDayPeriod = GetDayPeriod();
 
             if (CurrentDayPeriod != newDayPeriod)
@@ -202,6 +211,7 @@ namespace ShiftedSignal.Garden.Managers
                 Bus<DayPeriodChangedEvent>.Raise(new DayPeriodChangedEvent(CurrentDayPeriod));
             }
 
+            // Day / Night transition
             bool isCurrentlyDay = IsDay;
 
             if (isCurrentlyDay != wasDay)
@@ -387,7 +397,7 @@ namespace ShiftedSignal.Garden.Managers
             UpdateLighting();
             
 
-            Bus<TimeChangedEvent>.Raise(new TimeChangedEvent());
+            Bus<FiveMinuteTickEvent>.Raise(new FiveMinuteTickEvent());
             Bus<DayPeriodChangedEvent>.Raise(new DayPeriodChangedEvent(CurrentDayPeriod));
 
             if (wasDay)

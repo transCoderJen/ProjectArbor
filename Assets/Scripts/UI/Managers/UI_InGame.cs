@@ -134,7 +134,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
 
         private void AddEventHandlers()
         {
-            Bus<TimeChangedEvent>.OnEvent += UpdateTimeUI;
+            Bus<FiveMinuteTickEvent>.OnEvent += UpdateTimeUI;
             Bus<DayStartedEvent>.OnEvent += UpdateDayUI;
             Bus<DayChangedEvent>.OnEvent += UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent += UpdateDayPeriodUI;
@@ -147,7 +147,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
 
         private void RemoveEventHandlers()
         {
-            Bus<TimeChangedEvent>.OnEvent -= UpdateTimeUI;
+            Bus<FiveMinuteTickEvent>.OnEvent -= UpdateTimeUI;
             Bus<DayStartedEvent>.OnEvent -= UpdateDayUI;
             Bus<DayChangedEvent>.OnEvent -= UpdateDayUI;
             Bus<DayPeriodChangedEvent>.OnEvent -= UpdateDayPeriodUI;
@@ -368,7 +368,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
 
         #region Time UI
 
-        private void UpdateTimeUI(TimeChangedEvent evt)
+        private void UpdateTimeUI(FiveMinuteTickEvent evt)
         {
             UpdateTimeUI();
         }

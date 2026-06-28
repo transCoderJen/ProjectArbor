@@ -13,10 +13,17 @@ namespace ShiftedSignal.Garden.Units
     {
         [Header("Unit Config")]
         protected override AbstractUnitSO Config => UnitSO;
+        public AbstractUnitSO UnitData => UnitSO;
         [SerializeField] private AbstractUnitSO UnitSO;
         [SerializeField] private float AnimationUpdateRate = 0.1f;
+        [SerializeField] private string instanceID;
 
+        public string InstanceID => instanceID;
 
+        public void SetInstanceID(string id)
+        {
+            instanceID = id;
+        }
 
         public float AgentRadius => agent.radius;
         private NavMeshAgent agent;
@@ -27,16 +34,23 @@ namespace ShiftedSignal.Garden.Units
         private float lastAnimX;
         private float lastAnimY;
         private float nextAnimationUpdateTime;
+        
 
         protected virtual void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
             anim = GetComponent<Animator>();
 
+            if (string.IsNullOrEmpty(instanceID))
+            {
+                instanceID = System.Guid.NewGuid().ToString();
+            }
+            
             agent.updateRotation = false;
 
             graphAgent = GetComponent<BehaviorGraphAgent>();
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+
         }
 
         protected override void Start()
@@ -108,6 +122,14 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
+#endregion
+
+#region Load From Save
+        public virtual void RestoreFromSave(int savedHealth)
+        {
+            SetHealth(savedHealth > 0 ? savedHealth : MaxHealth, MaxHealth);
+            Stop();
+        }
 #endregion
     }
 }

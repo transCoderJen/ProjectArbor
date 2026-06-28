@@ -11,6 +11,12 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         Living
     }
 
+    public enum HarvestBehavior
+    {
+        ReplantRequired,
+        PlantRemains
+    }
+
     [CreateAssetMenu(fileName = "New Item Data", menuName = "Data/Seed")]
     public class ItemData_Seed : ItemData
     {
@@ -29,10 +35,15 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         [Header("Plant Health")]
         public int MaxPlantHealth = 100;
 
+        [Header("Harvest Behavior")]
+        public HarvestBehavior HarvestBehavior = HarvestBehavior.ReplantRequired;
+        [Header("Harvest Behavior")]
+        public GrowBlock.GrowthStage RegrowStage = GrowBlock.GrowthStage.Growing2;
+
         [Header("Growth Timing")]
-        public float PlantedStageDuration = 60f;
-        public float Growing1StageDuration = 90f;
-        public float Growing2StageDuration = 120f;
+        public float PlantedStageMinutes = 60f;
+        public float Growing1StageMinutes = 90f;
+        public float Growing2StageMinutes = 120f;
 
         [Header("Water")]
         public bool RequiresWater = true;
@@ -59,9 +70,9 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         {
             return stage switch
             {
-                GrowBlock.GrowthStage.Planted => PlantedStageDuration,
-                GrowBlock.GrowthStage.Growing1 => Growing1StageDuration,
-                GrowBlock.GrowthStage.Growing2 => Growing2StageDuration,
+                GrowBlock.GrowthStage.Planted => PlantedStageMinutes,
+                GrowBlock.GrowthStage.Growing1 => Growing1StageMinutes,
+                GrowBlock.GrowthStage.Growing2 => Growing2StageMinutes,
                 _ => 0f
             };
         }

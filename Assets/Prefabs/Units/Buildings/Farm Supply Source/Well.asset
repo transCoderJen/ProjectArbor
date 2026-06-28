@@ -18,6 +18,7 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7523470629771963246, guid: a99a9a011e580d54691136e564035654, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
+  SaveID: 
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 30

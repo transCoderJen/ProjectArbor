@@ -7,6 +7,10 @@ using ShiftedSignal.Garden.Misc;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.EventBus;
+
+
 
 
 #if UNITY_EDITOR
@@ -41,10 +45,12 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private bool allowGridHighlighting = true;
 
         [Header("Runtime")]
+        [SerializeField] private int RowsPerFrame = 4;
         public List<BlockRow> BlockRows = new();
 
         private GrowBlock currentHoveredBlock;
         private Coroutine restoreRoutine;
+        private Coroutine growthCoroutine;
 
         #endregion
 
@@ -53,6 +59,17 @@ namespace ShiftedSignal.Garden.Managers
         private void Start()
         {
             RequestGridRestore();
+        }
+
+        private void OnEnable()
+        {
+            Bus<FarmGrowthTickEvent>.OnEvent += HandleFarmGrowthTick;
+
+        }
+
+        private void OnDisable()
+        {
+            Bus<FarmGrowthTickEvent>.OnEvent -= HandleFarmGrowthTick;
         }
 
 #if UNITY_EDITOR
@@ -320,6 +337,40 @@ namespace ShiftedSignal.Garden.Managers
         #endregion
 
         #region Grid Update / Restore / Visuals
+
+        private void HandleFarmGrowthTick(FarmGrowthTickEvent evt)
+        {
+            if (growthCoroutine != null)
+                StopCoroutine(growthCoroutine);
+
+            growthCoroutine = StartCoroutine(ProcessFarmGrowthBatch());
+        }
+
+        private IEnumerator ProcessFarmGrowthBatch()
+        {
+            int processed = 0;
+
+            foreach (BlockRow row in BlockRows)
+            {
+                if (row == null)
+                    continue;
+
+                foreach (GrowBlock block in row.Blocks)
+                {
+                    block?.TickGrowth();
+                }
+
+                processed++;
+
+                if (processed >= RowsPerFrame)
+                {
+                    processed = 0;
+                    yield return null;
+                }
+            }
+
+            growthCoroutine = null;
+        }
 
         [ContextMenu("Show Grid")]
         public void ShowGrid()

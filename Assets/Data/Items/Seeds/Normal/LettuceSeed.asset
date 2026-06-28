@@ -27,9 +27,11 @@ MonoBehaviour:
   Harvest: []
   Restrictions: []
   MaxPlantHealth: 100
-  PlantedStageDuration: 60
-  Growing1StageDuration: 90
-  Growing2StageDuration: 120
+  HarvestBehavior: 0
+  RegrowStage: 4
+  PlantedStageMinutes: 60
+  Growing1StageMinutes: 90
+  Growing2StageMinutes: 120
   RequiresWater: 1
   WaterUnitsPerApplication: 1
   RequiresFertilizer: 1

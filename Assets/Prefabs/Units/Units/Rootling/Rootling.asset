@@ -18,3 +18,4 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: 3ce0f31c1709bd049a041b4ee7c873ea, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
+  SaveID: 

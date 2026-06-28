@@ -5,6 +5,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.GridSystem
@@ -43,6 +44,9 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public ItemData_Seed Seed;
         public GameObject SpawnedPlant;
+        private Worker reservedWorker;
+
+        public bool IsReserved => reservedWorker != null;
 
         #endregion
 
@@ -116,7 +120,37 @@ namespace ShiftedSignal.Garden.GridSystem
         public bool HasActionableFarmTask =>
             CanReceiveFarmCare &&
             (NeedsWater || NeedsFertilizer);
+        
+        public bool IsReservedByAnotherWorker(Worker worker)
+        {
+            return reservedWorker != null && reservedWorker != worker;
+        }
 
+        public bool TryReserveFarmTask(Worker worker)
+        {
+            if (worker == null)
+                return false;
+
+            if (IsReservedByAnotherWorker(worker))
+                return false;
+
+            if (!HasActionableFarmTask)
+                return false;
+
+            reservedWorker = worker;
+            return true;
+        }
+
+        public void ReleaseFarmTask(Worker worker)
+        {
+            if (worker == null)
+                return;
+
+            if (reservedWorker != worker)
+                return;
+
+            reservedWorker = null;
+        }
         #endregion
 
         #region Grid Position
@@ -365,6 +399,25 @@ namespace ShiftedSignal.Garden.GridSystem
 
         #region Growth
 
+        public void TickGrowth()
+        {
+            if (!HasCrop || !IsGrowing)
+                return;
+
+            if (Seed.RequiresWater && !IsWatered)
+                return;
+
+            if (Seed.RequiresFertilizer && !IsFertilized)
+                return;
+
+            GrowthProgress += 10f;
+
+            if (GrowthProgress < Seed.GetStageDuration(CurrentStage))
+                return;
+
+            AdvanceCrop();
+        }
+
         public void AdvanceStage()
         {
             if (CurrentStage == GrowthStage.Dead)
@@ -444,6 +497,18 @@ namespace ShiftedSignal.Garden.GridSystem
             if (Seed.CropType == CropType.Harvestable)
             {
                 Seed.AddHarvestToInventory();
+
+                if (Seed.HarvestBehavior == HarvestBehavior.PlantRemains)
+                {
+                    CurrentStage = Seed.RegrowStage;
+                    IsWatered = false;
+                    IsFertilized = false;
+                    GrowthProgress = 0f;
+                    CurrentPlantHealth = Seed.MaxPlantHealth;
+
+                    UpdateVisuals();
+                    return;
+                }
 
                 Seed = null;
                 CurrentStage = GrowthStage.Ploughed;

@@ -1,4 +1,3 @@
-using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.ItemsAndInventory;
 

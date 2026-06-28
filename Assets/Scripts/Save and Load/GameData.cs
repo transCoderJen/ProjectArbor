@@ -15,6 +15,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public SerializableDictionary<string, int> seedBank;
         public SerializableDictionary<string, QuestData> quests;
         public SerializableDictionary<string, float> volumeSettings;
+        public List<UnitSaveData> units;
         public List<string> equipmentId;
         public List<InfoRow> gridRows;
         public List<string> TriggeredDialogueIds;
@@ -43,6 +44,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
             seedBank = new SerializableDictionary<string, int>();
             quests = new SerializableDictionary<string, QuestData>();
             volumeSettings = new SerializableDictionary<string, float>();
+            units = new List<UnitSaveData>();
             equipmentId = new List<string>();
             gridRows = new List<InfoRow>();
             TriggeredDialogueIds = new List<string>();
