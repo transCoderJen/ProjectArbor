@@ -15,12 +15,14 @@ namespace ShiftedSignal.Garden.Behavior
         [SerializeReference] public BlackboardVariable<GameObject> Unit;
         [SerializeReference] public BlackboardVariable<GameObject> CropTarget;
         [SerializeReference] public BlackboardVariable<FarmTaskType> FarmTask;
+        [SerializeReference] public BlackboardVariable<int> WaterAmountHeld;
+        [SerializeReference] public BlackboardVariable<int> FertilizerAmountHeld;
 
         protected override Status OnStart()
         {
             if (CropTarget.Value == null)
                 return Status.Failure;
-            
+
             if (!Unit.Value.TryGetComponent(out Worker worker))
                 return Status.Failure;
 
@@ -34,15 +36,34 @@ namespace ShiftedSignal.Garden.Behavior
                 _ => false
             };
 
+            // Always release the reservation once we've attempted the task.
             growBlock.ReleaseFarmTask(worker);
 
             if (!success)
                 return Status.Failure;
+
+            // Consume the carried farm supply.
+            switch (FarmTask.Value)
+            {
+                case FarmTaskType.Water:
+                    WaterAmountHeld.Value = Mathf.Max(
+                        0,
+                        WaterAmountHeld.Value - 1);
+                    break;
+
+                case FarmTaskType.Fertilize:
+                    FertilizerAmountHeld.Value = Mathf.Max(
+                        0,
+                        FertilizerAmountHeld.Value - 1);
+                    break;
+            }
 
             CropTarget.Value = null;
             FarmTask.Value = FarmTaskType.None;
 
             return Status.Success;
         }
+
+        
     }
 }

@@ -37,7 +37,7 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private LayerMask InteractionLayer;
 
         [Header("Buildable Restore Database")]
-        [SerializeField] private List<BuildableData> buildableDatabase = new();
+        [SerializeField] private List<BuildingSO> buildableDatabase = new();
 
         [Header("Debug")]
         [SerializeField] private bool logGridRestore = true;
@@ -539,7 +539,7 @@ namespace ShiftedSignal.Garden.Managers
                     this);                
             }
 
-            BuildableData buildableData = FindBuildableDataByItemID(info.BuildableItemID);
+            BuildingSO buildableData = FindBuildableDataByItemID(info.BuildableItemID);
 
             if (buildableData == null)
             {
@@ -606,12 +606,12 @@ namespace ShiftedSignal.Garden.Managers
             return true;
         }
 
-        private BuildableData FindBuildableDataByItemID(string itemID)
+        private BuildingSO FindBuildableDataByItemID(string itemID)
         {
             if (string.IsNullOrEmpty(itemID))
                 return null;
 
-            foreach (BuildableData buildable in buildableDatabase)
+            foreach (BuildingSO buildable in buildableDatabase)
             {
                 if (buildable == null)
                     continue;
@@ -696,7 +696,7 @@ namespace ShiftedSignal.Garden.Managers
 
             Debug.Log($"[BuildableDatabase] Count={buildableDatabase.Count}", this);
 
-            foreach (BuildableData data in buildableDatabase)
+            foreach (BuildingSO data in buildableDatabase)
             {
                 if (data == null)
                 {
@@ -901,41 +901,50 @@ namespace ShiftedSignal.Garden.Managers
         }
 
 #if UNITY_EDITOR
-        [ContextMenu("Fill Buildable Database")]
-        private void FillBuildableDatabase()
+[ContextMenu("Fill Buildable Database")]
+private void FillBuildableDatabase()
+{
+    buildableDatabase.Clear();
+
+    const string rootFolder = "Assets/Prefabs/Units/Buildings";
+
+    if (!AssetDatabase.IsValidFolder(rootFolder))
+    {
+        Debug.LogError($"Buildable database folder not found: {rootFolder}", this);
+        return;
+    }
+
+    string[] assetGuids =
+        AssetDatabase.FindAssets(
+            "t:BuildingSO",
+            new[] { rootFolder });
+
+    Debug.Log($"Found {assetGuids.Length} BuildingSO asset guids in {rootFolder}", this);
+
+    foreach (string guid in assetGuids)
+    {
+        string path = AssetDatabase.GUIDToAssetPath(guid);
+
+        Debug.Log($"Checking asset at path: {path}", this);
+
+        BuildingSO buildable =
+            AssetDatabase.LoadAssetAtPath<BuildingSO>(path);
+
+        if (buildable == null)
         {
-            buildableDatabase.Clear();
-
-            const string rootFolder = "Assets/Prefabs/Units/Buildings";
-
-            if (!AssetDatabase.IsValidFolder(rootFolder))
-            {
-                Debug.LogError($"Buildable database folder not found: {rootFolder}", this);
-                return;
-            }
-
-            string[] assetGuids =
-                AssetDatabase.FindAssets(
-                    "t:BuildableData",
-                    new[] { rootFolder });
-
-            foreach (string guid in assetGuids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-
-                BuildableData buildable =
-                    AssetDatabase.LoadAssetAtPath<BuildableData>(path);
-
-                if (buildable == null)
-                    continue;
-
-                buildableDatabase.Add(buildable);
-            }
-
-            Debug.Log($"Filled Buildable Database. Count={buildableDatabase.Count}", this);
-
-            EditorUtility.SetDirty(this);
+            Debug.LogWarning($"Failed to load BuildingSO at path: {path}", this);
+            continue;
         }
+
+        Debug.Log($"Added buildable: {buildable.name}", buildable);
+
+        buildableDatabase.Add(buildable);
+    }
+
+    Debug.Log($"Filled Buildable Database. Count={buildableDatabase.Count}", this);
+
+    EditorUtility.SetDirty(this);
+}
 #endif
 
         #endregion

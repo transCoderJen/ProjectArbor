@@ -22,11 +22,13 @@ namespace ShiftedSignal.Garden.Units
         public abstract CombatTeam Team { get; }
 
         protected abstract AbstractUnitSO Config { get; }
+        private BaseCommand[] initialCommands;
 
         protected virtual void Start()
         {
             int maxHealth = Config != null ? Config.Health : MaxHealth;
             SetHealth(maxHealth, maxHealth);
+            initialCommands = AvailableCommands;
         }
 
         public virtual void TakeDamage(DamageData damageData)
@@ -80,7 +82,23 @@ namespace ShiftedSignal.Garden.Units
             if (decalProjector != null)
                 decalProjector.gameObject.SetActive(false);
 
+                SetCommandOverrides(null);
+
             Bus<UnitDeselectedEvent>.Raise(new UnitDeselectedEvent(this));
+        }
+
+        public void SetCommandOverrides(BaseCommand[] commands)
+        {
+            if (commands == null || commands.Length == 0)
+            {
+                AvailableCommands = initialCommands;
+            }
+            else
+            {
+                AvailableCommands = commands;
+            }
+
+            Bus<UnitSelectedEvent>.Raise(new UnitSelectedEvent(this));
         }
     }
 }

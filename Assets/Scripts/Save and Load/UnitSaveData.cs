@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.SaveAndLoad
@@ -9,5 +10,6 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public string UnitTypeID;
         public Vector3 Position;
         public int CurrentHealth;
+        public UnitCommands CurrentCommand;
     }
 }

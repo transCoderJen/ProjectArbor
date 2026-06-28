@@ -34,6 +34,9 @@ namespace ShiftedSignal.Garden.Behavior
             if (FarmSource.Value == null)
                 return Status.Failure;
 
+            if (Unit.Value == null)
+                return Status.Failure;
+
             source = FarmSource.Value.GetComponent<IFarmSupplySource>();
 
             if (source == null)
@@ -42,6 +45,26 @@ namespace ShiftedSignal.Garden.Behavior
             if (!Unit.Value.TryGetComponent(out Worker worker))
                 return Status.Failure;
 
+            int requestedAmount = FarmTask.Value switch
+            {
+                FarmTaskType.Water =>
+                    WaterCapacity.Value - WaterAmountHeld.Value,
+
+                FarmTaskType.Fertilize =>
+                    FertilizerCapacity.Value - FertilizerAmountHeld.Value,
+
+                _ => 0
+            };
+
+            // Already carrying enough.
+            if (requestedAmount <= 0)
+                return Status.Failure;
+
+            // Source doesn't have enough to provide.
+            if (!source.CanProvide(requestedAmount))
+                return Status.Failure;
+
+            // Reserve the source.
             if (!source.TryBeginCollect(worker))
                 return Status.Failure;
 

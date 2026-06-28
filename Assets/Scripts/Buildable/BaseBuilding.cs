@@ -24,7 +24,7 @@ namespace ShiftedSignal.Garden.Buildable
     {
         #region OTher Variables
         [Header("Build Info")]
-        public BuildableData UnitSO;
+        public BuildingSO UnitSO;
         protected override AbstractUnitSO Config => UnitSO;
         public virtual Transform ProjectileSpawnPoint => transform;
         [SerializeField] protected bool IsActive;

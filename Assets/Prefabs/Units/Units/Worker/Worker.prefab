@@ -212,9 +212,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 89c5e6ad2859761489ae80cfaa67c8f3, type: 2}
   - {fileID: 11400000, guid: 1201e55c0527dc84c9c1210b54530000, type: 2}
   - {fileID: 11400000, guid: 0ef9d87f17f0f304a85245e64fc6d935, type: 2}
+  - {fileID: 11400000, guid: 4a0b786105ee4db4a81f7cce5e8f92a2, type: 2}
   decalProjector: {fileID: 7309760360947077046}
   UnitSO: {fileID: 11400000, guid: cf01eb43afb0a2547888b5dab2f31ab4, type: 2}
   AnimationUpdateRate: 0.1
+  instanceID: 
 --- !u!136 &5670770126592985931
 CapsuleCollider:
   m_ObjectHideFlags: 0

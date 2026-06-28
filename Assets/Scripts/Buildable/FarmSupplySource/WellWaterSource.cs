@@ -33,9 +33,6 @@ namespace ShiftedSignal.Garden.Buildable
             if (reservedWorker != null && reservedWorker != worker)
                 return false;
 
-            if (!CanProvide(1))
-                return false;
-
             reservedWorker = worker;
             return true;
         }

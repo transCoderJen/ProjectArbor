@@ -2,6 +2,7 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.SaveAndLoad;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -23,6 +24,20 @@ namespace ShiftedSignal.Garden.Units
         public void SetInstanceID(string id)
         {
             instanceID = id;
+        }
+
+        public UnitCommands CurrentCommand
+        {
+            get
+            {
+                if (graphAgent != null &&
+                    graphAgent.GetVariable("Command", out BlackboardVariable<UnitCommands> commandVariable))
+                {
+                    return commandVariable.Value;
+                }
+
+                return UnitCommands.Stop;
+            }
         }
 
         public float AgentRadius => agent.radius;
@@ -50,14 +65,18 @@ namespace ShiftedSignal.Garden.Units
 
             graphAgent = GetComponent<BehaviorGraphAgent>();
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
-
         }
 
         protected override void Start()
         {
             base.Start();
+            Debug.Log($"{name} raising UnitSpawnEvent");
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
-            MoveTo(transform.position);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            Bus<UnitDestroyedEvent>.Raise(new UnitDestroyedEvent(this));
         }
 
         protected virtual void Update()
@@ -125,10 +144,10 @@ namespace ShiftedSignal.Garden.Units
 #endregion
 
 #region Load From Save
-        public virtual void RestoreFromSave(int savedHealth)
+        public virtual void RestoreFromSave(UnitSaveData savedUnit)
         {
-            SetHealth(savedHealth > 0 ? savedHealth : MaxHealth, MaxHealth);
-            Stop();
+            SetHealth(savedUnit.CurrentHealth > 0 ? savedUnit.CurrentHealth : MaxHealth, MaxHealth);
+            graphAgent.SetVariableValue("Command", savedUnit.CurrentCommand);
         }
 #endregion
     }

@@ -42,7 +42,7 @@ namespace ShiftedSignal.Garden.Buildable
     }
 
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
-    public class BuildableData : UnitSO
+    public class BuildingSO : UnitSO
     {
         [Header("Placement Rules")]
         public BuildPlacementMode PlacementMode = BuildPlacementMode.GridOnly;

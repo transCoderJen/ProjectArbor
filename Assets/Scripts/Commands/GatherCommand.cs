@@ -8,7 +8,7 @@ namespace ShiftedSignal.Garden.Commands
     [CreateAssetMenu(fileName = "Gather Command", menuName = "Units/Commands/Gather", order = 105)]
     public class GatherCommand : BaseCommand
     {
-        [SerializeField] private BuildableData storehouseSO;
+        [SerializeField] private BuildingSO storehouseSO;
         public override bool CanHandle(CommandContext context)
         {
             return context.Commandable is Worker

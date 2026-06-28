@@ -6,6 +6,11 @@ using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+
 namespace ShiftedSignal.Garden.Managers
 {
     public class UnitManager : Singleton<UnitManager>, ISaveManager
@@ -18,11 +23,21 @@ namespace ShiftedSignal.Garden.Managers
         private void OnEnable()
         {
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawned;
+            Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
         }
 
         private void OnDisable()
         {
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawned;
+            Bus<UnitDestroyedEvent>.OnEvent -= HandleUnitDestroyed;
+        }
+
+        private void HandleUnitDestroyed(UnitDestroyedEvent evt)
+        {
+            if (evt.Unit == null)
+                return;
+
+            activeUnits.Remove(evt.Unit);
         }
 
         private void HandleUnitSpawned(UnitSpawnEvent evt)
@@ -53,9 +68,12 @@ namespace ShiftedSignal.Garden.Managers
                     InstanceID = unit.InstanceID,
                     UnitTypeID = unitSO.SaveID,
                     Position = unit.transform.position,
-                    CurrentHealth = unit.CurrentHealth
-                });
+                    CurrentHealth = unit.CurrentHealth,
+                    CurrentCommand = unit.CurrentCommand
+                });         
             }
+
+            
         }
 
         public void LoadData(GameData data)
@@ -81,7 +99,7 @@ namespace ShiftedSignal.Garden.Managers
                     continue;
 
                 unit.SetInstanceID(savedUnit.InstanceID);
-                unit.RestoreFromSave(savedUnit.CurrentHealth);
+                unit.RestoreFromSave(savedUnit);
             }
         }
 
@@ -111,5 +129,49 @@ namespace ShiftedSignal.Garden.Managers
 
             return null;
         }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            FillUnitDatabase();
+        }
+
+        [ContextMenu("Fill Unit Database")]
+        private void FillUnitDatabase()
+        {
+            unitDatabase.Clear();
+
+            const string rootFolder = "Assets/Prefabs/Units/Units";
+
+            if (!AssetDatabase.IsValidFolder(rootFolder))
+            {
+                Debug.LogError($"Unit database folder not found: {rootFolder}", this);
+                return;
+            }
+
+            string[] assetGuids =
+                AssetDatabase.FindAssets(
+                    "t:UnitSO",
+                    new[] { rootFolder });
+
+            foreach (string guid in assetGuids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+
+                UnitSO unit =
+                    AssetDatabase.LoadAssetAtPath<UnitSO>(path);
+
+                if (unit == null)
+                    continue;
+
+                if (!unitDatabase.Contains(unit))
+                    unitDatabase.Add(unit);
+            }
+
+            Debug.Log($"Filled Unit Database. Count={unitDatabase.Count}", this);
+
+            EditorUtility.SetDirty(this);
+        }
+#endif
     }
 }

@@ -1,4 +1,5 @@
 using ShiftedSignal.Garden.Behavior;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Environment;
 using ShiftedSignal.Garden.EventBus;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
 {
-    public class Worker : AbstractUnit
+    public class Worker : AbstractUnit, IBuildingBuilder
     {
         public override CombatTeam Team => CombatTeam.Friendly;
 
@@ -54,6 +55,8 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
+        public bool IsBuilding => throw new System.NotImplementedException();
+
         protected override void Start()
         {
             base.Start();
@@ -64,6 +67,13 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
+        public void Gather()
+        {
+            graphAgent.SetVariableValue<GatherableSupply>("Supply", null);
+            graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
+            graphAgent.SetVariableValue("Command", UnitCommands.Gather);
+        }
+        
         public void Gather(GatherableSupply supply)
         {
             graphAgent.SetVariableValue("Supply", supply);
@@ -105,5 +115,22 @@ namespace ShiftedSignal.Garden.Units
 
             Bus<SupplyEvent>.Raise(new SupplyEvent(amount, supply));
         }
+
+#region Buiild
+        public GameObject Build(BuildingSO building, Vector3 targetLocation)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void ResumeBuilding(BaseBuilding building)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CancelBuilding()
+        {
+            throw new System.NotImplementedException();
+        }
+#endregion
     }
 }

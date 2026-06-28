@@ -22,6 +22,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         public void EnableFor(BaseCommand action, UnityAction onClick)
         {
+            button.onClick.RemoveAllListeners();
             SetIcon(action.Icon);
             button.interactable = true;
             button.onClick.AddListener(onClick);

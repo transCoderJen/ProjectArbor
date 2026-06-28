@@ -37,6 +37,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawn;
             Bus<ActionSelectedEvent>.OnEvent += HandleActionSelected;
+            Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
         }
 
 
@@ -46,6 +47,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
             Bus<ActionSelectedEvent>.OnEvent -= HandleActionSelected;
+            Bus<UnitDestroyedEvent>.OnEvent -= HandleUnitDestroyed;
+        }
+
+        private void HandleUnitDestroyed(UnitDestroyedEvent evt)
+        {
+            aliveUnits.Remove(evt.Unit);
+            selectedUnits.Remove(evt.Unit);
+            addedUnits.Remove(evt.Unit);
         }
 
         private void HandleActionSelected(ActionSelectedEvent evt)
@@ -61,7 +70,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleUnitDeselected(UnitDeselectedEvent evt) => selectedUnits.Remove(evt.Unit);
 
-        private void HandleUnitSelected(UnitSelectedEvent evt) => selectedUnits.Add(evt.Unit);
+        private void HandleUnitSelected(UnitSelectedEvent evt)
+        {
+            if (!selectedUnits.Contains(evt.Unit))
+            {
+                selectedUnits.Add(evt.Unit);
+            }
+        }
 
         public void EnterCommanderMode()
         {

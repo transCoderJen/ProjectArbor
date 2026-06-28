@@ -91,7 +91,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         #region Building
 
         [Header("Building")]
-        [SerializeField] private BuildableData EquippedBuildable;
+        [SerializeField] private BuildingSO EquippedBuildable;
 
         [Header("Building Placement Colors")]
         [SerializeField, ColorUsage(showAlpha: true, hdr: true)]

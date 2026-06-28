@@ -9,9 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de124346672955742bffc68a4901c742, type: 3}
-  m_Name: Stop Command
+  m_Script: {fileID: 11500000, guid: 9512d539f2a266d4f943eee9c6d7e688, type: 3}
+  m_Name: Reset Commands Command
   m_EditorClassIdentifier: 
-  <Icon>k__BackingField: {fileID: 21300000, guid: af5afbd56621f394b8d6017ebda9401e, type: 3}
-  <Slot>k__BackingField: 1
+  <Icon>k__BackingField: {fileID: 21300000, guid: 1a3a199fa1bcd2642a8472336cb43de1, type: 3}
+  <Slot>k__BackingField: 8
   <RequiresClickToActivate>k__BackingField: 0
+  <Commands>k__BackingField: []

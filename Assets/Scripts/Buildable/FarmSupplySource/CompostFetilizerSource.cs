@@ -29,9 +29,6 @@ namespace ShiftedSignal.Garden.Buildable
             if (reservedWorker != null && reservedWorker != worker)
                 return false;
 
-            if (!CanProvide(1))
-                return false;
-
             reservedWorker = worker;
             return true;
         }
@@ -39,14 +36,19 @@ namespace ShiftedSignal.Garden.Buildable
         public int CompleteCollect(Worker worker, int requestedAmount)
         {
             if (worker == null)
+            {
                 return 0;
+            }
 
             if (reservedWorker != worker)
+            {
                 return 0;
+            }
 
             int collectedAmount = Mathf.Min(requestedAmount, currentFertilizer);
 
             currentFertilizer -= collectedAmount;
+
             reservedWorker = null;
 
             return collectedAmount;
