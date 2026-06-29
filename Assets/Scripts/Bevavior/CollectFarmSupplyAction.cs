@@ -47,12 +47,9 @@ namespace ShiftedSignal.Garden.Behavior
 
             int requestedAmount = FarmTask.Value switch
             {
-                FarmTaskType.Water =>
-                    WaterCapacity.Value - WaterAmountHeld.Value,
-
-                FarmTaskType.Fertilize =>
-                    FertilizerCapacity.Value - FertilizerAmountHeld.Value,
-
+                FarmTaskType.Water => WaterCapacity.Value - WaterAmountHeld.Value,
+                FarmTaskType.Fertilize => FertilizerCapacity.Value - FertilizerAmountHeld.Value,
+                FarmTaskType.Harvest => 0,
                 _ => 0
             };
 

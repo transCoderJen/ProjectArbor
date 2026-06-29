@@ -7,6 +7,8 @@ namespace ShiftedSignal.Garden.Units
     {
         None,
         Water,
-        Fertilize
+        Fertilize,
+        Harvest,
+        Plant
     }
 }

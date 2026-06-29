@@ -24,7 +24,8 @@ MonoBehaviour:
   CropGrowing2Sprite: {fileID: 2069992328310058220, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   CropRipeSprite: {fileID: -862800679913824809, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
-  Harvest: []
+  Harvest:
+  - {fileID: 11400000, guid: f1e297163b7c2de44a978a13be17c457, type: 2}
   Restrictions: []
   MaxPlantHealth: 100
   HarvestBehavior: 0

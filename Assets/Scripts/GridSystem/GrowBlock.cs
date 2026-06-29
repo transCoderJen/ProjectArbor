@@ -117,14 +117,26 @@ namespace ShiftedSignal.Garden.GridSystem
             Seed.RequiresFertilizer &&
             !IsFertilized;
 
+        public bool NeedsHarvest =>
+            HasCrop &&
+            CurrentStage == GrowthStage.Ripe &&
+            !IsDead &&
+            !HasBuildable &&
+            IsActive;
+
+        public bool NeedsPlanting =>
+            CurrentStage == GrowthStage.Ploughed &&
+            !HasCrop &&
+            !HasBuildable &&
+            IsActive;
+
         public bool HasActionableFarmTask =>
-            CanReceiveFarmCare &&
-            (NeedsWater || NeedsFertilizer);
+            NeedsHarvest || NeedsWater || NeedsFertilizer || NeedsPlanting;
         
         public bool IsReservedByAnotherWorker(Worker worker)
         {
             return reservedWorker != null && reservedWorker != worker;
-        }
+        } 
 
         public bool TryReserveFarmTask(Worker worker)
         {
@@ -285,12 +297,6 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (CurrentStage == GrowthStage.Ploughed)
             {
-                if (!IsWatered)
-                {
-                    WaterSoil();
-                    return;
-                }
-
                 if (equippedSeed != null)
                 {
                     if (Inventory.Instance.HasItem(equippedSeed) &&
@@ -302,6 +308,8 @@ namespace ShiftedSignal.Garden.GridSystem
 
                     return;
                 }
+
+                return;
             }
 
             if (IsGrowing && !IsWatered)
@@ -374,15 +382,36 @@ namespace ShiftedSignal.Garden.GridSystem
             return true;
         }
 
+        public bool TryPlant(ItemData_Seed seed)
+        {
+            if (seed == null)
+                return false;
+
+            if (CurrentStage != GrowthStage.Ploughed)
+                return false;
+
+            if (HasCrop)
+                return false;
+
+            if (HasBuildable)
+                return false;
+
+            if (!IsActive || PreventUse)
+                return false;
+
+            if (!seed.AllRestrictionsPass(GridPosition.x, GridPosition.y))
+                return false;
+
+            PlantCrop(seed);
+            return true;
+        }
+
         public void PlantCrop(ItemData_Seed seed)
         {
             if (seed == null)
                 return;
 
             if (CurrentStage != GrowthStage.Ploughed)
-                return;
-
-            if (!IsWatered)
                 return;
 
             Seed = seed;
@@ -486,6 +515,15 @@ namespace ShiftedSignal.Garden.GridSystem
 
         #region Harvesting
 
+        public bool TryHarvest()
+        {
+            if (!NeedsHarvest)
+                return false;
+
+            HarvestCrop();
+            return true;
+        }
+        
         public void HarvestCrop()
         {
             if (CurrentStage != GrowthStage.Ripe)

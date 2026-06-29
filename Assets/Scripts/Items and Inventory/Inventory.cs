@@ -101,13 +101,13 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         {
             ItemData item = evt.Supply.Item;
             AddItem(evt.Supply.Item, evt.Amount);
-            if (PickupPopupManager.Instance != null)
-            {
-                PickupPopupManager.Instance.Show(
-                    item.Icon,
-                    evt.Amount,
-                    item.name);
-            }
+            // if (PickupPopupManager.Instance != null)
+            // {
+            //     PickupPopupManager.Instance.Show(
+            //         item.Icon,
+            //         evt.Amount,
+            //         item.name);
+            // }
         }
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

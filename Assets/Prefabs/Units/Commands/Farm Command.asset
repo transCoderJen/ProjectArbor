@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Icon>k__BackingField: {fileID: 4279260276780606416, guid: 3da05e9f66c9f254c8875335e7e9179e, type: 3}
   <Slot>k__BackingField: 2
-  <RequiresClickToActivate>k__BackingField: 0
+  <RequiresClickToActivate>k__BackingField: 1

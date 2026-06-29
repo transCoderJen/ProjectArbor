@@ -4,6 +4,7 @@ using Unity.Behavior;
 using UnityEngine;
 using Action = Unity.Behavior.Action;
 using Unity.Properties;
+using ShiftedSignal.Garden.ItemsAndInventory;
 
 namespace ShiftedSignal.Garden.Behavior
 {
@@ -16,6 +17,8 @@ namespace ShiftedSignal.Garden.Behavior
 
         [SerializeReference] public BlackboardVariable<int> WaterAmountHeld;
         [SerializeReference] public BlackboardVariable<int> FertilizerAmountHeld;
+        [SerializeReference] public BlackboardVariable<ItemData_Seed> SeedHeld;
+        [SerializeReference] public BlackboardVariable<int> SeedAmountHeld;
 
         protected override Status OnStart()
         {
@@ -30,7 +33,13 @@ namespace ShiftedSignal.Garden.Behavior
                     return FertilizerAmountHeld.Value > 0
                         ? Status.Success
                         : Status.Failure;
-
+                case FarmTaskType.Plant:
+                    return SeedHeld.Value != null && SeedAmountHeld.Value > 0
+                        ? Status.Success
+                        : Status.Failure;
+                case FarmTaskType.Harvest:
+                    return Status.Success;
+                    
                 default:
                     return Status.Failure;
             }
