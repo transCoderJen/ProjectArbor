@@ -13,6 +13,7 @@ namespace ShiftedSignal.Garden.SceneManagement
 
         [SerializeField] private string TargetEntranceName;
         [SerializeField] TransitionType TransitionType;
+        [SerializeField] private string LoadingMessage = "Loading...";
 
         private void OnTriggerEnter(Collider other)
         {
@@ -27,7 +28,8 @@ namespace ShiftedSignal.Garden.SceneManagement
                 LevelLoader.Instance.LoadScene(
                     SceneTransitionName,
                     TargetEntranceName,
-                    TransitionType
+                    TransitionType,
+                    LoadingMessage
                 );
             }
         }

@@ -54,9 +54,13 @@ namespace ShiftedSignal.Garden.SceneManagement
             DisableAllTransitions();
         }
 
-        public void LoadScene(string sceneName, string targetEntranceName, TransitionType transitionType)
+        public void LoadScene(
+            string sceneName,
+            string targetEntranceName,
+            TransitionType transitionType,
+            string loadingMessage)
         {
-            StartCoroutine(FadeOut(sceneName, targetEntranceName, transitionType));
+            StartCoroutine(FadeOut(sceneName, targetEntranceName, transitionType, loadingMessage));
         }
 
         public void StartScene(TransitionType transitionType)
@@ -97,126 +101,111 @@ namespace ShiftedSignal.Garden.SceneManagement
             return true;
         }
 
-        // private IEnumerator FadeOut(string sceneName, string targetEntranceName, TransitionType transitionType)
-        // {
-        //     string currentSceneName =
-        //         UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-
-        //     bool leavingWorldScene = currentSceneName == WorldSceneName;
-        //     bool enteringWorldScene = sceneName == WorldSceneName;
-
-        //     bool hasTransition = SetActiveTransition(transitionType);
-
-        //     if (hasTransition)
-        //         transition.SetTrigger("Start");
-
-        //     yield return Helpers.GetWait(1f);
-
-        //     if (leavingWorldScene)
-        //     {
-        //         CaptureGridBeforeSceneChange();
-
-        //         if (SaveManager.Instance != null)
-        //             SaveManager.Instance.CaptureWorldRuntimeData();
-
-        //         Debug.Log("[LevelLoader] Captured world runtime data before leaving world scene.");
-        //     }
-
-        //     UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-
-        //     ShiftedSignal.Garden.SceneManagement.SceneManager.Instance
-        //         .SetTransitionName(targetEntranceName);
-
-        //     yield return null;
-        //     yield return null;
-
-        //     if (enteringWorldScene)
-        //     {
-        //         if (SaveManager.Instance != null)
-        //             SaveManager.Instance.LoadWorldRuntimeData();
-
-        //         Debug.Log("[LevelLoader] Loaded world runtime data after entering world scene.");
-
-        //         if (GridManager.Instance != null)
-        //         {
-        //             Debug.Log("[LevelLoader] Requesting grid restore after world scene load.");
-        //             GridManager.Instance.RequestGridRestore();
-        //         }
-        //     }
-        // }
-
-        private IEnumerator FadeOut(string sceneName, string targetEntranceName, TransitionType transitionType)
-{
-    Stopwatch totalStopwatch = Stopwatch.StartNew();
-
-    string currentSceneName =
-        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-
-    bool leavingWorldScene = currentSceneName == WorldSceneName;
-    bool enteringWorldScene = sceneName == WorldSceneName;
-
-    bool hasTransition = SetActiveTransition(transitionType);
-
-    if (hasTransition)
-        transition.SetTrigger("Start");
-
-    yield return Helpers.GetWait(1f);
-
-    if (leavingWorldScene)
-    {
-        Stopwatch captureStopwatch = Stopwatch.StartNew();
-
-        CaptureGridBeforeSceneChange();
-
-        if (SaveManager.Instance != null)
-            SaveManager.Instance.CaptureWorldRuntimeData();
-
-        captureStopwatch.Stop();
-
-        Debug.Log($"[LevelLoader Timing] Capture world data: {captureStopwatch.ElapsedMilliseconds} ms");
-    }
-
-    Stopwatch sceneLoadStopwatch = Stopwatch.StartNew();
-
-    UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-
-    sceneLoadStopwatch.Stop();
-
-    Debug.Log($"[LevelLoader Timing] SceneManager.LoadScene({sceneName}): {sceneLoadStopwatch.ElapsedMilliseconds} ms");
-
-    ShiftedSignal.Garden.SceneManagement.SceneManager.Instance
-        .SetTransitionName(targetEntranceName);
-
-    yield return null;
-    yield return null;
-
-    if (enteringWorldScene)
-    {
-        Stopwatch restoreStopwatch = Stopwatch.StartNew();
-
-        if (SaveManager.Instance != null)
-            SaveManager.Instance.LoadWorldRuntimeData();
-
-        restoreStopwatch.Stop();
-
-        Debug.Log($"[LevelLoader Timing] Load world runtime data: {restoreStopwatch.ElapsedMilliseconds} ms");
-
-        if (GridManager.Instance != null)
+        private IEnumerator FadeOut(
+                string sceneName,
+                string targetEntranceName,
+                TransitionType transitionType,
+                string loadingMessage)
         {
-            Stopwatch gridRestoreStopwatch = Stopwatch.StartNew();
+            var totalWatch = LoadProfiler.Start("Total Transition");
 
-            GridManager.Instance.RequestGridRestore();
+            string currentSceneName =
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
 
-            gridRestoreStopwatch.Stop();
+            bool leavingWorldScene = currentSceneName == WorldSceneName;
+            bool enteringWorldScene = sceneName == WorldSceneName;
 
-            Debug.Log($"[LevelLoader Timing] RequestGridRestore: {gridRestoreStopwatch.ElapsedMilliseconds} ms");
+            LoadingScreenAnimationTriggers.CurrentLoadingMessage =
+                string.IsNullOrWhiteSpace(loadingMessage)
+                    ? "Loading..."
+                    : loadingMessage;
+
+            bool hasTransition = SetActiveTransition(transitionType);
+
+            if (hasTransition)
+                transition.SetTrigger("Start");
+
+            // Wait for fade-out animation to finish.
+            // Animation event at the end of fade-out should call ShowLoadingScreen().
+            yield return Helpers.GetWait(1f);
+
+            if (leavingWorldScene)
+            {
+                var captureWatch = LoadProfiler.Start("Capture World Runtime");
+
+                CaptureGridBeforeSceneChange();
+
+                if (SaveManager.Instance != null)
+                    SaveManager.Instance.CaptureWorldRuntimeData();
+
+                LoadProfiler.End("Capture World Runtime", captureWatch);
+            }
+
+            var sceneLoadWatch =
+                LoadProfiler.Start($"Async Scene Load + Activation ({sceneName})");
+
+            AsyncOperation operation =
+                UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
+
+            if (operation == null)
+            {
+                Debug.LogError($"[LevelLoader] Failed to start async scene load: {sceneName}");
+                yield break;
+            }
+
+            operation.allowSceneActivation = false;
+
+            while (operation.progress < 0.9f)
+            {
+                if (LoadingScreen.Instance != null)
+                    LoadingScreen.Instance.SetProgress(operation.progress / 0.9f);
+
+                yield return null;
+            }
+
+            ShiftedSignal.Garden.SceneManagement.SceneManager.Instance
+                .SetTransitionName(targetEntranceName);
+
+            operation.allowSceneActivation = true;
+
+            while (!operation.isDone)
+                yield return null;
+
+            LoadProfiler.End(
+                $"Async Scene Load + Activation ({sceneName})",
+                sceneLoadWatch);
+
+            yield return null;
+            yield return null;
+            yield return new WaitForEndOfFrame();
+
+            if (enteringWorldScene)
+            {
+                var restoreWatch = LoadProfiler.Start("Restore World Runtime");
+
+                if (SaveManager.Instance != null)
+                    SaveManager.Instance.LoadWorldRuntimeData();
+
+                LoadProfiler.End("Restore World Runtime", restoreWatch);
+
+                if (GridManager.Instance != null)
+                {
+                    var gridWatch = LoadProfiler.Start("Grid Restore");
+
+                    GridManager.Instance.RequestGridRestore();
+
+                    LoadProfiler.End("Grid Restore", gridWatch);
+                }
+            }
+
+            if (LoadingScreen.Instance != null)
+                LoadingScreen.Instance.SetProgress(1f);
+
+            // Animation event at the start of fade-in should call HideLoadingScreen().
+            yield return FadeIn(transitionType);
+
+            LoadProfiler.End("Total Transition", totalWatch);
         }
-    }
-
-    totalStopwatch.Stop();
-
-    Debug.Log($"[LevelLoader Timing] Total transition to {sceneName}: {totalStopwatch.ElapsedMilliseconds} ms");
-}
 
         private IEnumerator FadeIn(TransitionType transitionType)
         {

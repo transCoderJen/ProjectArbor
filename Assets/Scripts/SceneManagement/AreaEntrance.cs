@@ -26,7 +26,9 @@ namespace ShiftedSignal.Garden.SceneManagement
                 Bus<UpdateInGameTimerEvent>.Raise(new UpdateInGameTimerEvent(StartInGameTimer));
                 
                 SetPlayerPosition();
-                LevelLoader.Instance.StartScene(TransitionType);
+                
+                // LevelLoader.Instance.StartScene(TransitionType);
+
                 // PlayerManager.Instance.ResetPlayer();
                 Invoke(nameof(ResetCameraPosition), .1f);
             }

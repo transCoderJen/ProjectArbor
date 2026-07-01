@@ -282,8 +282,11 @@ namespace ShiftedSignal.Garden.GridSystem
 
         public void LoadData(GameData data)
         {
+            var watch = LoadProfiler.Start("GridInfo.LoadData");
+
             if (data.gridRows == null || data.gridRows.Count <= 0)
             {
+                LoadProfiler.End("GridInfo.LoadData", watch);
                 return;
             }
 
@@ -291,9 +294,9 @@ namespace ShiftedSignal.Garden.GridSystem
             HasGrid = true;
 
             if (GridManager.Instance != null)
-            {
                 GridManager.Instance.RequestGridRestore();
-            }
+
+            LoadProfiler.End("GridInfo.LoadData", watch);
         }
 
         public void SaveData(ref GameData data)

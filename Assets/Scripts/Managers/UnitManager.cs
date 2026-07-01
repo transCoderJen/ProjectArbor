@@ -72,8 +72,13 @@ namespace ShiftedSignal.Garden.Managers
 
         public void LoadData(GameData data)
         {
+            var watch = LoadProfiler.Start("UnitManager.LoadData");
+            
             if (data.units == null || data.units.Count == 0)
+            {
+                LoadProfiler.End("UnitManager.LoadData", watch);
                 return;
+            }
 
             ClearExistingUnits();
 
@@ -95,6 +100,8 @@ namespace ShiftedSignal.Garden.Managers
                 unit.SetInstanceID(savedUnit.InstanceID);
                 unit.RestoreFromSave(savedUnit);
             }
+
+            LoadProfiler.End("UnitManager.LoadData", watch);
         }
 
         private void ClearExistingUnits()
@@ -125,10 +132,10 @@ namespace ShiftedSignal.Garden.Managers
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
-        {
-            FillUnitDatabase();
-        }
+        // private void OnValidate()
+        // {
+        //     FillUnitDatabase();
+        // }
 
         [ContextMenu("Fill Unit Database")]
         private void FillUnitDatabase()
