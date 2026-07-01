@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using ShiftedSignal.Garden.Misc;
-using UnityEngine;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Managers;
+using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.SaveAndLoad;
+using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace ShiftedSignal.Garden.SceneManagement
 {
@@ -27,6 +30,9 @@ namespace ShiftedSignal.Garden.SceneManagement
         [Header("Transitions")]
         [SerializeField] private List<TransitionControllerEntry> transitionControllers = new();
 
+        [Header("World Runtime State")]
+        [SerializeField] private string WorldSceneName = "World";
+
         private Dictionary<TransitionType, GameObject> transitionDictionary = new();
         private Animator transition;
 
@@ -36,15 +42,13 @@ namespace ShiftedSignal.Garden.SceneManagement
 
             transitionDictionary.Clear();
 
-            foreach (var entry in transitionControllers)
+            foreach (TransitionControllerEntry entry in transitionControllers)
             {
                 if (entry.controller == null)
                     continue;
 
                 if (!transitionDictionary.ContainsKey(entry.type))
-                {
                     transitionDictionary.Add(entry.type, entry.controller);
-                }
             }
 
             DisableAllTransitions();
@@ -62,7 +66,7 @@ namespace ShiftedSignal.Garden.SceneManagement
 
         private void DisableAllTransitions()
         {
-            foreach (var entry in transitionControllers)
+            foreach (TransitionControllerEntry entry in transitionControllers)
             {
                 if (entry.controller != null)
                     entry.controller.SetActive(false);
@@ -82,7 +86,6 @@ namespace ShiftedSignal.Garden.SceneManagement
             }
 
             selectedController.SetActive(true);
-
             transition = selectedController.GetComponent<Animator>();
 
             if (transition == null)
@@ -94,33 +97,126 @@ namespace ShiftedSignal.Garden.SceneManagement
             return true;
         }
 
+        // private IEnumerator FadeOut(string sceneName, string targetEntranceName, TransitionType transitionType)
+        // {
+        //     string currentSceneName =
+        //         UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+        //     bool leavingWorldScene = currentSceneName == WorldSceneName;
+        //     bool enteringWorldScene = sceneName == WorldSceneName;
+
+        //     bool hasTransition = SetActiveTransition(transitionType);
+
+        //     if (hasTransition)
+        //         transition.SetTrigger("Start");
+
+        //     yield return Helpers.GetWait(1f);
+
+        //     if (leavingWorldScene)
+        //     {
+        //         CaptureGridBeforeSceneChange();
+
+        //         if (SaveManager.Instance != null)
+        //             SaveManager.Instance.CaptureWorldRuntimeData();
+
+        //         Debug.Log("[LevelLoader] Captured world runtime data before leaving world scene.");
+        //     }
+
+        //     UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+
+        //     ShiftedSignal.Garden.SceneManagement.SceneManager.Instance
+        //         .SetTransitionName(targetEntranceName);
+
+        //     yield return null;
+        //     yield return null;
+
+        //     if (enteringWorldScene)
+        //     {
+        //         if (SaveManager.Instance != null)
+        //             SaveManager.Instance.LoadWorldRuntimeData();
+
+        //         Debug.Log("[LevelLoader] Loaded world runtime data after entering world scene.");
+
+        //         if (GridManager.Instance != null)
+        //         {
+        //             Debug.Log("[LevelLoader] Requesting grid restore after world scene load.");
+        //             GridManager.Instance.RequestGridRestore();
+        //         }
+        //     }
+        // }
+
         private IEnumerator FadeOut(string sceneName, string targetEntranceName, TransitionType transitionType)
+{
+    Stopwatch totalStopwatch = Stopwatch.StartNew();
+
+    string currentSceneName =
+        UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+    bool leavingWorldScene = currentSceneName == WorldSceneName;
+    bool enteringWorldScene = sceneName == WorldSceneName;
+
+    bool hasTransition = SetActiveTransition(transitionType);
+
+    if (hasTransition)
+        transition.SetTrigger("Start");
+
+    yield return Helpers.GetWait(1f);
+
+    if (leavingWorldScene)
+    {
+        Stopwatch captureStopwatch = Stopwatch.StartNew();
+
+        CaptureGridBeforeSceneChange();
+
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.CaptureWorldRuntimeData();
+
+        captureStopwatch.Stop();
+
+        Debug.Log($"[LevelLoader Timing] Capture world data: {captureStopwatch.ElapsedMilliseconds} ms");
+    }
+
+    Stopwatch sceneLoadStopwatch = Stopwatch.StartNew();
+
+    UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+
+    sceneLoadStopwatch.Stop();
+
+    Debug.Log($"[LevelLoader Timing] SceneManager.LoadScene({sceneName}): {sceneLoadStopwatch.ElapsedMilliseconds} ms");
+
+    ShiftedSignal.Garden.SceneManagement.SceneManager.Instance
+        .SetTransitionName(targetEntranceName);
+
+    yield return null;
+    yield return null;
+
+    if (enteringWorldScene)
+    {
+        Stopwatch restoreStopwatch = Stopwatch.StartNew();
+
+        if (SaveManager.Instance != null)
+            SaveManager.Instance.LoadWorldRuntimeData();
+
+        restoreStopwatch.Stop();
+
+        Debug.Log($"[LevelLoader Timing] Load world runtime data: {restoreStopwatch.ElapsedMilliseconds} ms");
+
+        if (GridManager.Instance != null)
         {
-            bool hasTransition = SetActiveTransition(transitionType);
+            Stopwatch gridRestoreStopwatch = Stopwatch.StartNew();
 
-            if (hasTransition)
-                transition.SetTrigger("Start");
+            GridManager.Instance.RequestGridRestore();
 
-            yield return Helpers.GetWait(1f);
+            gridRestoreStopwatch.Stop();
 
-            CaptureGridBeforeSceneChange();
-
-            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
-            SceneManager.Instance.SetTransitionName(targetEntranceName);
-
-            yield return null;
-            yield return null;
-
-            if (GridManager.Instance != null)
-            {
-                Debug.Log("[LevelLoader] Requesting grid restore after scene load.");
-                GridManager.Instance.RequestGridRestore();
-            }
-            else
-            {
-                Debug.LogWarning("[LevelLoader] GridManager missing after scene load.");
-            }
+            Debug.Log($"[LevelLoader Timing] RequestGridRestore: {gridRestoreStopwatch.ElapsedMilliseconds} ms");
         }
+    }
+
+    totalStopwatch.Stop();
+
+    Debug.Log($"[LevelLoader Timing] Total transition to {sceneName}: {totalStopwatch.ElapsedMilliseconds} ms");
+}
 
         private IEnumerator FadeIn(TransitionType transitionType)
         {

@@ -4,6 +4,8 @@ using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Environment;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.SaveAndLoad;
 using Unity.Behavior;
 using UnityEngine;
 
@@ -130,6 +132,70 @@ namespace ShiftedSignal.Garden.Units
         public void CancelBuilding()
         {
             throw new System.NotImplementedException();
+        }
+#endregion
+
+#region Load/ Save
+        public override void WriteToSaveData(UnitSaveData data)
+        {
+            base.WriteToSaveData(data);
+
+            data.WaterAmountHeld = GetBlackboardInt("WaterAmountHeld");
+            data.FertilizerAmountHeld = GetBlackboardInt("FertilizerAmountHeld");
+            data.SeedAmountHeld = GetBlackboardInt("SeedAmountHeld");
+
+            ItemData_Seed seedHeld = GetBlackboardSeed("SeedHeld");
+            data.SeedHeldID = seedHeld != null ? seedHeld.ItemID : string.Empty;
+        }
+
+        public override void RestoreFromSave(UnitSaveData data)
+        {
+            base.RestoreFromSave(data);
+
+            graphAgent.SetVariableValue("WaterAmountHeld", data.WaterAmountHeld);
+            graphAgent.SetVariableValue("FertilizerAmountHeld", data.FertilizerAmountHeld);
+            graphAgent.SetVariableValue("SeedAmountHeld", data.SeedAmountHeld);
+
+            ItemData_Seed seed = GetSeedByID(data.SeedHeldID);
+            graphAgent.SetVariableValue("SeedHeld", seed);
+        }
+
+        private int GetBlackboardInt(string variableName)
+        {
+            if (graphAgent.GetVariable(variableName, out BlackboardVariable<int> variable))
+                return variable.Value;
+
+            return 0;
+        }
+        
+        private ItemData_Seed GetBlackboardSeed(string variableName)
+        {
+            if (graphAgent.GetVariable(variableName, out BlackboardVariable<ItemData_Seed> variable))
+                return variable.Value;
+
+            return null;
+        }
+
+        private ItemData_Seed GetSeedByID(string seedID)
+        {
+            if (string.IsNullOrEmpty(seedID))
+                return null;
+
+            if (Inventory.Instance == null)
+                return null;
+
+            foreach (ItemData item in Inventory.Instance.itemDataBase)
+            {
+                if (item == null)
+                    continue;
+
+                if (item.ItemID != seedID)
+                    continue;
+
+                return item as ItemData_Seed;
+            }
+
+            return null;
         }
 #endregion
     }

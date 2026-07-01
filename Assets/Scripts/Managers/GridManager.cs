@@ -543,12 +543,15 @@ namespace ShiftedSignal.Garden.Managers
 
             if (buildableData == null)
             {
-                Debug.LogWarning(
-                    $"[Buildable Restore] FAILED lookup | " +
-                    $"Grid={block.GetGridPosition()} | " +
-                    $"ItemID={info.BuildableItemID} | " +
-                    $"DatabaseCount={buildableDatabase?.Count ?? -1}",
-                    this);
+                if (logBuildableRestore)
+                {
+                    Debug.LogWarning(
+                        $"[Buildable Restore] FAILED lookup | " +
+                        $"Grid={block.GetGridPosition()} | " +
+                        $"ItemID={info.BuildableItemID} | " +
+                        $"DatabaseCount={buildableDatabase?.Count ?? -1}",
+                        this);
+                }
 
                 DebugLogBuildableDatabase();
                 return false;
@@ -556,12 +559,14 @@ namespace ShiftedSignal.Garden.Managers
 
             if (buildableData.Prefab == null)
             {
-                Debug.LogWarning(
-                    $"[Buildable Restore] FAILED missing prefab | " +
-                    $"ItemID={info.BuildableItemID} | " +
-                    $"Data={buildableData.name}",
-                    buildableData);
-
+                if (logBuildableRestore)
+                {
+                    Debug.LogWarning(
+                        $"[Buildable Restore] FAILED missing prefab | " +
+                        $"ItemID={info.BuildableItemID} | " +
+                        $"Data={buildableData.name}",
+                        buildableData);
+                }
                 return false;
             }
 
@@ -572,19 +577,24 @@ namespace ShiftedSignal.Garden.Managers
                 block.transform.position,
                 Quaternion.Euler(buildableData.XRotation, info.BuildableYRotation, 0f));
 
-            Debug.Log(
-                $"Instantiate {buildableData.name}: " +
-                $"{(Time.realtimeSinceStartup - buildableStart) * 1000f:F2} ms");
+            if (logBuildableRestore)
+            {
+                Debug.Log(
+                    $"Instantiate {buildableData.name}: " +
+                    $"{(Time.realtimeSinceStartup - buildableStart) * 1000f:F2} ms");
+            }
 
             BaseBuilding buildable = builtObject.GetComponent<BaseBuilding>();
 
             if (buildable == null)
             {
-                Debug.LogWarning(
-                    $"[Buildable Restore] FAILED prefab missing BaseBuildable | " +
-                    $"Object={builtObject.name}",
-                    builtObject);
-
+                if (logBuildableRestore)
+                {
+                    Debug.LogWarning(
+                        $"[Buildable Restore] FAILED prefab missing BaseBuildable | " +
+                        $"Object={builtObject.name}",
+                        builtObject);
+                }
                 Destroy(builtObject);
                 return false;
             }
@@ -649,9 +659,12 @@ namespace ShiftedSignal.Garden.Managers
 
             if (refreshedCount > 0)
             {
-                Debug.Log(
-                    $"[Fence Restore] Refreshed fence connections | Count={refreshedCount}",
-                    this);
+                if (logBuildableRestore)
+                {
+                    Debug.Log(
+                        $"[Fence Restore] Refreshed fence connections | Count={refreshedCount}",
+                        this);
+                }
             }
 
             return refreshedCount;
@@ -919,13 +932,13 @@ private void FillBuildableDatabase()
             "t:BuildingSO",
             new[] { rootFolder });
 
-    Debug.Log($"Found {assetGuids.Length} BuildingSO asset guids in {rootFolder}", this);
+    // Debug.Log($"Found {assetGuids.Length} BuildingSO asset guids in {rootFolder}", this);
 
     foreach (string guid in assetGuids)
     {
         string path = AssetDatabase.GUIDToAssetPath(guid);
 
-        Debug.Log($"Checking asset at path: {path}", this);
+        // Debug.Log($"Checking asset at path: {path}", this);
 
         BuildingSO buildable =
             AssetDatabase.LoadAssetAtPath<BuildingSO>(path);
@@ -936,12 +949,12 @@ private void FillBuildableDatabase()
             continue;
         }
 
-        Debug.Log($"Added buildable: {buildable.name}", buildable);
+        // Debug.Log($"Added buildable: {buildable.name}", buildable);
 
         buildableDatabase.Add(buildable);
     }
 
-    Debug.Log($"Filled Buildable Database. Count={buildableDatabase.Count}", this);
+    // Debug.Log($"Filled Buildable Database. Count={buildableDatabase.Count}", this);
 
     EditorUtility.SetDirty(this);
 }

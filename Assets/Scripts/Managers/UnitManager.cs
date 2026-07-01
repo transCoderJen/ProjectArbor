@@ -51,8 +51,11 @@ namespace ShiftedSignal.Garden.Managers
             }
         }
 
-       public void SaveData(ref GameData data)
+        public void SaveData(ref GameData data)
         {
+            if (data.units == null)
+                data.units = new List<UnitSaveData>();
+
             data.units.Clear();
 
             foreach (AbstractUnit unit in activeUnits)
@@ -60,20 +63,11 @@ namespace ShiftedSignal.Garden.Managers
                 if (unit == null)
                     continue;
 
-                if (unit.UnitData is not UnitSO unitSO)
-                    continue;
+                UnitSaveData unitSaveData = new UnitSaveData();
+                unit.WriteToSaveData(unitSaveData);
 
-                data.units.Add(new UnitSaveData
-                {
-                    InstanceID = unit.InstanceID,
-                    UnitTypeID = unitSO.SaveID,
-                    Position = unit.transform.position,
-                    CurrentHealth = unit.CurrentHealth,
-                    CurrentCommand = unit.CurrentCommand
-                });         
+                data.units.Add(unitSaveData);
             }
-
-            
         }
 
         public void LoadData(GameData data)

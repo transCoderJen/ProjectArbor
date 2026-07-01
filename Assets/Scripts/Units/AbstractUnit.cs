@@ -70,7 +70,6 @@ namespace ShiftedSignal.Garden.Units
         protected override void Start()
         {
             base.Start();
-            Debug.Log($"{name} raising UnitSpawnEvent");
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
         }
 
@@ -143,11 +142,23 @@ namespace ShiftedSignal.Garden.Units
 
 #endregion
 
-#region Load From Save
-        public virtual void RestoreFromSave(UnitSaveData savedUnit)
+#region Save / Load
+        public virtual void WriteToSaveData(UnitSaveData data)
         {
-            SetHealth(savedUnit.CurrentHealth > 0 ? savedUnit.CurrentHealth : MaxHealth, MaxHealth);
-            graphAgent.SetVariableValue("Command", savedUnit.CurrentCommand);
+            data.InstanceID = InstanceID;
+
+            if (UnitData is UnitSO unitSO)
+                data.UnitTypeID = unitSO.SaveID;
+
+            data.Position = transform.position;
+            data.CurrentHealth = CurrentHealth;
+            data.CurrentCommand = CurrentCommand;
+        }
+
+        public virtual void RestoreFromSave(UnitSaveData data)
+        {
+            SetHealth(data.CurrentHealth > 0 ? data.CurrentHealth : MaxHealth, MaxHealth);
+            graphAgent.SetVariableValue("Command", data.CurrentCommand);
         }
 #endregion
     }

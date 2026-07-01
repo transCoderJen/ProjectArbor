@@ -11,5 +11,10 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public Vector3 Position;
         public int CurrentHealth;
         public UnitCommands CurrentCommand;
+        public int WaterAmountHeld;
+        public int FertilizerAmountHeld;
+
+        public string SeedHeldID;
+        public int SeedAmountHeld;
     }
 }

@@ -141,15 +141,15 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (buildable == null)
             {
-                Debug.Log(
-                    $"SAVE BUILDABLE [{source}] {block.name}: No CurrentBuildable. " +
-                    $"ExistingSavedID='{info.BuildableItemID}'");
+                // Debug.Log(
+                //     $"SAVE BUILDABLE [{source}] {block.name}: No CurrentBuildable. " +
+                //     $"ExistingSavedID='{info.BuildableItemID}'");
 
                 if (!string.IsNullOrEmpty(info.BuildableItemID))
                 {
-                    Debug.LogWarning(
-                        $"SAVE BUILDABLE [{source}] {block.name}: Keeping old saved buildable ID " +
-                        $"'{info.BuildableItemID}' because CurrentBuildable is null.");
+                    // Debug.LogWarning(
+                    //     $"SAVE BUILDABLE [{source}] {block.name}: Keeping old saved buildable ID " +
+                    //     $"'{info.BuildableItemID}' because CurrentBuildable is null.");
 
                     return;
                 }
@@ -162,16 +162,16 @@ namespace ShiftedSignal.Garden.GridSystem
 
             if (buildable.UnitSO == null)
             {
-                Debug.LogWarning(
-                    $"SAVE BUILDABLE [{source}] {block.name}: CurrentBuildable exists but has no BuildableData. " +
-                    $"BuildableObject='{buildable.name}', Type='{buildable.GetType().Name}', " +
-                    $"ExistingSavedID='{info.BuildableItemID}'");
+                // Debug.LogWarning(
+                //     $"SAVE BUILDABLE [{source}] {block.name}: CurrentBuildable exists but has no BuildableData. " +
+                //     $"BuildableObject='{buildable.name}', Type='{buildable.GetType().Name}', " +
+                //     $"ExistingSavedID='{info.BuildableItemID}'");
 
                 if (!string.IsNullOrEmpty(info.BuildableItemID))
                 {
-                    Debug.LogWarning(
-                        $"SAVE BUILDABLE [{source}] {block.name}: Keeping old saved buildable ID " +
-                        $"'{info.BuildableItemID}' because BuildableData is null.");
+                    // Debug.LogWarning(
+                    //     $"SAVE BUILDABLE [{source}] {block.name}: Keeping old saved buildable ID " +
+                    //     $"'{info.BuildableItemID}' because BuildableData is null.");
 
                     return;
                 }
@@ -186,11 +186,11 @@ namespace ShiftedSignal.Garden.GridSystem
             info.BuildableYRotation = buildable.transform.eulerAngles.y;
             info.BuildableHP = buildable.CurrentHealth;
 
-            Debug.Log(
-                $"SAVE BUILDABLE [{source}] {block.name}: Saved buildable. " +
-                $"Object='{buildable.name}', Type='{buildable.GetType().Name}', " +
-                $"ItemID='{info.BuildableItemID}', HP={info.BuildableHP}, " +
-                $"MaxHealth={buildable.MaxHealth}, RotY={info.BuildableYRotation}");
+            // Debug.Log(
+            //     $"SAVE BUILDABLE [{source}] {block.name}: Saved buildable. " +
+            //     $"Object='{buildable.name}', Type='{buildable.GetType().Name}', " +
+            //     $"ItemID='{info.BuildableItemID}', HP={info.BuildableHP}, " +
+            //     $"MaxHealth={buildable.MaxHealth}, RotY={info.BuildableYRotation}");
         }
 
         #endregion

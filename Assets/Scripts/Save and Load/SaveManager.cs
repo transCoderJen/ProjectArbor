@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.Managers;
+using UnityEngine.SceneManagement;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -18,12 +21,11 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         [Header("Debug")]
         [SerializeField] private bool LoadAsNewGame;
 
-        [HideInInspector]
-        public GameData gameData;
+        [HideInInspector] public GameData gameData;
 
+        private GameData runtimeGameData;
         private List<ISaveManager> saveManagers;
         private FileDataHandler dataHandler;
-
         private HashSet<string> triggeredDialogueIds = new();
 
         [ContextMenu("Delete save file")]
@@ -36,9 +38,7 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         private void Start()
         {
             dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
-
             saveManagers = FindAllSaveManagers();
-
             LoadGame();
         }
 
@@ -69,22 +69,69 @@ namespace ShiftedSignal.Garden.SaveAndLoad
             LoadTriggeredDialogueIds();
 
             foreach (ISaveManager saveManager in saveManagers)
-            {
                 saveManager.LoadData(gameData);
-            }
         }
 
         [ContextMenu("Save Game")]
         public void SaveGame()
         {
+            saveManagers = FindAllSaveManagers();
+
             foreach (ISaveManager saveManager in saveManagers)
-            {
                 saveManager.SaveData(ref gameData);
-            }
 
             SaveTriggeredDialogueIds();
 
             dataHandler.Save(gameData);
+        }
+
+        public string GetActiveSceneName()
+        {
+            return SceneManager.GetActiveScene().name;
+        }
+
+        public void CaptureWorldRuntimeData()
+        {
+            if (gameData == null)
+                gameData = new GameData();
+
+            runtimeGameData = gameData;
+            saveManagers = FindAllSaveManagers();
+
+            foreach (ISaveManager saveManager in saveManagers)
+            {
+                if (ShouldSkipForWorldRuntime(saveManager))
+                    continue;
+
+                saveManager.SaveData(ref runtimeGameData);
+            }
+
+            SaveTriggeredDialogueIds();
+        }
+
+        public void LoadWorldRuntimeData()
+        {
+            if (runtimeGameData == null)
+                return;
+
+            gameData = runtimeGameData;
+            saveManagers = FindAllSaveManagers();
+
+            foreach (ISaveManager saveManager in saveManagers)
+            {
+                if (ShouldSkipForWorldRuntime(saveManager))
+                    continue;
+
+                saveManager.LoadData(gameData);
+            }
+
+            LoadTriggeredDialogueIds();
+        }
+
+        private bool ShouldSkipForWorldRuntime(ISaveManager saveManager)
+        {
+            return saveManager is Player ||
+                   saveManager is PlayerManager;
         }
 
         public bool HasDialogueTriggerBeenUsed(string triggerId)
@@ -101,7 +148,6 @@ namespace ShiftedSignal.Garden.SaveAndLoad
                 return;
 
             triggeredDialogueIds.Add(NormalizeDialogueTriggerId(triggerId));
-
             SaveTriggeredDialogueIds();
         }
 
@@ -164,7 +210,6 @@ namespace ShiftedSignal.Garden.SaveAndLoad
         public bool HasSavedData()
         {
             dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
-
             return dataHandler.Load() != null;
         }
     }
