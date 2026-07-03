@@ -10,11 +10,13 @@ using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.Units;
+using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.Buildable
 {
+    [BlackboardEnum]
     public enum BuildingState
     {
         Preview,

@@ -56,6 +56,7 @@ namespace ShiftedSignal.Garden.Behavior
         {
             if (building != null && worker != null)
                 building.ReleaseBuilder(worker);
+                
         }
     }
 }

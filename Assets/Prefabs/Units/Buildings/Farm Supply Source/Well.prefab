@@ -60,7 +60,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
+  - {fileID: 2100000, guid: 08c1be50c8598fc49bb60085a7ce4b4e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -154,11 +154,11 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 1
-  m_Extents: {x: 5, y: 4, z: 3}
+  m_Extents: {x: 4.985, y: 2.845, z: 3}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 1
-  m_Center: {x: 1.28, y: 3.72, z: 0}
+  m_Center: {x: 1.28, y: 0, z: 0}
   m_TimeToStationary: 0.5
 --- !u!114 &2888648978168991161
 MonoBehaviour:
@@ -178,7 +178,7 @@ MonoBehaviour:
   decalProjector: {fileID: 0}
   UnitSO: {fileID: 11400000, guid: 6f0a6faf030f41c4481020396f1a74f3, type: 2}
   IsActive: 0
-  GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
+  buildingState: 2
   targetType: 1
   RaidPriority: 50
   HasTimedEffects: 0
@@ -196,3 +196,4 @@ MonoBehaviour:
   RunOnNightStarted: 0
   <CurrentQueueStartTime>k__BackingField: 0
   <BuildingUnit>k__BackingField: {fileID: 0}
+  maxBuilders: 3

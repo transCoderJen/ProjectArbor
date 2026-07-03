@@ -4,7 +4,7 @@ namespace ShiftedSignal.Garden.Units
 {
     public interface IBuildingBuilder
     {
-        bool IsBuilding { get; }
+        bool HasBuildAssignment { get; }
 
         void Build(BaseBuilding building);
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
@@ -10,7 +11,6 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-
 namespace ShiftedSignal.Garden.Managers
 {
     public class UnitManager : Singleton<UnitManager>, ISaveManager
@@ -18,7 +18,11 @@ namespace ShiftedSignal.Garden.Managers
         [Header("Unit Database")]
         [SerializeField] private List<UnitSO> unitDatabase = new();
 
+        [Header("Construction")]
+        [SerializeField] private float ConstructionWorkerSearchRadius = 150f;
+
         private readonly List<AbstractUnit> activeUnits = new();
+        private readonly List<BaseBuilding> activeConstructionSites = new();
 
         private void OnEnable()
         {
@@ -39,15 +43,147 @@ namespace ShiftedSignal.Garden.Managers
             if (evt.Building == null)
                 return;
 
+            RegisterConstructionSite(evt.Building);
+            AssignNearbyWorkersToBuilding(evt.Building);
+        }
+
+        private void RegisterConstructionSite(BaseBuilding building)
+        {
+            if (building == null || !building.IsUnderConstruction)
+                return;
+
+            if (!activeConstructionSites.Contains(building))
+                activeConstructionSites.Add(building);
+        }
+
+        private void AssignNearbyWorkersToBuilding(BaseBuilding building)
+        {
+            if (building == null || !building.IsUnderConstruction)
+                return;
+
+            List<Worker> availableWorkers = GetAvailableWorkersSortedByDistance(building);
+
+            foreach (Worker worker in availableWorkers)
+            {
+                if (!TryAssignWorkerToBuilding(worker, building))
+                    break;
+            }
+        }
+
+        public bool TryAssignWorkerToBuilding(Worker worker, BaseBuilding building)
+        {
+            if (worker == null || building == null)
+                return false;
+
+            if (worker.HasBuildAssignment)
+                return false;
+
+            if (!building.IsUnderConstruction)
+                return false;
+
+            if (!building.TryAssignBuilder(worker))
+                return false;
+
+            worker.Build(building);
+            return true;
+        }
+
+        public bool TryAssignWorkerToNextConstructionSite(Worker worker)
+        {
+            if (worker == null)
+                return false;
+
+            BaseBuilding building = FindAvailableConstructionSite(worker);
+
+            if (building == null)
+                return false;
+
+            return TryAssignWorkerToBuilding(worker, building);
+        }
+
+        private BaseBuilding FindAvailableConstructionSite(Worker worker)
+        {
+            if (worker == null)
+                return null;
+
+            CleanupConstructionSites();
+
+            BaseBuilding bestBuilding = null;
+            float bestDistanceSqr = float.MaxValue;
+
+            foreach (BaseBuilding building in activeConstructionSites)
+            {
+                if (building == null)
+                    continue;
+
+                if (!building.IsUnderConstruction)
+                    continue;
+
+                if (!building.HasBuilderSlot)
+                    continue;
+
+                float distanceSqr =
+                    (worker.transform.position - building.transform.position).sqrMagnitude;
+
+                if (distanceSqr >= bestDistanceSqr)
+                    continue;
+
+                bestBuilding = building;
+                bestDistanceSqr = distanceSqr;
+            }
+
+            return bestBuilding;
+        }
+
+        private List<Worker> GetAvailableWorkersSortedByDistance(BaseBuilding building)
+        {
+            List<Worker> availableWorkers = new();
+
+            if (building == null)
+                return availableWorkers;
+
+            float maxDistanceSqr =
+                ConstructionWorkerSearchRadius * ConstructionWorkerSearchRadius;
+
             foreach (AbstractUnit unit in activeUnits)
             {
                 if (unit is not Worker worker)
                     continue;
 
-                if (!evt.Building.TryAssignBuilder(worker))
-                    return;
+                if (worker.HasBuildAssignment)
+                    continue;
 
-                worker.Build(evt.Building);
+                float distanceSqr =
+                    (worker.transform.position - building.transform.position).sqrMagnitude;
+
+                if (distanceSqr > maxDistanceSqr)
+                    continue;
+
+                availableWorkers.Add(worker);
+            }
+
+            availableWorkers.Sort((a, b) =>
+            {
+                float aDistance =
+                    (a.transform.position - building.transform.position).sqrMagnitude;
+
+                float bDistance =
+                    (b.transform.position - building.transform.position).sqrMagnitude;
+
+                return aDistance.CompareTo(bDistance);
+            });
+
+            return availableWorkers;
+        }
+
+        private void CleanupConstructionSites()
+        {
+            for (int i = activeConstructionSites.Count - 1; i >= 0; i--)
+            {
+                BaseBuilding building = activeConstructionSites[i];
+
+                if (building == null || !building.IsUnderConstruction)
+                    activeConstructionSites.RemoveAt(i);
             }
         }
 
@@ -65,9 +201,7 @@ namespace ShiftedSignal.Garden.Managers
                 return;
 
             if (!activeUnits.Contains(evt.Unit))
-            {
                 activeUnits.Add(evt.Unit);
-            }
         }
 
         public void SaveData(ref GameData data)
@@ -92,35 +226,37 @@ namespace ShiftedSignal.Garden.Managers
         public void LoadData(GameData data)
         {
             var watch = LoadProfiler.Start("UnitManager.LoadData");
-            
-            if (data.units == null || data.units.Count == 0)
+
+            try
+            {
+                if (data.units == null || data.units.Count == 0)
+                    return;
+
+                ClearExistingUnits();
+
+                foreach (UnitSaveData savedUnit in data.units)
+                {
+                    UnitSO unitSO = FindUnitByTypeID(savedUnit.UnitTypeID);
+
+                    if (unitSO == null || unitSO.Prefab == null)
+                        continue;
+
+                    GameObject unitObject = Instantiate(
+                        unitSO.Prefab,
+                        savedUnit.Position,
+                        Quaternion.identity);
+
+                    if (!unitObject.TryGetComponent(out AbstractUnit unit))
+                        continue;
+
+                    unit.SetInstanceID(savedUnit.InstanceID);
+                    unit.RestoreFromSave(savedUnit);
+                }
+            }
+            finally
             {
                 LoadProfiler.End("UnitManager.LoadData", watch);
-                return;
             }
-
-            ClearExistingUnits();
-
-            foreach (UnitSaveData savedUnit in data.units)
-            {
-                UnitSO unitSO = FindUnitByTypeID(savedUnit.UnitTypeID);
-
-                if (unitSO == null || unitSO.Prefab == null)
-                    continue;
-
-                GameObject unitObject = Instantiate(
-                    unitSO.Prefab,
-                    savedUnit.Position,
-                    Quaternion.identity);
-
-                if (!unitObject.TryGetComponent(out AbstractUnit unit))
-                    continue;
-
-                unit.SetInstanceID(savedUnit.InstanceID);
-                unit.RestoreFromSave(savedUnit);
-            }
-
-            LoadProfiler.End("UnitManager.LoadData", watch);
         }
 
         private void ClearExistingUnits()
@@ -128,9 +264,7 @@ namespace ShiftedSignal.Garden.Managers
             for (int i = activeUnits.Count - 1; i >= 0; i--)
             {
                 if (activeUnits[i] != null)
-                {
                     Destroy(activeUnits[i].gameObject);
-                }
             }
 
             activeUnits.Clear();
@@ -151,11 +285,6 @@ namespace ShiftedSignal.Garden.Managers
         }
 
 #if UNITY_EDITOR
-        // private void OnValidate()
-        // {
-        //     FillUnitDatabase();
-        // }
-
         [ContextMenu("Fill Unit Database")]
         private void FillUnitDatabase()
         {

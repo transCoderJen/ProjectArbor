@@ -1,3 +1,4 @@
+using System;
 using ShiftedSignal.Garden.Behavior;
 using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Combat;
@@ -5,6 +6,7 @@ using ShiftedSignal.Garden.Environment;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.SaveAndLoad;
 using Unity.Behavior;
 using UnityEngine;
@@ -57,7 +59,14 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
-        public bool IsBuilding => throw new System.NotImplementedException();
+        public BaseBuilding AssignedBuildTarget { get; private set; }
+
+        public bool HasBuildAssignment =>
+            AssignedBuildTarget != null &&
+            AssignedBuildTarget.IsUnderConstruction;
+        
+        private UnitCommands commandBeforeBuild;
+        private bool hasStoredCommandBeforeBuild;
 
         protected override void Start()
         {
@@ -69,8 +78,25 @@ namespace ShiftedSignal.Garden.Units
             }
         }
 
+        public override void MoveTo(Vector3 position)
+        {
+            CancelCurrentJob();
+
+            base.MoveTo(position);
+
+        }
+
+        public override void Stop()
+        {
+            CancelCurrentJob();
+
+            base.Stop();
+        }
+
         public void Gather()
         {
+            CancelCurrentJob();
+
             graphAgent.SetVariableValue<GatherableSupply>("Supply", null);
             graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
             graphAgent.SetVariableValue("Command", UnitCommands.Gather);
@@ -78,6 +104,8 @@ namespace ShiftedSignal.Garden.Units
         
         public void Gather(GatherableSupply supply)
         {
+            CancelCurrentJob();
+
             graphAgent.SetVariableValue("Supply", supply);
             graphAgent.SetVariableValue("TargetGameObject", supply.gameObject);
             graphAgent.SetVariableValue("Command", UnitCommands.Gather);
@@ -85,12 +113,16 @@ namespace ShiftedSignal.Garden.Units
 
         public void ReturnSupplies(GameObject storehouse)
         {
+            CancelCurrentJob();
+
             graphAgent.SetVariableValue("Storehouse", storehouse);
             graphAgent.SetVariableValue("Command", UnitCommands.ReturnSupplies);
         }
 
         public void Farm()
         {
+            CancelCurrentJob();
+
             graphAgent.SetVariableValue<GameObject>("FarmTarget", null);
             graphAgent.SetVariableValue<GameObject>("FarmSource", null);
             graphAgent.SetVariableValue<FarmTaskType>("FarmTask", FarmTaskType.None);
@@ -123,6 +155,21 @@ namespace ShiftedSignal.Garden.Units
         {
             if (building == null)
                 return;
+            
+            if (HasBuildAssignment)
+                return;
+
+            if (!hasStoredCommandBeforeBuild)
+            {
+                if (graphAgent.GetVariable("Command", out BlackboardVariable<UnitCommands> command))
+                    commandBeforeBuild = command.Value;
+                else
+                    commandBeforeBuild = UnitCommands.Stop;
+                
+                hasStoredCommandBeforeBuild = true;
+            }
+
+            AssignedBuildTarget = building;
 
             graphAgent.SetVariableValue("BuildTarget", building);
             graphAgent.SetVariableValue("TargetGameObject", building.gameObject);
@@ -138,9 +185,67 @@ namespace ShiftedSignal.Garden.Units
         {
             throw new System.NotImplementedException();
         }
-#endregion
 
-#region Load/ Save
+        public void ClearBuildAssignment()
+        {
+            AssignedBuildTarget = null;
+        }
+
+        private void CancelCurrentJob()
+        {
+            if (AssignedBuildTarget != null)
+            {
+                AssignedBuildTarget.ReleaseBuilder(this);
+                AssignedBuildTarget = null;
+            }
+
+            commandBeforeBuild = UnitCommands.Stop;
+            hasStoredCommandBeforeBuild = false;
+        }
+
+        public void ResumePreviousCommand()
+        {
+            UnitCommands commandToResume = commandBeforeBuild;
+
+            commandBeforeBuild = UnitCommands.Stop;
+            hasStoredCommandBeforeBuild = false;
+
+            if (!ShouldResumeAfterBuild(commandToResume))
+            {
+                graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+                return;
+            }
+
+            graphAgent.SetVariableValue("Command", commandToResume);
+        }
+
+        private bool ShouldResumeAfterBuild(UnitCommands command)
+        {
+            return command switch
+            {
+                UnitCommands.Farm => true,
+                UnitCommands.Gather => true,
+                UnitCommands.ReturnSupplies => true,
+                _ => false
+            };
+        }
+
+        public void FinishBuildAssignment()
+        {
+            AssignedBuildTarget = null;
+
+            if (UnitManager.Instance != null &&
+                UnitManager.Instance.TryAssignWorkerToNextConstructionSite(this))
+            {
+                return;
+            }
+
+            ResumePreviousCommand();
+        }
+
+        #endregion
+
+        #region Load/ Save
         public override void WriteToSaveData(UnitSaveData data)
         {
             base.WriteToSaveData(data);

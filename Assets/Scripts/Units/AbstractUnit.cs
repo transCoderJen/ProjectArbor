@@ -87,6 +87,7 @@ namespace ShiftedSignal.Garden.Units
 
         public virtual void MoveTo(Vector3 position)
         {
+            
             graphAgent.SetVariableValue("TargetLocation", position);
             graphAgent.SetVariableValue("Command", UnitCommands.Move);
         }
