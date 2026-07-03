@@ -27,13 +27,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private InputAction attackAction;
         private bool previousAttackHeld;
+        private InputAction interactAction;
+        private bool previousInteractHeld;
 
         private void Awake()
         {
             PlayerInput = GetComponent<PlayerInput>();
 
             if (PlayerInput != null && PlayerInput.actions != null)
+            {
                 attackAction = PlayerInput.actions["Attack"];
+                interactAction = PlayerInput.actions["Interact"];
+            }
         }
 
         private void Update()
@@ -43,6 +48,19 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void UpdateHeldInputs()
         {
+            if (interactAction != null)
+            {
+                InteractHeld = interactAction.IsPressed();
+
+                if (InteractHeld && !previousInteractHeld)
+                {
+                    InteractPressed?.Invoke();
+                    ActionPressed?.Invoke();
+                }
+
+                previousInteractHeld = InteractHeld;
+            }
+
             if (attackAction == null)
                 return;
 
@@ -60,13 +78,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnInteract(InputValue value)
         {
-            InteractHeld = value.isPressed;
-
-            if (!value.isPressed)
-                return;
-
-            InteractPressed?.Invoke();
-            ActionPressed?.Invoke();
+            // Let UpdateHeldInputs handle InteractHeld.
         }
 
         public void OnAction(InputValue value)
@@ -81,8 +93,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnAttack(InputValue value)
         {
-            Debug.Log($"OnAttack: {value.isPressed}");
-
             if (!value.isPressed)
                 return;
 

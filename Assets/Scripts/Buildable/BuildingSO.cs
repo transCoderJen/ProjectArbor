@@ -44,12 +44,15 @@ namespace ShiftedSignal.Garden.Buildable
     [CreateAssetMenu(fileName = "New Buildable Data", menuName = "Data/Buildable")]
     public class BuildingSO : UnitSO
     {
+        [Header("Ghost")]
+        public Material GhostMaterial;
+
         [Header("Placement Rules")]
         public BuildPlacementMode PlacementMode = BuildPlacementMode.GridOnly;
         public bool RequiresActiveGrowBlock = true;
         public float XRotation = 30f;
 
-        [Header("Crafting")]
+        [Header("Building Requirements")]
         public RequiredMaterial[] RequiredMaterials;
         public int Cost;
 

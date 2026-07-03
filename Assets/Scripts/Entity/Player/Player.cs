@@ -95,29 +95,28 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         [Header("Building Placement Colors")]
         [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color errorTintColor = Color.red;
+        private Color errorTintColor = new(0.35f, 0.12f, 0.14f, 1f);
 
         [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color errorFresnelColor = new(4, 1.7f, 0, 2);
-
-        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color availableToPlaceTintColor = new(0.2f, 0.65f, 1, 2);
-
-        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color availableToPlaceFresnelColor = new(.02f, 0.65f, 1, 2);
-
-        [SerializeField] private float buildRotationStep = 90f;
+        private Color availableToPlaceTintColor = new(51f / 255f, 166f / 255f, 255f / 255f, 1f);
 
         [Header("2D Building Placement Glow")]
-        [SerializeField] private float errorSineGlowMin = 0.25f;
+        [SerializeField] private float errorSineGlowMin = 0.35f;
 
         [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color errorSineGlowColor = new(4f, 1.7f, 0f, 2f);
+        private Color errorSineGlowColor = new(0.12f, 0.09f, 0.10f, 1f);
 
         [SerializeField] private float availableSineGlowMin = 0.75f;
 
         [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
-        private Color availableSineGlowColor = new(0.02f, 0.65f, 1f, 2f);
+        private Color availableSineGlowColor = new(22f / 255f, 25f / 255f, 26f / 255f, 1f);
+
+        [Header("2D Building Placement Hologram")]
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
+        private Color errorHologramTintColor = new(0.18f, 0.10f, 0.13f, 1f);
+
+        [SerializeField, ColorUsage(showAlpha: true, hdr: true)]
+        private Color availableHologramTintColor = new(29f / 255f, 25f / 255f, 36f / 255f, 1f);
         
 
         [Header("Build Drag")]
@@ -134,6 +133,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private static readonly int TINT = Shader.PropertyToID("_Tint");
         private static readonly int FRESNEL = Shader.PropertyToID("_FresnelColor");
+        private static readonly int HOLOGRAM_TINT = Shader.PropertyToID("_HologramTint");
         private static readonly int SINE_GLOW_MIN = Shader.PropertyToID("_SineGlowMin");
         private static readonly int SINE_GLOW_COLOR = Shader.PropertyToID("_SineGlowColor");
 
@@ -274,6 +274,11 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             StateMachine.CurrentState?.Update();
+
+            if (inputReader.InteractHeld)
+            {
+                TryContinuousInteract();
+            }
 
             UpdateInteractableHighlight();
             HandleDebugInputs();
@@ -560,7 +565,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return false;
             }
 
-            buildable.Build();
+            buildable.PlaceAsConstructionSite();
             buildable.SetOccupiedBlock(block);
 
             block.ResetCrop();
@@ -637,6 +642,26 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             closestInteractable.Interact(this);
+        }
+
+        private void TryContinuousInteract()
+        {
+            if (!controlsEnabled)
+                return;
+
+            IInteractable closestInteractable = GetClosestInteractable();
+
+            if (closestInteractable == null)
+            {
+                return;
+            }
+
+            if (closestInteractable is not IContinuousInteractable continuousInteractable)
+            {
+                return;
+            }
+
+            continuousInteractable.ContinuousInteract(this);
         }
 
         private IInteractable GetClosestInteractable()
@@ -726,6 +751,36 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             ghostInstance = Instantiate(EquippedBuildable.Prefab);
             ghostRenderers = ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
             ghostSpriteRenderers = ghostInstance.GetComponentsInChildren<SpriteRenderer>(true);
+
+            ApplyGhostMaterial();
+        }
+
+        private void ApplyGhostMaterial()
+        {
+            if (EquippedBuildable == null || EquippedBuildable.GhostMaterial == null)
+                return;
+
+            if (ghostRenderers != null)
+            {
+                foreach (MeshRenderer renderer in ghostRenderers)
+                {
+                    if (renderer == null)
+                        continue;
+
+                    renderer.sharedMaterial = EquippedBuildable.GhostMaterial;
+                }
+            }
+
+            if (ghostSpriteRenderers != null)
+            {
+                foreach (SpriteRenderer spriteRenderer in ghostSpriteRenderers)
+                {
+                    if (spriteRenderer == null)
+                        continue;
+
+                    spriteRenderer.sharedMaterial = EquippedBuildable.GhostMaterial;
+                }
+            }
         }
 
         private void HandleGhost()
@@ -772,22 +827,22 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             UpdateGhostColor();
         }
 
-        private void HandleBuildRotationInput()
-        {
-            if (!InManagementState)
-                return;
+        // private void HandleBuildRotationInput()
+        // {
+        //     if (!InManagementState)
+        //         return;
 
-            if (Keyboard.current == null)
-                return;
+        //     if (Keyboard.current == null)
+        //         return;
 
-            if (Keyboard.current.qKey.wasPressedThisFrame)
-                currentBuildYRotation -= buildRotationStep;
+        //     if (Keyboard.current.qKey.wasPressedThisFrame)
+        //         currentBuildYRotation -= buildRotationStep;
 
-            if (Keyboard.current.eKey.wasPressedThisFrame)
-                currentBuildYRotation += buildRotationStep;
+        //     if (Keyboard.current.eKey.wasPressedThisFrame)
+        //         currentBuildYRotation += buildRotationStep;
 
-            currentBuildYRotation = Mathf.Repeat(currentBuildYRotation, 360f);
-        }
+        //     currentBuildYRotation = Mathf.Repeat(currentBuildYRotation, 360f);
+        // }
 
         private void UpdateGhostColor()
         {
@@ -814,14 +869,17 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Color tintColor =
                 allRestrictionsPass ? availableToPlaceTintColor : errorTintColor;
 
-            Color fresnelColor =
-                allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor;
+            // Color fresnelColor =
+            //     allRestrictionsPass ? availableToPlaceFresnelColor : errorFresnelColor;
 
             float sineGlowMin =
                 allRestrictionsPass ? availableSineGlowMin : errorSineGlowMin;
 
             Color sineGlowColor =
                 allRestrictionsPass ? availableSineGlowColor : errorSineGlowColor;
+
+            Color hologramTintColor =
+                allRestrictionsPass ? availableHologramTintColor : errorHologramTintColor;
 
             if (ghostRenderers != null)
             {
@@ -833,9 +891,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                     ApplyBuildGhostPropertyBlock(
                         renderer,
                         tintColor,
-                        fresnelColor,
+                        // fresnelColor,
                         sineGlowMin,
-                        sineGlowColor);
+                        sineGlowColor,
+                        hologramTintColor);
                 }
             }
 
@@ -850,18 +909,20 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 ApplyBuildGhostPropertyBlock(
                     spriteRenderer,
                     tintColor,
-                    fresnelColor,
+                    // fresnelColor,
                     sineGlowMin,
-                    sineGlowColor);
+                    sineGlowColor,
+                    hologramTintColor);
             }
         }
 
         private void ApplyBuildGhostPropertyBlock(
             Renderer renderer,
             Color tintColor,
-            Color fresnelColor,
+            // Color fresnelColor,
             float sineGlowMin,
-            Color sineGlowColor)
+            Color sineGlowColor,
+            Color hologramTintColor)
         {
             if (renderer == null)
                 return;
@@ -869,9 +930,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             renderer.GetPropertyBlock(ghostPropertyBlock);
 
             ghostPropertyBlock.SetColor(TINT, tintColor);
-            ghostPropertyBlock.SetColor(FRESNEL, fresnelColor);
+            // ghostPropertyBlock.SetColor(FRESNEL, fresnelColor);
             ghostPropertyBlock.SetFloat(SINE_GLOW_MIN, sineGlowMin);
             ghostPropertyBlock.SetColor(SINE_GLOW_COLOR, sineGlowColor);
+            ghostPropertyBlock.SetColor(HOLOGRAM_TINT, hologramTintColor);
 
             renderer.SetPropertyBlock(ghostPropertyBlock);
         }

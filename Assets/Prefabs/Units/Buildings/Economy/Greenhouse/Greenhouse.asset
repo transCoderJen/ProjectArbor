@@ -19,6 +19,7 @@ MonoBehaviour:
   <Health>k__BackingField: 300
   <BuildTime>k__BackingField: 5
   SaveID: 
+  GhostMaterial: {fileID: 0}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 30

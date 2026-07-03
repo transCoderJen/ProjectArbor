@@ -121,7 +121,20 @@ namespace ShiftedSignal.Garden.Units
 #region Buiild
         public GameObject Build(BuildingSO building, Vector3 targetLocation)
         {
-            throw new System.NotImplementedException();
+            GameObject instance = Instantiate(building.Prefab, targetLocation, Quaternion.identity);
+            if (instance.TryGetComponent(out BaseBuilding baseBuilding))
+            {
+                baseBuilding.ShowGhostVisuals();
+            }
+            else
+            {
+                Debug.LogError($"Missing BaseBuilding on Prefab for BuildingSO \"{building.name}\"! Cannot build!");
+                return null;
+            }
+
+            // set up blackboard variables
+            
+            return instance;
         }
 
         public void ResumeBuilding(BaseBuilding building)

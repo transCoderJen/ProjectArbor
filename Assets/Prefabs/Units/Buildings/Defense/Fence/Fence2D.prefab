@@ -136,11 +136,10 @@ GameObject:
   m_Component:
   - component: {fileID: 2824538537102796328}
   - component: {fileID: 430320613771864577}
-  - component: {fileID: 2222480310244767976}
   - component: {fileID: 1278284631709516739}
-  - component: {fileID: 5172948507349403540}
   - component: {fileID: 415366868969795938}
-  m_Layer: 0
+  - component: {fileID: 8928412460363197914}
+  m_Layer: 9
   m_Name: Fence2D
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -182,7 +181,8 @@ MonoBehaviour:
   decalProjector: {fileID: 0}
   UnitSO: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
   IsActive: 0
-  GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
+  buildingState: 2
+  buildTime: 3
   targetType: 2
   RaidPriority: 20
   HasTimedEffects: 0
@@ -204,27 +204,6 @@ MonoBehaviour:
   northSouthFence: {fileID: 2822045323679761344}
   showLeftRightWhenAlone: 1
   debugFence: 0
---- !u!65 &2222480310244767976
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7183955855498715984}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!212 &1278284631709516739
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -280,23 +259,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &5172948507349403540
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7183955855498715984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb2f5cea62789db47b77f706c90dae03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  TransparentAlpha: 0.6
-  FadeDuration: 0.2
-  VisibleShadowClipThreshold: 0.2
-  OccludedShadowClipThreshold: 1
-  TargetRenderers: []
 --- !u!208 &415366868969795938
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -313,6 +275,27 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0, z: 0}
   m_TimeToStationary: 0.5
+--- !u!65 &8928412460363197914
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7183955855498715984}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 8, y: 8, z: 8}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &7629881641326541474
 GameObject:
   m_ObjectHideFlags: 0

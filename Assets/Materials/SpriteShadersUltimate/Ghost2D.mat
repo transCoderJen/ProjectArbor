@@ -225,7 +225,7 @@ Material:
     - _CamouflageFade: 1
     - _CamouflageSmoothnessA: 0.2
     - _CamouflageSmoothnessB: 0.2
-    - _CheckerboardDarken: 0.5
+    - _CheckerboardDarken: 0.49
     - _CheckerboardTiling: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
@@ -360,7 +360,7 @@ Material:
     - _GlitchBrightness: 4
     - _GlitchFade: 1
     - _GlitchHueSpeed: 1
-    - _GlitchMaskMin: 0.4
+    - _GlitchMaskMin: 0
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
@@ -369,15 +369,15 @@ Material:
     - _HalftoneInvert: 0
     - _HalftoneTiling: 4
     - _HologramContrast: 1
-    - _HologramDistortionDensity: 0.5
-    - _HologramDistortionOffset: 0.5
+    - _HologramDistortionDensity: 10
+    - _HologramDistortionOffset: 0
     - _HologramDistortionScale: 10
-    - _HologramDistortionSpeed: 2
+    - _HologramDistortionSpeed: 0.5
     - _HologramFade: 1
-    - _HologramLineFrequency: 500
-    - _HologramLineGap: 3
-    - _HologramLineSpeed: 0.01
-    - _HologramMinAlpha: 0.2
+    - _HologramLineFrequency: 200
+    - _HologramLineGap: 2.31
+    - _HologramLineSpeed: 0.5
+    - _HologramMinAlpha: 0
     - _Hue: 0
     - _IgnoreShadowsToggle: 0
     - _InkSpreadContrast: 2
@@ -473,8 +473,8 @@ Material:
     - _SineGlowFade: 1
     - _SineGlowFrequency: 12
     - _SineGlowMaskToggle: 0
-    - _SineGlowMax: 1
-    - _SineGlowMin: 1
+    - _SineGlowMax: 0.3
+    - _SineGlowMin: 0.25
     - _SineMoveFade: 1
     - _SineRotateAngle: 15
     - _SineRotateFade: 1
@@ -486,7 +486,7 @@ Material:
     - _SmokeNoiseScale: 0.5
     - _SmokeSmoothness: 1
     - _SmokeVertexSeed: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0
     - _SmoothnessTextureChannel: 0
     - _SourceAlphaDissolveFade: 1
     - _SourceAlphaDissolveInvert: 0
@@ -630,12 +630,12 @@ Material:
     - _FullDistortionNoiseScale: {r: 0.5, g: 0.5, b: 0, a: 0}
     - _FullGlowDissolveEdgeColor: {r: 11.98431, g: 0.627451, b: 0.627451, a: 0}
     - _FullGlowDissolveNoiseScale: {r: 0.1, g: 0.1, b: 0, a: 0}
-    - _GlitchDistortion: {r: 0.1, g: 0, b: 0, a: 0}
+    - _GlitchDistortion: {r: 13.11, g: 0, b: 0, a: 0}
     - _GlitchDistortionScale: {r: 0, g: 3, b: 0, a: 0}
     - _GlitchDistortionSpeed: {r: 0, g: 1, b: 0, a: 0}
-    - _GlitchMaskScale: {r: 0, g: 0.2, b: 0, a: 0}
-    - _GlitchMaskSpeed: {r: 0, g: 4, b: 0, a: 0}
-    - _GlitchNoiseScale: {r: 0, g: 3, b: 0, a: 0}
+    - _GlitchMaskScale: {r: 0, g: 6.81, b: 0, a: 0}
+    - _GlitchMaskSpeed: {r: 0, g: 10.74, b: 0, a: 0}
+    - _GlitchNoiseScale: {r: 33.89, g: 128.26, b: 0, a: 0}
     - _GlitchNoiseSpeed: {r: 0, g: 1, b: 0, a: 0}
     - _HalftonePosition: {r: 0, g: 0, b: 0, a: 0}
     - _HologramTint: {r: 0.3137255, g: 1.662745, b: 2.996078, a: 1}

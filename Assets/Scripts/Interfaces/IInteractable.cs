@@ -6,6 +6,5 @@ namespace ShiftedSignal.Garden.Interfaces
     {
         void Interact(Player player);
         void Highlight(bool highlight);
-        // public bool IsPlayerNear();
     }
 }

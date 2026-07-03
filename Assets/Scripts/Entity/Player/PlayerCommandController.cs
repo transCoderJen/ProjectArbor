@@ -40,7 +40,6 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
         }
 
-
         private void OnDisable()
         {
             Bus<UnitSelectedEvent>.OnEvent -= HandleUnitSelected;

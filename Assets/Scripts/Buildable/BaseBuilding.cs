@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
@@ -16,21 +15,37 @@ using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    [RequireComponent(typeof(BoxCollider))]
-    [RequireComponent(typeof(SpriteRenderer))]
-    [RequireComponent(typeof(Occludable))]
-    [RequireComponent(typeof(NavMeshObstacle))]
-    public class BaseBuilding : AbstractCommandable, IRaiderTarget
+    public enum BuildingState
     {
-        #region OTher Variables
+        Preview,
+        UnderConstruction,
+        Complete
+    }
+
+    [RequireComponent(typeof(SpriteRenderer))]
+    [RequireComponent(typeof(NavMeshObstacle))]
+    public class BaseBuilding : AbstractCommandable, IRaiderTarget, IInteractable, IContinuousInteractable
+    {
         [Header("Build Info")]
         public BuildingSO UnitSO;
         protected override AbstractUnitSO Config => UnitSO;
         public virtual Transform ProjectileSpawnPoint => transform;
+
         [SerializeField] protected bool IsActive;
 
-        [Header("Ghost Preview")]
-        [SerializeField] private Material GhostMaterial;
+        [Header("Building State / Progress")]
+        [SerializeField] private BuildingState buildingState = BuildingState.Complete;
+        [SerializeField] private float buildTime = 3f;
+
+        private Collider[] solidColliders;
+        private float buildProgress;
+
+        public BuildingState CurrentBuildingState => buildingState;
+        public bool IsComplete => buildingState == BuildingState.Complete;
+        public bool IsUnderConstruction => buildingState == BuildingState.UnderConstruction;
+        public float BuildProgress => buildProgress;
+        public float BuildTime => buildTime;
+        public float BuildProgressPercent => buildTime <= 0f ? 1f : Mathf.Clamp01(buildProgress / buildTime);
 
         [Header("Raid Target")]
         [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
@@ -72,28 +87,22 @@ namespace ShiftedSignal.Garden.Buildable
         private readonly Dictionary<Renderer, Material[]> originalMaterials = new();
         private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
 
-        #endregion
-
-        #region RTS Variables
-
         public int QueueSize => buildingQueue.Count;
         public AbstractUnitSO[] Queue => buildingQueue.ToArray();
+
         [field: SerializeField] public float CurrentQueueStartTime { get; private set; }
         [field: SerializeField] public AbstractUnitSO BuildingUnit { get; private set; }
 
         public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
         public event QueueUpdatedEvent OnQueueUpdated;
 
-        private List<AbstractUnitSO> buildingQueue = new (MAX_QUEUE_SIZE);
+        private readonly List<AbstractUnitSO> buildingQueue = new(MAX_QUEUE_SIZE);
         private const int MAX_QUEUE_SIZE = 5;
-        #endregion
 
         protected virtual void Awake()
         {
             CacheRenderersAndMaterials();
-
-            if (!IsActive)
-                ApplyGhostMaterial();
+            CacheSolidCollidersIfNeeded();
         }
 
         protected virtual void OnEnable()
@@ -120,17 +129,93 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<NightStartedEvent>.OnEvent -= HandleNightStarted;
         }
 
-        protected virtual void Update()
+        public virtual void PlaceAsConstructionSite()
         {
+            buildingState = BuildingState.UnderConstruction;
+            buildProgress = 0f;
+
+            IsActive = false;
+
+            SetHealth(MaxHealth, MaxHealth);
+            ShowGhostVisuals();
+            SetSolid(false);
         }
 
-        #region Other
-        public virtual void Build()
+        public virtual void AddBuildProgress(float amount)
         {
+            if (!IsUnderConstruction)
+                return;
+
+            buildProgress += amount;
+
+            if (buildProgress >= buildTime)
+            {
+                CompleteBuilding();
+            }
+        }
+
+        public virtual void CompleteBuilding()
+        {
+            buildingState = BuildingState.Complete;
+            buildProgress = buildTime;
+
             RestoreOriginalMaterials();
+            SetSolid(true);
 
             IsActive = true;
             SetHealth(MaxHealth, MaxHealth);
+
+            if (OccupiedBlock != null)
+                OccupiedBlock.UpdateGridInfo();
+        }
+
+        public virtual void Build()
+        {
+            CompleteBuilding();
+        }
+
+        protected virtual void Update()
+        {
+            
+        }
+
+        private void SetSolid(bool solid)
+        {
+            CacheSolidCollidersIfNeeded();
+
+            foreach (Collider solidCollider in solidColliders)
+            {
+                if (solidCollider != null)
+                    solidCollider.enabled = solid;
+            }
+
+            NavMeshObstacle obstacle = GetComponent<NavMeshObstacle>();
+
+            if (obstacle != null)
+                obstacle.enabled = solid;
+        }
+
+        private void CacheSolidCollidersIfNeeded()
+        {
+            if (solidColliders != null && solidColliders.Length > 0)
+                return;
+
+            Collider[] allColliders = GetComponentsInChildren<Collider>(true);
+
+            List<Collider> solids = new();
+
+            foreach (Collider collider in allColliders)
+            {
+                if (collider == null)
+                    continue;
+
+                if (collider.isTrigger)
+                    continue;
+
+                solids.Add(collider);
+            }
+
+            solidColliders = solids.ToArray();
         }
 
         public void SetOccupiedBlock(GrowBlock block)
@@ -160,9 +245,9 @@ namespace ShiftedSignal.Garden.Buildable
             return targetRenderer is MeshRenderer || targetRenderer is SpriteRenderer;
         }
 
-        private void ApplyGhostMaterial()
+        public void ShowGhostVisuals()
         {
-            if (GhostMaterial == null)
+            if (UnitSO == null || UnitSO.GhostMaterial == null)
                 return;
 
             foreach (Renderer cachedRenderer in cachedRenderers)
@@ -174,14 +259,14 @@ namespace ShiftedSignal.Garden.Buildable
 
                 if (currentMaterials == null || currentMaterials.Length == 0)
                 {
-                    cachedRenderer.sharedMaterial = GhostMaterial;
+                    cachedRenderer.sharedMaterial = UnitSO.GhostMaterial;
                     continue;
                 }
 
                 Material[] ghostMaterials = new Material[currentMaterials.Length];
 
                 for (int i = 0; i < ghostMaterials.Length; i++)
-                    ghostMaterials[i] = GhostMaterial;
+                    ghostMaterials[i] = UnitSO.GhostMaterial;
 
                 cachedRenderer.sharedMaterials = ghostMaterials;
             }
@@ -363,9 +448,7 @@ namespace ShiftedSignal.Garden.Buildable
                 block.UpdateGridInfo();
 
                 if (this is FencePost2D)
-                {
                     FencePost2D.RefreshNeighbors(block);
-                }
             }
 
             Destroy(gameObject);
@@ -373,7 +456,11 @@ namespace ShiftedSignal.Garden.Buildable
 
         public virtual void RestoreFromSave(int savedHP)
         {
+            buildingState = BuildingState.Complete;
+            buildProgress = buildTime;
+
             RestoreOriginalMaterials();
+            SetSolid(true);
 
             IsActive = true;
 
@@ -388,53 +475,38 @@ namespace ShiftedSignal.Garden.Buildable
         {
             RaiderTargetRegistry.Unregister(this);
         }
-        #endregion
 
-        #region RTS
         public void BuildUnit(AbstractUnitSO unit)
         {
             if (buildingQueue.Count == MAX_QUEUE_SIZE)
-            {
-                // Debug.LogError("BuildUnit called when the queue was already full!  This is not supported!");
                 return;
-            }
 
             buildingQueue.Add(unit);
 
             if (buildingQueue.Count == 1)
-            {
                 StartCoroutine(DoBuildUnits());
-            }
             else
-            {
                 OnQueueUpdated?.Invoke(buildingQueue.ToArray());
-            }
         }
 
         public void CancelBuildingUnit(int index)
         {
-            if (index < 0 || index > buildingQueue.Count)
-            {
-                // Debug.LogError("Attempting to cacncel building a unit outside the bounds of the queue!");
+            if (index < 0 || index >= buildingQueue.Count)
                 return;
-            }
 
             buildingQueue.RemoveAt(index);
+
             if (index == 0)
             {
                 StopAllCoroutines();
 
                 if (buildingQueue.Count > 0)
-                {
                     StartCoroutine(DoBuildUnits());
-                }
                 else
-                {
                     OnQueueUpdated?.Invoke(buildingQueue.ToArray());
-                }
             }
             else
-            {  
+            {
                 OnQueueUpdated?.Invoke(buildingQueue.ToArray());
             }
         }
@@ -455,6 +527,36 @@ namespace ShiftedSignal.Garden.Buildable
 
             OnQueueUpdated?.Invoke(buildingQueue.ToArray());
         }
+
+        #region Interact
+
+        public void Highlight(bool highlight)
+        {
+            if (!IsUnderConstruction)
+                return;
+
+            // Temporary: construction sites already show ghost visuals.
+            // Later we can add outline/highlight feedback here.
+        }
+
+        public void Interact(Player player)
+        {
+            if (!IsUnderConstruction)
+                return;
+
+            // Open Buyilding UI
+        }
+
+        public void ContinuousInteract(Player player)
+        {
+            if (!IsUnderConstruction)
+            {
+                return;
+            }
+
+            AddBuildProgress(Time.deltaTime);
+        }
+
         #endregion
     }
 }
