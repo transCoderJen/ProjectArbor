@@ -145,7 +145,7 @@ MonoBehaviour:
         BlackboardGroupReferences: []
         Root:
           rid: 8809582421061402732
-        m_VersionTimestamp: 639180128857165410
+        m_VersionTimestamp: 639186213945542584
     - rid: 8809582395568947230
       type: {class: BlackboardReference, ns: Unity.Behavior, asm: Unity.Behavior}
       data:
@@ -541,7 +541,7 @@ MonoBehaviour:
   - rid: 8809582395568947891
   - rid: 8809582395568948026
   - rid: 8809582421061402762
-  m_VersionTimestamp: 639180128857165410
+  m_VersionTimestamp: 639186213945542584
   m_SerializedVersion: 3
   m_DebugInfo: {fileID: 8953667833289236373}
   m_RuntimeGraph: {fileID: -3754380409512950006}
@@ -769,7 +769,7 @@ MonoBehaviour:
   m_EnumDependencyCache:
     Entries:
     - EnumTypeId: ShiftedSignal.Garden.Units.UnitCommands, Assembly-CSharp
-      SignatureHash: e85091856da22400cd7e319dc41e4102
+      SignatureHash: e2a191d9fc5688cd90da1330173f9eb5
   references:
     version: 2
     RefIds:
@@ -988,7 +988,7 @@ MonoBehaviour:
         ParentNodeID:
           m_Value0: 16197463761050083407
           m_Value1: 10976058652961073931
-        PortName: BuildBuilding
+        PortName: Build
         Metadata: 0000000000000004
     - rid: 8809582395568947414
       type: {class: PortModel, ns: Unity.Behavior.GraphFramework, asm: Unity.Behavior.GraphFramework}
@@ -1033,7 +1033,7 @@ MonoBehaviour:
     - rid: 8809582395568947418
       type: {class: PortModel, ns: Unity.Behavior.GraphFramework, asm: Unity.Behavior.GraphFramework}
       data:
-        m_Name: BuildBuilding
+        m_Name: Build
         m_PortDataFlowType: 1
         m_IsFloating: 1
         m_NodeModel:

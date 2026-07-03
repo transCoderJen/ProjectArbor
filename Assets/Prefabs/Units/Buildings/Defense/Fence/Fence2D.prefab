@@ -182,7 +182,7 @@ MonoBehaviour:
   UnitSO: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
   IsActive: 0
   buildingState: 2
-  buildTime: 3
+  buildTime: 60
   targetType: 2
   RaidPriority: 20
   HasTimedEffects: 0
@@ -200,6 +200,7 @@ MonoBehaviour:
   RunOnNightStarted: 0
   <CurrentQueueStartTime>k__BackingField: 0
   <BuildingUnit>k__BackingField: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
+  maxBuilders: 3
   leftRightFence: {fileID: 7629881641326541474}
   northSouthFence: {fileID: 2822045323679761344}
   showLeftRightWhenAlone: 1

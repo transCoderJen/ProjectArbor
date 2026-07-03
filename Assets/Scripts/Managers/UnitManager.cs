@@ -24,12 +24,31 @@ namespace ShiftedSignal.Garden.Managers
         {
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawned;
             Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
+            Bus<BuildingPlacedForConstructionEvent>.OnEvent += HandleBuildingPlacedForConstruction;
         }
 
         private void OnDisable()
         {
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawned;
             Bus<UnitDestroyedEvent>.OnEvent -= HandleUnitDestroyed;
+            Bus<BuildingPlacedForConstructionEvent>.OnEvent -= HandleBuildingPlacedForConstruction;
+        }
+
+        private void HandleBuildingPlacedForConstruction(BuildingPlacedForConstructionEvent evt)
+        {
+            if (evt.Building == null)
+                return;
+
+            foreach (AbstractUnit unit in activeUnits)
+            {
+                if (unit is not Worker worker)
+                    continue;
+
+                if (!evt.Building.TryAssignBuilder(worker))
+                    return;
+
+                worker.Build(evt.Building);
+            }
         }
 
         private void HandleUnitDestroyed(UnitDestroyedEvent evt)

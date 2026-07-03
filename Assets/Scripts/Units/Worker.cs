@@ -119,22 +119,14 @@ namespace ShiftedSignal.Garden.Units
         }
 
 #region Buiild
-        public GameObject Build(BuildingSO building, Vector3 targetLocation)
+        public void Build(BaseBuilding building)
         {
-            GameObject instance = Instantiate(building.Prefab, targetLocation, Quaternion.identity);
-            if (instance.TryGetComponent(out BaseBuilding baseBuilding))
-            {
-                baseBuilding.ShowGhostVisuals();
-            }
-            else
-            {
-                Debug.LogError($"Missing BaseBuilding on Prefab for BuildingSO \"{building.name}\"! Cannot build!");
-                return null;
-            }
+            if (building == null)
+                return;
 
-            // set up blackboard variables
-            
-            return instance;
+            graphAgent.SetVariableValue("BuildTarget", building);
+            graphAgent.SetVariableValue("TargetGameObject", building.gameObject);
+            graphAgent.SetVariableValue("Command", UnitCommands.Build);
         }
 
         public void ResumeBuilding(BaseBuilding building)

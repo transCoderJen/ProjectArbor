@@ -26,30 +26,53 @@ namespace ShiftedSignal.Garden.Buildable
     [RequireComponent(typeof(NavMeshObstacle))]
     public class BaseBuilding : AbstractCommandable, IRaiderTarget, IInteractable, IContinuousInteractable
     {
+        #region Build Info
+
         [Header("Build Info")]
         public BuildingSO UnitSO;
+
         protected override AbstractUnitSO Config => UnitSO;
+
         public virtual Transform ProjectileSpawnPoint => transform;
 
         [SerializeField] protected bool IsActive;
 
+        public GrowBlock OccupiedBlock { get; private set; }
+
+        #endregion
+
+        #region Building State / Progress
+
         [Header("Building State / Progress")]
         [SerializeField] private BuildingState buildingState = BuildingState.Complete;
-        [SerializeField] private float buildTime = 3f;
-
-        private Collider[] solidColliders;
         private float buildProgress;
 
         public BuildingState CurrentBuildingState => buildingState;
         public bool IsComplete => buildingState == BuildingState.Complete;
         public bool IsUnderConstruction => buildingState == BuildingState.UnderConstruction;
         public float BuildProgress => buildProgress;
-        public float BuildTime => buildTime;
-        public float BuildProgressPercent => buildTime <= 0f ? 1f : Mathf.Clamp01(buildProgress / buildTime);
+        public float BuildTime => UnitSO != null ? UnitSO.BuildTime : 0f;
+        public float BuildProgressPercent =>
+            BuildTime <= 0f ? 1f : Mathf.Clamp01(buildProgress / BuildTime);
+
+
+        #endregion
+
+        #region Raid Target
 
         [Header("Raid Target")]
         [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
         [SerializeField] private int RaidPriority = 50;
+
+        public override CombatTeam Team => CombatTeam.Buildable;
+        public Transform TargetTransform => transform;
+        public RaiderTargetType TargetType => targetType;
+        public int Priority => RaidPriority;
+        public bool IsValidTarget => IsActive && CurrentHealth > 0 && gameObject.activeInHierarchy;
+
+        #endregion
+
+        #region Effects
 
         [Header("Effects")]
         [SerializeField] private bool HasTimedEffects;
@@ -75,17 +98,23 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private bool RunOnTimeChanged;
         [SerializeField] private bool RunOnNightStarted;
 
-        public GrowBlock OccupiedBlock { get; private set; }
+        private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
 
-        public override CombatTeam Team => CombatTeam.Buildable;
-        public Transform TargetTransform => transform;
-        public RaiderTargetType TargetType => targetType;
-        public int Priority => RaidPriority;
-        public bool IsValidTarget => IsActive && CurrentHealth > 0 && gameObject.activeInHierarchy;
+        #endregion
 
+        #region Rendering / Collision Cache
+
+        private Collider[] solidColliders;
         private Renderer[] cachedRenderers;
         private readonly Dictionary<Renderer, Material[]> originalMaterials = new();
-        private readonly Dictionary<BuildableEffect, float> effectCooldowns = new();
+
+        #endregion
+
+        #region Unit Queue
+
+        private const int MAX_QUEUE_SIZE = 5;
+
+        private readonly List<AbstractUnitSO> buildingQueue = new(MAX_QUEUE_SIZE);
 
         public int QueueSize => buildingQueue.Count;
         public AbstractUnitSO[] Queue => buildingQueue.ToArray();
@@ -96,8 +125,22 @@ namespace ShiftedSignal.Garden.Buildable
         public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
         public event QueueUpdatedEvent OnQueueUpdated;
 
-        private readonly List<AbstractUnitSO> buildingQueue = new(MAX_QUEUE_SIZE);
-        private const int MAX_QUEUE_SIZE = 5;
+        #endregion
+
+        #region Construction Workers
+
+        [SerializeField] private int maxBuilders = 3;
+
+        private readonly List<Worker> assignedBuilders = new();
+
+        public bool HasBuilderSlot => assignedBuilders.Count < maxBuilders;
+
+        public float BuilderMultiplier =>
+            Mathf.Max(1, assignedBuilders.Count);
+
+        #endregion
+
+        #region Unity Lifecycle
 
         protected virtual void Awake()
         {
@@ -129,6 +172,20 @@ namespace ShiftedSignal.Garden.Buildable
             Bus<NightStartedEvent>.OnEvent -= HandleNightStarted;
         }
 
+        protected virtual void Update()
+        {
+
+        }
+
+        protected virtual void OnDestroy()
+        {
+            RaiderTargetRegistry.Unregister(this);
+        }
+
+        #endregion
+
+        #region Construction
+
         public virtual void PlaceAsConstructionSite()
         {
             buildingState = BuildingState.UnderConstruction;
@@ -139,6 +196,8 @@ namespace ShiftedSignal.Garden.Buildable
             SetHealth(MaxHealth, MaxHealth);
             ShowGhostVisuals();
             SetSolid(false);
+
+            Bus<BuildingPlacedForConstructionEvent>.Raise(new BuildingPlacedForConstructionEvent(this));
         }
 
         public virtual void AddBuildProgress(float amount)
@@ -148,7 +207,7 @@ namespace ShiftedSignal.Garden.Buildable
 
             buildProgress += amount;
 
-            if (buildProgress >= buildTime)
+            if (buildProgress >= BuildTime)
             {
                 CompleteBuilding();
             }
@@ -157,7 +216,7 @@ namespace ShiftedSignal.Garden.Buildable
         public virtual void CompleteBuilding()
         {
             buildingState = BuildingState.Complete;
-            buildProgress = buildTime;
+            buildProgress = BuildTime;
 
             RestoreOriginalMaterials();
             SetSolid(true);
@@ -174,10 +233,39 @@ namespace ShiftedSignal.Garden.Buildable
             CompleteBuilding();
         }
 
-        protected virtual void Update()
+        #endregion
+
+        #region Construction Workers
+
+        public bool TryAssignBuilder(Worker worker)
         {
-            
+            if (worker == null)
+                return false;
+
+            if (!IsUnderConstruction)
+                return false;
+
+            if (assignedBuilders.Contains(worker))
+                return true;
+
+            if (!HasBuilderSlot)
+                return false;
+
+            assignedBuilders.Add(worker);
+            return true;
         }
+
+        public void ReleaseBuilder(Worker worker)
+        {
+            if (worker == null)
+                return;
+
+            assignedBuilders.Remove(worker);
+        }
+
+        #endregion
+
+        #region Collision / Solid State
 
         private void SetSolid(bool solid)
         {
@@ -218,10 +306,18 @@ namespace ShiftedSignal.Garden.Buildable
             solidColliders = solids.ToArray();
         }
 
+        #endregion
+
+        #region Occupied Block
+
         public void SetOccupiedBlock(GrowBlock block)
         {
             OccupiedBlock = block;
         }
+
+        #endregion
+
+        #region Ghost Visuals
 
         private void CacheRenderersAndMaterials()
         {
@@ -285,6 +381,10 @@ namespace ShiftedSignal.Garden.Buildable
             }
         }
 
+        #endregion
+
+        #region Build Restrictions
+
         public bool AllRestrictionsPass()
         {
             Player player = Player.Instance;
@@ -308,6 +408,10 @@ namespace ShiftedSignal.Garden.Buildable
 
             return true;
         }
+
+        #endregion
+
+        #region Effects
 
         protected virtual void BuildingEffect()
         {
@@ -388,6 +492,10 @@ namespace ShiftedSignal.Garden.Buildable
                 RunBuildingEffect();
         }
 
+        #endregion
+
+        #region Effect Cooldowns
+
         public bool IsEffectReady(BuildableEffect effect, float cooldown)
         {
             if (effect == null)
@@ -407,6 +515,10 @@ namespace ShiftedSignal.Garden.Buildable
             effectCooldowns[effect] = Time.time;
         }
 
+        #endregion
+
+        #region Damage / Health
+
         public override void TakeDamage(DamageData damageData)
         {
             if (!IsActive)
@@ -423,17 +535,17 @@ namespace ShiftedSignal.Garden.Buildable
             base.DoDamage(damage);
         }
 
-        protected override void Die()
-        {
-            DestroyBuilding();
-        }
-
         public override void Heal(int amount)
         {
             if (!IsActive)
                 return;
 
             base.Heal(amount);
+        }
+
+        protected override void Die()
+        {
+            DestroyBuilding();
         }
 
         protected virtual void DestroyBuilding()
@@ -454,10 +566,14 @@ namespace ShiftedSignal.Garden.Buildable
             Destroy(gameObject);
         }
 
+        #endregion
+
+        #region Save / Load
+
         public virtual void RestoreFromSave(int savedHP)
         {
             buildingState = BuildingState.Complete;
-            buildProgress = buildTime;
+            buildProgress = BuildTime;
 
             RestoreOriginalMaterials();
             SetSolid(true);
@@ -471,10 +587,9 @@ namespace ShiftedSignal.Garden.Buildable
             SetHealth(restoredHP, MaxHealth);
         }
 
-        protected virtual void OnDestroy()
-        {
-            RaiderTargetRegistry.Unregister(this);
-        }
+        #endregion
+
+        #region Unit Queue
 
         public void BuildUnit(AbstractUnitSO unit)
         {
@@ -527,6 +642,8 @@ namespace ShiftedSignal.Garden.Buildable
 
             OnQueueUpdated?.Invoke(buildingQueue.ToArray());
         }
+
+        #endregion
 
         #region Interact
 

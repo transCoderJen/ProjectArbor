@@ -9,7 +9,7 @@ namespace ShiftedSignal.Garden.Units
         Move,
         Gather,
         ReturnSupplies,
-        BuildBuilding,
+        Build,
         Farm
     }
 }
