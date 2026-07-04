@@ -15,6 +15,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         {
             SetProgress(progress);
         }
+        
         private void Awake()
         {
             if (mask == null)

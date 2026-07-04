@@ -4,6 +4,7 @@ Shader "Shader Graphs/Ghost 2D"
     {
         [NoScaleOffset]_MainTex("Sprite Texture", 2D) = "white" {}
         [HDR]_Tint("Tint", Color) = (0.2, 0.65, 1, 1)
+        _Alpha("Alpha", Range(0, 1)) = 0.5
 
         _ScrollSpeed("Scroll Speed", Float) = -1
         _LineThickness("Line Thickness", Range(0, 1)) = 0.5
@@ -67,6 +68,7 @@ Shader "Shader Graphs/Ghost 2D"
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
                 float4 _Tint;
+                float _Alpha;
 
                 float _ScrollSpeed;
                 float _LineThickness;
@@ -145,7 +147,7 @@ Shader "Shader Graphs/Ghost 2D"
 
                 half3 finalColor = baseColor.rgb + glowColor;
 
-                half finalAlpha = spriteColor.a * _Tint.a;
+                half finalAlpha = spriteColor.a * _Tint.a * _Alpha * IN.color.a;
 
                 return half4(finalColor, finalAlpha);
             }

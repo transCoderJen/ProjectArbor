@@ -80,5 +80,17 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             
             buildCoroutine = null;
         }
+
+        public void SetBuildProgress(float current, float required)
+        {
+            if (progressBar == null)
+                return;
+
+            float progress = required <= 0f
+                ? 1f
+                : Mathf.Clamp01(current / required);
+
+            progressBar.SetProgress(progress);
+        }
     }
 }

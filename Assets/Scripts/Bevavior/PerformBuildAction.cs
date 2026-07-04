@@ -45,7 +45,7 @@ namespace ShiftedSignal.Garden.Behavior
             if (!building.IsUnderConstruction)
                 return Status.Success;
 
-            building.AddBuildProgress(BuildPower.Value * Time.deltaTime);
+            building.AddBuildProgress(worker, BuildPower.Value * Time.deltaTime);
 
             return building.IsUnderConstruction
                 ? Status.Running
