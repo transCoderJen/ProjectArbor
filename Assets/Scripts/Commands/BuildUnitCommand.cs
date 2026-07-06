@@ -22,6 +22,6 @@ namespace ShiftedSignal.Garden.Commands
             building.BuildUnit(Unit);
         }
 
-        // public override bool IsLocked(CommandContext context) => !Unit.Cost.HasEnoughSupplies();
+        public override bool IsLocked(CommandContext context) => !Unit.CanAfford();
     }
 }

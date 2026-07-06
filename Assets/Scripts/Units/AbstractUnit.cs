@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ShiftedSignal.Garden.Behavior;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -12,7 +13,7 @@ using UnityEngine.AI;
 namespace ShiftedSignal.Garden.Units
 {
     [RequireComponent(typeof(NavMeshAgent), typeof(BehaviorGraphAgent))]
-    public abstract class AbstractUnit : AbstractCommandable, IMoveable
+    public abstract class AbstractUnit : AbstractCommandable, IMoveable, IAttacker
     {
         [Header("Unit Config")]
         protected override AbstractUnitSO Config => UnitSO;
@@ -21,6 +22,7 @@ namespace ShiftedSignal.Garden.Units
         [SerializeField] private float AnimationUpdateRate = 0.1f;
         [SerializeField] private string instanceID;
         [SerializeField] private DamageableSensor DameagableSensor;
+        public virtual Transform ProjectileSpawnPoint => transform;
 
         public string InstanceID => instanceID;
         public void SetInstanceID(string id)
@@ -86,9 +88,12 @@ namespace ShiftedSignal.Garden.Units
 
         protected virtual void OnDestroy()
         {
-            Bus<UnitDestroyedEvent>.Raise(new UnitDestroyedEvent(this));
-            // DameagableSensor.OnUnitEnter -= HandleUnitEnterOrExit;
-            // DameagableSensor.OnUnitExit -= HandleUnitEnterOrExit;
+            Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
+            if (DameagableSensor != null)
+            {
+                DameagableSensor.OnUnitEnter -= HandleUnitEnterOrExit;
+                DameagableSensor.OnUnitExit -= HandleUnitEnterOrExit;
+            }
         }
 
         protected virtual void Update()
@@ -98,10 +103,19 @@ namespace ShiftedSignal.Garden.Units
 
         private void HandleUnitEnterOrExit(IDamageable damageable)
         {
-            List<GameObject> nearbyEnemies = 
-                DameagableSensor.Damageables.ConvertAll(damageable => 
-                    damageable.Transform.gameObject);
-            
+            List<GameObject> nearbyEnemies = new();
+
+            foreach (IDamageable target in DameagableSensor.Damageables)
+            {
+                if (target == null)
+                    continue;
+
+                if (target is UnityEngine.Object unityObject && unityObject == null)
+                    continue;
+
+                nearbyEnemies.Add(target.Transform.gameObject);
+            }
+
             nearbyEnemies.Sort(new DamageableTargetGameObjectComparer(transform.position));
 
             graphAgent.SetVariableValue("NearbyEnemies", nearbyEnemies);
@@ -166,6 +180,14 @@ namespace ShiftedSignal.Garden.Units
 
 #endregion
 
+#region Attack
+        public void Attack(IDamageable damageable)
+        {
+            graphAgent.SetVariableValue("TargetGameObject", damageable.Transform.gameObject);
+            graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+        }
+#endregion
+
 #region Save / Load
         public virtual void WriteToSaveData(UnitSaveData data)
         {
@@ -184,6 +206,7 @@ namespace ShiftedSignal.Garden.Units
             SetHealth(data.CurrentHealth > 0 ? data.CurrentHealth : MaxHealth, MaxHealth);
             graphAgent.SetVariableValue("Command", data.CurrentCommand);
         }
-#endregion
+
+        #endregion
     }
 }

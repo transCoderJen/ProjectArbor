@@ -1,4 +1,3 @@
-using System.Windows.Input;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.EventBus;
@@ -14,18 +13,18 @@ namespace ShiftedSignal.Garden.Units
         [Header("Commandable Stats")]
         [field: SerializeField] public int CurrentHealth { get; private set; }
         [field: SerializeField] public int MaxHealth { get; private set; }
-        public Transform Transform => transform;
         [field: SerializeField] public BaseCommand[] AvailableCommands { get; private set; }
 
         [Header("Selection")]
         [SerializeField] private DecalProjector decalProjector;
 
+        [Header("Targeting")]
         [SerializeField] private TargetPriority targetPriority;
-
-        public abstract CombatTeam Team { get; }
 
         protected abstract AbstractUnitSO Config { get; }
 
+        public Transform Transform => transform;
+        public CombatTeam Team => Config != null ? Config.Team : CombatTeam.Neutral;
         public TargetPriority TargetPriority => targetPriority;
 
         private BaseCommand[] initialCommands;
@@ -36,7 +35,9 @@ namespace ShiftedSignal.Garden.Units
         protected virtual void Start()
         {
             int maxHealth = Config != null ? Config.Health : MaxHealth;
+
             SetHealth(maxHealth, maxHealth);
+
             initialCommands = AvailableCommands;
         }
 
@@ -91,21 +92,17 @@ namespace ShiftedSignal.Garden.Units
             if (decalProjector != null)
                 decalProjector.gameObject.SetActive(false);
 
-                SetCommandOverrides(null);
+            SetCommandOverrides(null);
 
             Bus<UnitDeselectedEvent>.Raise(new UnitDeselectedEvent(this));
         }
 
         public void SetCommandOverrides(BaseCommand[] commands)
         {
-            if (commands == null || commands.Length == 0)
-            {
-                AvailableCommands = initialCommands;
-            }
-            else
-            {
-                AvailableCommands = commands;
-            }
+            AvailableCommands =
+                commands == null || commands.Length == 0
+                    ? initialCommands
+                    : commands;
 
             Bus<UnitSelectedEvent>.Raise(new UnitSelectedEvent(this));
         }

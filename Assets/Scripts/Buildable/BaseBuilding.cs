@@ -30,45 +30,46 @@ namespace ShiftedSignal.Garden.Buildable
     [RequireComponent(typeof(NavMeshObstacle))]
     public class BaseBuilding : AbstractCommandable, IInteractable, IContinuousInteractable
     {
-        #region Build Info
+       #region Configuration
 
         [Header("Build Info")]
         public BuildingSO UnitSO;
 
         protected override AbstractUnitSO Config => UnitSO;
 
-        public virtual Transform ProjectileSpawnPoint => transform;
+        #endregion
+
+        #region Runtime State
 
         [SerializeField] protected bool IsActive;
 
         public GrowBlock OccupiedBlock { get; private set; }
 
+        public virtual Transform ProjectileSpawnPoint => transform;
+
         #endregion
 
-        #region Building State / Progress
+        #region Construction
 
         [Header("Building State / Progress")]
         [SerializeField] private ProgressBarWorld progressBarWorld;
-        
+
         [SerializeField] private BuildingState buildingState = BuildingState.Complete;
         [SerializeField] private float buildInteractionDistance = 3f;
+
         private float buildProgress;
 
         public BuildingState CurrentBuildingState => buildingState;
         public bool IsComplete => buildingState == BuildingState.Complete;
         public bool IsUnderConstruction => buildingState == BuildingState.UnderConstruction;
+
         public float BuildProgress => buildProgress;
         public float BuildTime => UnitSO != null ? UnitSO.BuildTime : 0f;
+
         public float BuildProgressPercent =>
-            BuildTime <= 0f ? 1f : Mathf.Clamp01(buildProgress / BuildTime);
-
-
-        #endregion
-
-        #region Raid Target
-
-        [Header("Raid Target")]
-        public override CombatTeam Team => CombatTeam.Buildable;
+            BuildTime <= 0f
+                ? 1f
+                : Mathf.Clamp01(buildProgress / BuildTime);
 
         #endregion
 
@@ -102,15 +103,16 @@ namespace ShiftedSignal.Garden.Buildable
 
         #endregion
 
-        #region Rendering / Collision Cache
+        #region Rendering Cacher
 
         private Collider[] solidColliders;
         private Renderer[] cachedRenderers;
+
         private readonly Dictionary<Renderer, Material[]> originalMaterials = new();
 
         #endregion
 
-        #region Unit Queue
+        #region Unit Production
 
         private const int MAX_QUEUE_SIZE = 5;
 
@@ -123,12 +125,14 @@ namespace ShiftedSignal.Garden.Buildable
         [field: SerializeField] public AbstractUnitSO BuildingUnit { get; private set; }
 
         public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
+
         public event QueueUpdatedEvent OnQueueUpdated;
         public event Action<float, float> OnBuildProgressUpdated;
         public event System.Action OnBuildCompleted;
+
         #endregion
 
-        #region Construction Workers
+        #region Builder Assignment
 
         [SerializeField] private int maxBuilders = 3;
 
@@ -140,6 +144,7 @@ namespace ShiftedSignal.Garden.Buildable
             Mathf.Max(1, assignedBuilders.Count);
 
         #endregion
+
 
         #region Unity Lifecycle
 

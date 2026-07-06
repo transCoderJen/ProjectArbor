@@ -16,12 +16,12 @@ namespace ShiftedSignal.Garden.Tools
 
         [SerializeField] private float FadeDuration = 0.2f;
 
-        [Header("Shadow Settings")]
-        [Range(0f, 1f)]
-        [SerializeField] private float VisibleShadowClipThreshold = 0.2f;
+        // [Header("Shadow Settings")]
+        // [Range(0f, 1f)]
+        // [SerializeField] private float VisibleShadowClipThreshold = 0.2f;
 
-        [Range(0f, 1f)]
-        [SerializeField] private float OccludedShadowClipThreshold = 1f;
+        // [Range(0f, 1f)]
+        // [SerializeField] private float OccludedShadowClipThreshold = 1f;
 
         [Header("Visuals")]
         [SerializeField] private Renderer[] TargetRenderers;

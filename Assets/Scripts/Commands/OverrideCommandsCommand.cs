@@ -18,6 +18,6 @@ namespace ShiftedSignal.Garden.Commands
             context.Commandable.SetCommandOverrides(Commands);
         }
 
-        // public override bool IsLocked(CommandContext context) => false;
+        public override bool IsLocked(CommandContext context) => false;
     }
 }

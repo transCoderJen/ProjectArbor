@@ -1,9 +1,12 @@
 using ShiftedSignal.Garden.Combat;
+using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
 {
     public class BaseMilitaryUnit : AbstractUnit
     {
-        public override CombatTeam Team => CombatTeam.Friendly;
+        [SerializeField] private Transform projectileSpawnPoint;
+
+        public override Transform ProjectileSpawnPoint => projectileSpawnPoint;
     }
 }

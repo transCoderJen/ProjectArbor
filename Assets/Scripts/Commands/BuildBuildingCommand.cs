@@ -17,7 +17,10 @@ namespace ShiftedSignal.Garden.Commands
         public override void Handle(CommandContext context)
         {
             IBuildingBuilder builder = (IBuildingBuilder)context.Commandable;
+
             // builder.Build();
         }
+
+        public override bool IsLocked(CommandContext context) => false;
     }
 }

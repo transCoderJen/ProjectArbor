@@ -2,11 +2,38 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
 {
+    public enum AttackType
+    {
+        Melee,
+        Projectile
+    }
+
     [CreateAssetMenu(fileName = "Attack Config", menuName = "Units/Attack Config", order = 7)]
     public class AttackConfigSO : ScriptableObject
     {
-        [field: SerializeField] public float AttackRange { get; private set; } = 15f;
-        [field: SerializeField] public float AttackDelay { get; private set; } = 1;
-        [field: SerializeField] public int Damage { get; private set; } = 5;
+        [Header("Attack")]
+        [field: SerializeField] public AttackType AttackType { get; private set; } = AttackType.Melee;
+        [field: SerializeField] public int AttackDamage { get; private set; } = 5;
+        [field: SerializeField] public float AttackRange { get; private set; } = 2f;
+        [field: SerializeField] public float AttackDelay { get; private set; } = 1f;
+
+        [Header("Damage")]
+        [field: SerializeField] public bool Knockback { get; private set; } = true;
+        [field: SerializeField] public bool IgnoreFriendlyFire { get; private set; } = true;
+        [field: SerializeField] public bool CanDamageBuildables { get; private set; } = true;
+
+        [Header("Projectile")]
+        [field: SerializeField] public float ProjectileSpeed { get; private set; } = 12f;
+
+        [field: SerializeField]
+        [field: Range(0f, 100f)]
+        public float ProjectileAccuracy { get; private set; } = 100f;
+
+        [field: SerializeField] public float ProjectileBuildUpTime { get; private set; } = 0f;
+        [field: SerializeField] public bool ProjectileRotate { get; private set; }
+        [field: SerializeField] public float ProjectileRotateAmount { get; private set; }
+        [field: SerializeField] public bool ProjectileBounce { get; private set; }
+        [field: SerializeField] public float ProjectileBounceForce { get; private set; }
+        [field: SerializeField] public float ProjectileLifetime { get; private set; } = 5f;
     }
 }

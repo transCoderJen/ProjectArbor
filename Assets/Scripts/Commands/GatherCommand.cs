@@ -35,5 +35,7 @@ namespace ShiftedSignal.Garden.Commands
 
         private bool IsGatherableSupplyOrStorehouse(Collider collider) => collider.TryGetComponent(out GatherableSupply _) || IsStorehouse(collider);
         private bool IsStorehouse(Collider collider) => collider.TryGetComponent(out BaseBuilding building) && building.UnitSO.Equals(storehouseSO);
+
+        public override bool IsLocked(CommandContext context) => false;
     }
 }

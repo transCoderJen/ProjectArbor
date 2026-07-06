@@ -15,8 +15,6 @@ namespace ShiftedSignal.Garden.Units
 {
     public class Worker : AbstractUnit, IBuildingBuilder
     {
-        public override CombatTeam Team => CombatTeam.Friendly;
-
         public bool HasSupplies
         {
             get

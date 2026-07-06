@@ -46,5 +46,7 @@ namespace ShiftedSignal.Garden.Commands
                 radialOffset = 2 * Mathf.PI / maxUnitsOnLayer;
             }
         }
+
+                public override bool IsLocked(CommandContext context) => false;
     }
 }

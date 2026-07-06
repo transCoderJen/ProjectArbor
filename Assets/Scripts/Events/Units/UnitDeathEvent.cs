@@ -3,11 +3,11 @@ using ShiftedSignal.Garden.Units;
 
 namespace ShiftedSignal.Garden.Events
 {
-    public readonly struct UnitDestroyedEvent : IEvent
+    public readonly struct UnitDeathEvent : IEvent
     {
         public readonly AbstractUnit Unit;
 
-        public UnitDestroyedEvent(AbstractUnit unit)
+        public UnitDeathEvent(AbstractUnit unit)
         {
             Unit = unit;
         }

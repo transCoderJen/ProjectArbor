@@ -24,7 +24,8 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         {
             button.onClick.RemoveAllListeners();
             SetIcon(action.Icon);
-            button.interactable = true;
+
+            button.interactable = !action.IsLocked(new CommandContext());
             button.onClick.AddListener(onClick);
         }
 

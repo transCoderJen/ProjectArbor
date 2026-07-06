@@ -10,6 +10,7 @@ namespace ShiftedSignal.Garden.Misc
         public static int IS_FERTILIZING = Animator.StringToHash("IsFertilizing");
         public static int IS_HARVESTING = Animator.StringToHash("IsHarvesting");
         public static int IS_PLANTING = Animator.StringToHash("IsPlanting");
+        public static int ATACK = Animator.StringToHash("Attack");
 
 
     }

@@ -11,5 +11,7 @@ namespace ShiftedSignal.Garden.Commands
 
         public abstract bool CanHandle(CommandContext context);
         public abstract void Handle(CommandContext context);
+
+        public abstract bool IsLocked(CommandContext context);
     }
 }

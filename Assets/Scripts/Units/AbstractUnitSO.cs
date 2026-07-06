@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Combat;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
@@ -17,7 +18,22 @@ namespace ShiftedSignal.Garden.Units
         [field: Header("Stats")]
         [field: SerializeField] public int Health { get; private set; } = 100;
         [field: SerializeField] public float BuildTime { get; private set; } = 5f;
+        [field: SerializeField] public SupplyCostSO SupplyCost { get; private set; }
+        
+        [field: Header("Combat")]
+        [field: SerializeField] public CombatTeam Team { get; private set; } = CombatTeam.Neutral;
         [field: SerializeField] public AttackConfigSO AttackConfig { get; private set; }
+
+        public bool CanAfford()
+        {
+            return SupplyCost != null && SupplyCost.CanAfford();
+        }
+
+        public void SpendCost()
+        {
+            SupplyCost?.Spend();
+        }
+
 #if UNITY_EDITOR
         protected virtual void OnValidate()
         {

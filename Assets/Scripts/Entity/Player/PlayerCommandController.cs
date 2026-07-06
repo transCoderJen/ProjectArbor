@@ -20,7 +20,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
     public class PlayerCommanderController : MonoBehaviour
     {
         [SerializeField] private LayerMask selectableUnitsLayers;
-        [SerializeField] private LayerMask floorLayers;
+        [SerializeField] private LayerMask actionableLayers;
         [SerializeField] private LayerMask gatherableSupplyLayers;
         [SerializeField] private RectTransform selectionBox;
 
@@ -37,7 +37,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawn;
             Bus<ActionSelectedEvent>.OnEvent += HandleActionSelected;
-            Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
+            Bus<UnitDeathEvent>.OnEvent += HandleUnitDestroyed;
         }
 
         private void OnDisable()
@@ -46,10 +46,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawn;
             Bus<ActionSelectedEvent>.OnEvent -= HandleActionSelected;
-            Bus<UnitDestroyedEvent>.OnEvent -= HandleUnitDestroyed;
+            Bus<UnitDeathEvent>.OnEvent -= HandleUnitDestroyed;
         }
 
-        private void HandleUnitDestroyed(UnitDestroyedEvent evt)
+        private void HandleUnitDestroyed(UnitDeathEvent evt)
         {
             aliveUnits.Remove(evt.Unit);
             selectedUnits.Remove(evt.Unit);
@@ -185,7 +185,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
             if (Mouse.current.rightButton.wasReleasedThisFrame 
-                && Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, gatherableSupplyLayers | floorLayers))
+                && Physics.Raycast(cameraRay, out RaycastHit hit, float.MaxValue, gatherableSupplyLayers | actionableLayers))
             {
                 // find applicable command and issue that command
                 List<AbstractUnit> abstractUnits = new List<AbstractUnit>(selectedUnits.Count);
@@ -226,7 +226,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             }
             else if (activeAction != null
                 && !EventSystem.current.IsPointerOverGameObject()
-                && Physics.Raycast(cameraRay, out hit, float.MaxValue, gatherableSupplyLayers | floorLayers))
+                && Physics.Raycast(cameraRay, out hit, float.MaxValue, gatherableSupplyLayers | actionableLayers))
             {
                 ActivateAction(hit);
             }

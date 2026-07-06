@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
@@ -46,6 +48,9 @@ public class Projectile : MonoBehaviour
     private Coroutine lifetimeRoutine;
     private Coroutine buildUpRoutine;
 
+    private DamageData damageData;
+    private GameObject owner;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -59,6 +64,7 @@ public class Projectile : MonoBehaviour
     private void OnDisable()
     {
         StopRunningCoroutines();
+        ResetOwnerCollision();
 
         initialized = false;
         target = null;
@@ -129,38 +135,82 @@ public class Projectile : MonoBehaviour
         MoveProjectile();
     }
 
+    public void SetOwner(GameObject owner)
+    {
+        this.owner = owner;
+
+        Collider[] ownerColliders = owner.GetComponentsInChildren<Collider>();
+        Collider[] projectileColliders = GetComponentsInChildren<Collider>();
+
+        foreach (Collider ownerCollider in ownerColliders)
+        {
+            foreach (Collider projectileCollider in projectileColliders)
+            {
+                Physics.IgnoreCollision(ownerCollider, projectileCollider, true);
+            }
+        }
+    }
+
+    private void ResetOwnerCollision()
+    {
+        if (owner == null)
+            return;
+
+        Collider[] ownerColliders = owner.GetComponentsInChildren<Collider>();
+        Collider[] projectileColliders = GetComponentsInChildren<Collider>();
+
+        foreach (Collider ownerCollider in ownerColliders)
+        {
+            foreach (Collider projectileCollider in projectileColliders)
+            {
+                Physics.IgnoreCollision(ownerCollider, projectileCollider, false);
+            }
+        }
+
+        owner = null;
+    }
+
+    public void SetDamageData(DamageData damageData)
+    {
+        this.damageData = damageData;
+        Debug.Log($"Projectile received damage data: {damageData.Amount}, team: {damageData.AttackerTeam}");
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (!initialized || collided)
             return;
 
-        if (bounce)
+        if (owner != null &&
+            collision.transform.IsChildOf(owner.transform))
+            return;
+
+        IDamageable damageable =
+            collision.collider.GetComponentInParent<IDamageable>();
+
+        if (damageable != null)
         {
+            damageable.TakeDamage(damageData);
+
+            if (!bounce)
+            {
+                HandleImpact(collision.contacts[0]);
+                return;
+            }
+
             BounceProjectile(collision);
             return;
         }
 
-        collided = true;
-        canMove = false;
-
-        DetachTrails();
-
-        if (rb != null)
+        // Hit the world.
+        if (bounce)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
+            BounceProjectile(collision);
         }
-
-        ContactPoint contact = collision.contacts[0];
-
-        Quaternion hitRotation = AlignWithNormals
-            ? Quaternion.FromToRotation(Vector3.up, contact.normal)
-            : Quaternion.identity;
-
-        SpawnHitVFX(contact.point, hitRotation);
-
-        ReturnToPool();
+        else
+        {
+            HandleImpact(collision.contacts[0]);
+        }
     }
 
     private void ResetProjectileState()
@@ -237,8 +287,8 @@ public class Projectile : MonoBehaviour
 
         rb.AddForce(reflectDirection * bounceForce, ForceMode.Impulse);
 
+        collided = false;
         canMove = false;
-        collided = true;
     }
 
     private void SpawnMuzzle()
@@ -339,5 +389,28 @@ public class Projectile : MonoBehaviour
             StopCoroutine(buildUpRoutine);
             buildUpRoutine = null;
         }
+    }
+
+    private void HandleImpact(ContactPoint contact)
+    {
+        collided = true;
+        canMove = false;
+
+        DetachTrails();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+
+        Quaternion rotation = AlignWithNormals
+            ? Quaternion.FromToRotation(Vector3.up, contact.normal)
+            : Quaternion.identity;
+
+        SpawnHitVFX(contact.point, rotation);
+
+        ReturnToPool();
     }
 }

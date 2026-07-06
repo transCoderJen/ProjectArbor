@@ -18,14 +18,14 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7183955855498715984, guid: e7fa60d464c4ff149aef313aa6cc046d, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 10
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
+  <Team>k__BackingField: 0
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 0
-  RequiredMaterials: []
-  Cost: 0
   HasTowerStats: 0
   BaseTowerStats:
     AttackRange: 0

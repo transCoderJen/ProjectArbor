@@ -104,5 +104,7 @@ namespace ShiftedSignal.Garden.Commands
 
             return block;
         }
+
+        public override bool IsLocked(CommandContext context) => false;
     }
 }

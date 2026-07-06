@@ -1,7 +1,4 @@
 using System;
-using System.Security.Cryptography.X509Certificates;
-using ShiftedSignal.Garden.ItemsAndInventory;
-using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
@@ -11,13 +8,6 @@ namespace ShiftedSignal.Garden.Buildable
     {
         GridOnly,
         Anywhere
-    }
-
-    [Serializable]
-    public struct RequiredMaterial
-    {
-        public ItemData Material;
-        public int Amount;
     }
 
     [Serializable]
@@ -52,64 +42,8 @@ namespace ShiftedSignal.Garden.Buildable
         public bool RequiresActiveGrowBlock = true;
         public float XRotation = 30f;
 
-        [Header("Building Requirements")]
-        public RequiredMaterial[] RequiredMaterials;
-        public int Cost;
-
         [Header("Tower Stats")]
         public bool HasTowerStats;
         public TowerStats BaseTowerStats;
-
-        public bool CanAfford()
-        {
-            if (PlayerManager.Instance == null)
-                return false;
-
-            if (PlayerManager.Instance.Currency < Cost)
-                return false;
-
-            return HasRequiredMaterials();
-        }
-
-        private bool HasRequiredMaterials()
-        {
-            if (Inventory.Instance == null)
-                return false;
-
-            if (RequiredMaterials == null)
-                return true;
-
-            for (int i = 0; i < RequiredMaterials.Length; i++)
-            {
-                RequiredMaterial required = RequiredMaterials[i];
-
-                if (required.Material == null)
-                    continue;
-
-                if (!Inventory.Instance.HasItem(required.Material, required.Amount))
-                    return false;
-            }
-
-            return true;
-        }
-
-        public void RemoveRequiredMaterials()
-        {
-            if (Inventory.Instance == null)
-                return;
-
-            if (RequiredMaterials == null)
-                return;
-
-            for (int i = 0; i < RequiredMaterials.Length; i++)
-            {
-                RequiredMaterial required = RequiredMaterials[i];
-
-                if (required.Material == null)
-                    continue;
-
-                Inventory.Instance.RemoveItem(required.Material, required.Amount);
-            }
-        }
     }
 }

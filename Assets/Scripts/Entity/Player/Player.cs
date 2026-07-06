@@ -577,10 +577,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 FencePost2D.RefreshNeighbors(block);
             }
 
-            EquippedBuildable.RemoveRequiredMaterials();
-
-            Bus<CurrencyUpdatedEvent>.Raise(
-                new CurrencyUpdatedEvent(-EquippedBuildable.Cost));
+            EquippedBuildable.SpendCost();
 
             return true;
         }

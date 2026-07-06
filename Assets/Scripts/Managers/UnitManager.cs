@@ -27,14 +27,14 @@ namespace ShiftedSignal.Garden.Managers
         private void OnEnable()
         {
             Bus<UnitSpawnEvent>.OnEvent += HandleUnitSpawned;
-            Bus<UnitDestroyedEvent>.OnEvent += HandleUnitDestroyed;
+            Bus<UnitDeathEvent>.OnEvent += HandleUnitDestroyed;
             Bus<BuildingPlacedForConstructionEvent>.OnEvent += HandleBuildingPlacedForConstruction;
         }
 
         private void OnDisable()
         {
             Bus<UnitSpawnEvent>.OnEvent -= HandleUnitSpawned;
-            Bus<UnitDestroyedEvent>.OnEvent -= HandleUnitDestroyed;
+            Bus<UnitDeathEvent>.OnEvent -= HandleUnitDestroyed;
             Bus<BuildingPlacedForConstructionEvent>.OnEvent -= HandleBuildingPlacedForConstruction;
         }
 
@@ -187,7 +187,7 @@ namespace ShiftedSignal.Garden.Managers
             }
         }
 
-        private void HandleUnitDestroyed(UnitDestroyedEvent evt)
+        private void HandleUnitDestroyed(UnitDeathEvent evt)
         {
             if (evt.Unit == null)
                 return;

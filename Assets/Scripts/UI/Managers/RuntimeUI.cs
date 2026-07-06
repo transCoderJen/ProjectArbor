@@ -20,6 +20,8 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
         {
             Bus<UnitSelectedEvent>.OnEvent += HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
+            Bus<UnitDeathEvent>.OnEvent += HandleUnitDeath;
+            Bus<SupplyEvent>.OnEvent += HandleSupplyChange;
         }
 
         void Start()
@@ -32,6 +34,36 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
         {
             Bus<UnitSelectedEvent>.OnEvent -= HandleUnitSelected;
             Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
+            Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+            Bus<SupplyEvent>.OnEvent -= HandleSupplyChange;
+        }
+
+        private void HandleUnitDeath(UnitDeathEvent evt)
+        {
+            selectedUnits.Remove(evt.Unit);
+            RefreshUI();
+        }
+
+        private void RefreshUI()
+        {
+            if (selectedUnits.Count > 0)
+            {
+                actionsUI.EnableFor(selectedUnits);
+
+                if (selectedUnits.Count == 1 && selectedUnits.First() is BaseBuilding building)
+                {
+                    buildingBuildingUI.EnableFor(building);
+                }
+                else
+                {
+                    buildingBuildingUI.Disable();
+                }
+            }
+            else
+            {
+                actionsUI.Disable();
+                buildingBuildingUI.Disable();
+            }
         }
 
         private void HandleUnitSelected(UnitSelectedEvent evt)
@@ -73,6 +105,11 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
                     buildingBuildingUI.Disable();
                 }
             }
+        }
+
+        private void HandleSupplyChange(SupplyEvent evt)
+        {
+            actionsUI.EnableFor(selectedUnits);
         }
     }
 }

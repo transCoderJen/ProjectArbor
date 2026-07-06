@@ -18,6 +18,28 @@ namespace ShiftedSignal.Garden.Environment
 
         [field: SerializeField]
         public ItemData Item { get; private set; }
+        
+        public bool HasEnoughSupplies(int amount)
+        {
+            if (Item == null)
+                return false;
+
+            if (Inventory.Instance == null)
+                return false;
+
+            return Inventory.Instance.HasItem(Item, amount);
+        }
+
+        public void SpendSupplies(int amount)
+        {
+            if (Item == null)
+                return;
+
+            if (Inventory.Instance == null)
+                return;
+
+            Inventory.Instance.RemoveItem(Item, amount);
+        }
 
         public float BaseGatherTime
         {
