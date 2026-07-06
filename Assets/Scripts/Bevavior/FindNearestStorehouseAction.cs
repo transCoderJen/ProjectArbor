@@ -16,7 +16,7 @@ namespace ShiftedSignal.Garden.Behavior
         [SerializeReference] public BlackboardVariable<GameObject> Unit;
         [SerializeReference] public BlackboardVariable<GameObject> Storehouse;
         [SerializeReference] public BlackboardVariable<float> SearchRadius = new(10);
-        [SerializeReference] public BlackboardVariable<UnitSO> StorehouseBuilding;
+        [SerializeReference] public BlackboardVariable<BuildingSO> StorehouseBuilding;
 
         protected override Status OnStart()
         {

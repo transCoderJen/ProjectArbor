@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
@@ -31,9 +32,11 @@ namespace ShiftedSignal.Garden.Buildable
             RefreshConnections(previewBlock);
         }
 
-        public override void DoDamage(int damage)
+        public override void TakeDamage(DamageData damageData)
         {
-            base.DoDamage(damage);
+            base.TakeDamage(damageData);
+
+            
 
             if (CurrentHealth <= 0)
                 return;

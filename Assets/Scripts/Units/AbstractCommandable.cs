@@ -14,15 +14,24 @@ namespace ShiftedSignal.Garden.Units
         [Header("Commandable Stats")]
         [field: SerializeField] public int CurrentHealth { get; private set; }
         [field: SerializeField] public int MaxHealth { get; private set; }
+        public Transform Transform => transform;
         [field: SerializeField] public BaseCommand[] AvailableCommands { get; private set; }
 
         [Header("Selection")]
         [SerializeField] private DecalProjector decalProjector;
 
+        [SerializeField] private TargetPriority targetPriority;
+
         public abstract CombatTeam Team { get; }
 
         protected abstract AbstractUnitSO Config { get; }
+
+        public TargetPriority TargetPriority => targetPriority;
+
         private BaseCommand[] initialCommands;
+
+        public delegate void HealthUpdatedEvent(AbstractCommandable commandable, int lastHealth, int newHealth);
+        public event HealthUpdatedEvent OnHealthUpdated;
 
         protected virtual void Start()
         {
@@ -36,15 +45,10 @@ namespace ShiftedSignal.Garden.Units
             if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
                 return;
 
-            DoDamage(damageData.Amount);
-        }
-
-        public virtual void DoDamage(int damage)
-        {
             if (CurrentHealth <= 0)
                 return;
 
-            CurrentHealth -= damage;
+            SetHealth(CurrentHealth - damageData.Amount, MaxHealth);
 
             if (CurrentHealth <= 0)
                 Die();
@@ -55,13 +59,18 @@ namespace ShiftedSignal.Garden.Units
             if (CurrentHealth <= 0)
                 return;
 
-            CurrentHealth = Mathf.Min(CurrentHealth + healAmount, MaxHealth);
+            SetHealth(CurrentHealth + healAmount, MaxHealth);
         }
 
         protected void SetHealth(int currentHealth, int maxHealth)
         {
+            int lastHealth = CurrentHealth;
+
             MaxHealth = Mathf.Max(1, maxHealth);
             CurrentHealth = Mathf.Clamp(currentHealth, 0, MaxHealth);
+
+            if (lastHealth != CurrentHealth)
+                OnHealthUpdated?.Invoke(this, lastHealth, CurrentHealth);
         }
 
         protected virtual void Die()

@@ -28,7 +28,7 @@ namespace ShiftedSignal.Garden.Buildable
 
     [RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(NavMeshObstacle))]
-    public class BaseBuilding : AbstractCommandable, IRaiderTarget, IInteractable, IContinuousInteractable
+    public class BaseBuilding : AbstractCommandable, IInteractable, IContinuousInteractable
     {
         #region Build Info
 
@@ -68,14 +68,7 @@ namespace ShiftedSignal.Garden.Buildable
         #region Raid Target
 
         [Header("Raid Target")]
-        [SerializeField] private RaiderTargetType targetType = RaiderTargetType.Building;
-        [SerializeField] private int RaidPriority = 50;
-
         public override CombatTeam Team => CombatTeam.Buildable;
-        public Transform TargetTransform => transform;
-        public RaiderTargetType TargetType => targetType;
-        public int Priority => RaidPriority;
-        public bool IsValidTarget => IsActive && CurrentHealth > 0 && gameObject.activeInHierarchy;
 
         #endregion
 
@@ -166,7 +159,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         protected virtual void OnEnable()
         {
-            RaiderTargetRegistry.Register(this);
+            // RaiderTargetRegistry.Register(this);
 
             Bus<DayChangedEvent>.OnEvent += HandleDayChanged;
             Bus<DayStartedEvent>.OnEvent += HandleDayStarted;
@@ -178,7 +171,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         protected virtual void OnDisable()
         {
-            RaiderTargetRegistry.Unregister(this);
+            // RaiderTargetRegistry.Unregister(this);
 
             Bus<DayChangedEvent>.OnEvent -= HandleDayChanged;
             Bus<DayStartedEvent>.OnEvent -= HandleDayStarted;
@@ -212,7 +205,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         protected virtual void OnDestroy()
         {
-            RaiderTargetRegistry.Unregister(this);
+            // RaiderTargetRegistry.Unregister(this);
         }
 
         #endregion
@@ -596,14 +589,6 @@ namespace ShiftedSignal.Garden.Buildable
                 return;
 
             base.TakeDamage(damageData);
-        }
-
-        public override void DoDamage(int damage)
-        {
-            if (!IsActive)
-                return;
-
-            base.DoDamage(damage);
         }
 
         public override void Heal(int amount)

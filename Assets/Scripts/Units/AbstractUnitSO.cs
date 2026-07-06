@@ -17,7 +17,7 @@ namespace ShiftedSignal.Garden.Units
         [field: Header("Stats")]
         [field: SerializeField] public int Health { get; private set; } = 100;
         [field: SerializeField] public float BuildTime { get; private set; } = 5f;
-
+        [field: SerializeField] public AttackConfigSO AttackConfig { get; private set; }
 #if UNITY_EDITOR
         protected virtual void OnValidate()
         {

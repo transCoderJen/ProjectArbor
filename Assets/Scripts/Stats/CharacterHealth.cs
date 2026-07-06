@@ -15,8 +15,8 @@ namespace ShiftedSignal.Garden.Stats
         [Header("Damage")]
         [SerializeField] private bool isInvincible;
         [SerializeField] private CombatTeam team;
-
-    public CombatTeam Team => team;
+        [SerializeField] private TargetPriority targetPriority;
+         public CombatTeam Team => team;
 
         private Entity entity;
 
@@ -24,6 +24,14 @@ namespace ShiftedSignal.Garden.Stats
         public int CurrentHearts => currentHearts;
 
         public bool IsDead { get; private set; }
+
+        public int MaxHealth => maxHearts;
+
+        public int CurrentHealth => currentHearts;
+
+        public Transform Transform => transform;
+
+        public TargetPriority TargetPriority => targetPriority;
 
         public Action OnHealthChanged = delegate { };
 

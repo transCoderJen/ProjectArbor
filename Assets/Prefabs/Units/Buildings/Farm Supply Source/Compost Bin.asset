@@ -18,6 +18,7 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7523470629771963246, guid: 207ed1b8f279fe949b12e40be96b58c5, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
+  <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 0}
   PlacementMode: 0

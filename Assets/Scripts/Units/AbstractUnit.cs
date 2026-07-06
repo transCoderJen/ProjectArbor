@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -18,9 +20,9 @@ namespace ShiftedSignal.Garden.Units
         [SerializeField] private AbstractUnitSO UnitSO;
         [SerializeField] private float AnimationUpdateRate = 0.1f;
         [SerializeField] private string instanceID;
+        [SerializeField] private DamageableSensor DameagableSensor;
 
         public string InstanceID => instanceID;
-
         public void SetInstanceID(string id)
         {
             instanceID = id;
@@ -65,17 +67,28 @@ namespace ShiftedSignal.Garden.Units
 
             graphAgent = GetComponent<BehaviorGraphAgent>();
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+            graphAgent.SetVariableValue("AttackConfig", UnitSO.AttackConfig);
         }
 
         protected override void Start()
         {
             base.Start();
+
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
+
+            if (DameagableSensor != null)
+            {
+                DameagableSensor.OnUnitEnter += HandleUnitEnterOrExit;
+                DameagableSensor.OnUnitExit += HandleUnitEnterOrExit;
+                DameagableSensor.SetupFrom(UnitSO.AttackConfig);
+            }
         }
 
         protected virtual void OnDestroy()
         {
             Bus<UnitDestroyedEvent>.Raise(new UnitDestroyedEvent(this));
+            // DameagableSensor.OnUnitEnter -= HandleUnitEnterOrExit;
+            // DameagableSensor.OnUnitExit -= HandleUnitEnterOrExit;
         }
 
         protected virtual void Update()
@@ -83,6 +96,16 @@ namespace ShiftedSignal.Garden.Units
             UpdateMovementAnimation();
         }
 
+        private void HandleUnitEnterOrExit(IDamageable damageable)
+        {
+            List<GameObject> nearbyEnemies = 
+                DameagableSensor.Damageables.ConvertAll(damageable => 
+                    damageable.Transform.gameObject);
+            
+            nearbyEnemies.Sort(new DamageableTargetGameObjectComparer(transform.position));
+
+            graphAgent.SetVariableValue("NearbyEnemies", nearbyEnemies);
+        }
 #region Move / Stop
 
         public virtual void MoveTo(Vector3 position)
