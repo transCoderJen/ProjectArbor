@@ -7,6 +7,7 @@ namespace ShiftedSignal.Garden.Behavior
     {
         Transform ProjectileSpawnPoint { get; }
         public void Attack(IDamageable damageable);
+        public void Attack(Vector3 location);
         public Transform Transform { get; }
     }
 }

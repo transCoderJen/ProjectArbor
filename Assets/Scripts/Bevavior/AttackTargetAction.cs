@@ -9,6 +9,7 @@ using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Managers;
+using NUnit.Framework;
 
 namespace ShiftedSignal.Garden.Behavior
 {
@@ -21,6 +22,7 @@ namespace ShiftedSignal.Garden.Behavior
         [SerializeReference] public BlackboardVariable<AttackConfigSO> AttackConfig;
 
         private NavMeshAgent navMeshAgent;
+        private AbstractUnit unit;
         private Transform selfTransform;
         private Animator animator;
 
@@ -40,15 +42,16 @@ namespace ShiftedSignal.Garden.Behavior
             attacker = Self.Value.GetComponent<IAttacker>();
 
             selfTransform = Self.Value.transform;
-            navMeshAgent = Self.Value.GetComponent<NavMeshAgent>();
-            animator = Self.Value.GetComponent<Animator>();
+            navMeshAgent = selfTransform.GetComponent<NavMeshAgent>();
+            unit = selfTransform.GetComponent<AbstractUnit>();
+            animator = selfTransform.GetComponent<Animator>();
 
             selfDamageable = Self.Value.GetComponentInParent<IDamageable>();
 
             targetTransform = Target.Value.transform;
             targetDamageable = Target.Value.GetComponentInParent<IDamageable>();
 
-            animator?.SetBool(AnimationConstants.ATACK, true);
+            
 
             return Status.Running;
         }
@@ -57,19 +60,32 @@ namespace ShiftedSignal.Garden.Behavior
         {
             if (targetDamageable == null || targetDamageable.CurrentHealth <= 0) 
                 return Status.Success;
+            
+            animator?.SetFloat(AnimationConstants.SPEED, navMeshAgent.velocity.magnitude);
 
             if (Vector3.Distance(targetTransform.position, selfTransform.position) >= AttackConfig.Value.AttackRange)
             {
                 navMeshAgent.SetDestination(targetTransform.position);
                 navMeshAgent.isStopped = false;
+                animator?.SetBool(AnimationConstants.ATACK, false);
                 return Status.Running;
             }
 
             navMeshAgent.isStopped = true;
+            Quaternion lookRotation = Quaternion.LookRotation(
+                (targetTransform.position - selfTransform.position).normalized,
+                Vector3.up
+            );
+
+            unit.SetRotation(lookRotation);
+
+            animator?.SetBool(AnimationConstants.ATACK, true);
 
             if (Time.time >= lastAttackTime + AttackConfig.Value.AttackDelay)
             {
                 lastAttackTime = Time.time;
+
+                
 
                 if (AttackConfig.Value.AttackType == AttackType.Melee)
                 {
@@ -80,6 +96,7 @@ namespace ShiftedSignal.Garden.Behavior
                 {
                     FireProjectile();
                 }
+
             }
 
             
@@ -90,6 +107,9 @@ namespace ShiftedSignal.Garden.Behavior
         protected override void OnEnd()
         {
             animator?.SetBool(AnimationConstants.ATACK, false);
+            
+            if (navMeshAgent != null)
+                navMeshAgent.isStopped = false;
         }
 
         private void FireProjectile()
@@ -111,7 +131,7 @@ namespace ShiftedSignal.Garden.Behavior
                 spawnPoint.position,
                 rotation,
                 null,
-                1);
+                10f);
 
             if (projectileObject == null)
                 return;
@@ -151,6 +171,7 @@ namespace ShiftedSignal.Garden.Behavior
         private bool HasValidInputs()
         {
             return Self.Value != null
+                && Self.Value.TryGetComponent(out AbstractUnit _)
                 && Self.Value.TryGetComponent(out NavMeshAgent _)
                 && Target.Value != null
                 && Target.Value.GetComponentInParent<IDamageable>() != null

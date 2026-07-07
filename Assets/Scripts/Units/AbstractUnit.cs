@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.Behavior;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -80,8 +81,8 @@ namespace ShiftedSignal.Garden.Units
 
             if (DameagableSensor != null)
             {
-                DameagableSensor.OnUnitEnter += HandleUnitEnterOrExit;
-                DameagableSensor.OnUnitExit += HandleUnitEnterOrExit;
+                DameagableSensor.OnUnitEnter += HandleUnitEnter;
+                DameagableSensor.OnUnitExit += HandleUnitExit;
                 DameagableSensor.SetupFrom(UnitSO.AttackConfig);
             }
         }
@@ -91,8 +92,8 @@ namespace ShiftedSignal.Garden.Units
             Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
             if (DameagableSensor != null)
             {
-                DameagableSensor.OnUnitEnter -= HandleUnitEnterOrExit;
-                DameagableSensor.OnUnitExit -= HandleUnitEnterOrExit;
+                DameagableSensor.OnUnitEnter -= HandleUnitEnter;
+                DameagableSensor.OnUnitExit -= HandleUnitExit;
             }
         }
 
@@ -101,36 +102,147 @@ namespace ShiftedSignal.Garden.Units
             UpdateMovementAnimation();
         }
 
-        private void HandleUnitEnterOrExit(IDamageable damageable)
+        private void HandleUnitEnter(IDamageable damageable)
+        {
+            Debug.Log($"{name} sensor ENTER: {damageable}");
+
+            bool attackMove = IsAttackMoveActive();
+            Debug.Log($"{name} IsAttackMove: {attackMove}");
+
+            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
+
+            Debug.Log($"{name} nearby enemies count: {nearbyEnemies.Count}");
+
+            if (!attackMove)
+                return;
+
+            if (graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable))
+            {
+                Debug.Log($"{name} current target: {targetVariable.Value}");
+
+                if (targetVariable.Value == null)
+                {
+                    GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
+                    Debug.Log($"{name} next target: {nextTarget}");
+
+                    if (nextTarget != null)
+                        graphAgent.SetVariableValue("TargetGameObject", nextTarget);
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"{name} could not find TargetGameObject blackboard variable.");
+            }
+        }
+
+        private void HandleUnitExit(IDamageable damageable)
+        {
+            GameObject exitingTarget = null;
+            Vector3 lastTargetPosition = transform.position;
+
+            if (damageable is UnityEngine.Object unityObject && unityObject != null)
+            {
+                exitingTarget = damageable.Transform.gameObject;
+                lastTargetPosition = damageable.Transform.position;
+            }
+
+            if (!IsAttackMoveActive())
+                return;
+        
+            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
+
+            
+
+            if (!graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable)
+                || exitingTarget == null
+                || exitingTarget != targetVariable.Value)
+            {
+                return;
+            }
+
+            GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
+
+            if (nextTarget != null)
+            {
+                graphAgent.SetVariableValue("TargetGameObject", nextTarget);
+            }
+            else
+            {
+                graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
+                graphAgent.SetVariableValue("TargetLocation", lastTargetPosition);
+            }
+        }
+
+        private GameObject GetNextNonBuildingTarget(List<GameObject> nearbyEnemies)
+        {
+            foreach (GameObject enemy in nearbyEnemies)
+            {
+                if (enemy == null)
+                    continue;
+
+                if (enemy.GetComponentInParent<BaseBuilding>() != null)
+                    continue;
+
+                return enemy;
+            }
+
+            return null;
+        }
+
+        private List<GameObject> SetNearbyEnemiesOnBlackboard()
         {
             List<GameObject> nearbyEnemies = new();
 
             foreach (IDamageable target in DameagableSensor.Damageables)
             {
+                Debug.Log($"{name} checking target: {target}");
+
                 if (target == null)
+                {
+                    Debug.Log("Skipped target: null");
                     continue;
+                }
 
                 if (target is UnityEngine.Object unityObject && unityObject == null)
+                {
+                    Debug.Log("Skipped target: destroyed Unity object");
                     continue;
+                }
 
-                nearbyEnemies.Add(target.Transform.gameObject);
+                if (target.Team == Team)
+                {
+                    Debug.Log($"Skipped target: same team {target.Team}");
+                    continue;
+                }
+
+                GameObject targetObject = target.Transform.gameObject;
+                Debug.Log($"Added enemy target: {targetObject.name}, team: {target.Team}");
+
+                nearbyEnemies.Add(targetObject);
             }
 
             nearbyEnemies.Sort(new DamageableTargetGameObjectComparer(transform.position));
 
             graphAgent.SetVariableValue("NearbyEnemies", nearbyEnemies);
+
+            return nearbyEnemies;
         }
-#region Move / Stop
+
+        #region Move / Stop
 
         public virtual void MoveTo(Vector3 position)
         {
-            
+            if (agent != null)
+                agent.isStopped = false;
+
+            graphAgent.SetVariableValue("IsAttackMove", false);    
             graphAgent.SetVariableValue("TargetLocation", position);
             graphAgent.SetVariableValue("Command", UnitCommands.Move);
         }
 
         public virtual void Stop()
         {
+            graphAgent.SetVariableValue("IsAttackMove", false);
             graphAgent.SetVariableValue("Command", UnitCommands.Stop);
         }
 
@@ -138,8 +250,7 @@ namespace ShiftedSignal.Garden.Units
         {
             if (anim == null || agent == null)
                 return;
-            
-            // throttle this
+
             if (Time.time < nextAnimationUpdateTime)
                 return;
 
@@ -152,14 +263,32 @@ namespace ShiftedSignal.Garden.Units
             if (moveDirection.sqrMagnitude < 0.01f)
                 return;
 
-            moveDirection.Normalize();
+            SetMovementDirection(moveDirection);
+        }
 
-            float animX = Mathf.Abs(moveDirection.x) > 0.5f
-                ? Mathf.Sign(moveDirection.x)
+        public void SetRotation(Quaternion rotation)
+        {
+            Vector3 forward = rotation * Vector3.forward;
+
+            SetMovementDirection(new Vector2(forward.x, forward.z));
+        }
+
+        private void SetMovementDirection(Vector2 direction)
+        {
+            if (anim == null)
+                return;
+
+            if (direction.sqrMagnitude < 0.01f)
+                return;
+
+            direction.Normalize();
+
+            float animX = Mathf.Abs(direction.x) > 0.5f
+                ? Mathf.Sign(direction.x)
                 : 0f;
 
-            float animY = Mathf.Abs(moveDirection.y) > 0.5f
-                ? Mathf.Sign(moveDirection.y)
+            float animY = Mathf.Abs(direction.y) > 0.5f
+                ? Mathf.Sign(direction.y)
                 : 0f;
 
             if (animX == 0f && animY == 0f)
@@ -167,13 +296,13 @@ namespace ShiftedSignal.Garden.Units
 
             if (animX != lastAnimX)
             {
-                anim.SetFloat("MovementX", animX);
+                anim.SetFloat(AnimationConstants.MOVEMENTX, animX);
                 lastAnimX = animX;
             }
 
             if (animY != lastAnimY)
             {
-                anim.SetFloat("MovementY", animY);
+                anim.SetFloat(AnimationConstants.MOVEMENTY, animY);
                 lastAnimY = animY;
             }
         }
@@ -183,8 +312,31 @@ namespace ShiftedSignal.Garden.Units
 #region Attack
         public void Attack(IDamageable damageable)
         {
+            if (agent != null)
+                agent.isStopped = false;
+
+            graphAgent.SetVariableValue("IsAttackMove", false);
             graphAgent.SetVariableValue("TargetGameObject", damageable.Transform.gameObject);
             graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+        }
+
+        public void Attack(Vector3 location)
+        {
+            if (agent != null)
+                agent.isStopped = false;
+
+            Debug.Log($"{name} ATTACK MOVE to {location}");
+
+            graphAgent.SetVariableValue("IsAttackMove", true);
+            graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
+            graphAgent.SetVariableValue("TargetLocation", location);
+            graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+        }
+
+        private bool IsAttackMoveActive()
+        {
+            return graphAgent.GetVariable("IsAttackMove", out BlackboardVariable<bool> variable)
+                && variable.Value;
         }
 #endregion
 

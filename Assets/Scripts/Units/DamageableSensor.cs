@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using Unity.Behavior;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
@@ -30,6 +34,11 @@ namespace ShiftedSignal.Garden.Units
                 damageables.Add(damageable);
                 OnUnitEnter?.Invoke(damageable);
             }
+
+            if (damageables.Count == 1)
+            {
+                Bus<UnitDeathEvent>.OnEvent += HandleUnitDeath;
+            }
         }
 
         private void OnTriggerExit(Collider collider)
@@ -38,6 +47,24 @@ namespace ShiftedSignal.Garden.Units
             {
                 damageables.Remove(damageable);
                 OnUnitExit?.Invoke(damageable);
+            }
+
+            if (damageables.Count == 0)
+            {
+                Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+        }
+
+        private void HandleUnitDeath(UnitDeathEvent evt)
+        {
+            if (Damageables.Remove(evt.Unit))
+            {
+                OnTriggerExit(evt.Unit.GetComponent<Collider>());
             }
         }
 

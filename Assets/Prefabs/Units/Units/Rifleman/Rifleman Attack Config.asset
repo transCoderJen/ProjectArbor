@@ -15,7 +15,7 @@ MonoBehaviour:
   <AttackType>k__BackingField: 1
   <AttackDamage>k__BackingField: 5
   <AttackRange>k__BackingField: 45
-  <AttackDelay>k__BackingField: 1
+  <AttackDelay>k__BackingField: 0.4
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1
   <CanDamageBuildables>k__BackingField: 1
