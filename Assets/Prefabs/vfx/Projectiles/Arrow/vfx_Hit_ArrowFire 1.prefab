@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4100339070655356}
   - component: {fileID: 198327661994935152}
   - component: {fileID: 199746771611982568}
-  m_Layer: 18
+  m_Layer: 17
   m_Name: Beam
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4879,7 +4879,7 @@ GameObject:
   - component: {fileID: 4121554455660104}
   - component: {fileID: 198233464146446146}
   - component: {fileID: 199540293048199622}
-  m_Layer: 18
+  m_Layer: 17
   m_Name: Fire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9747,7 +9747,7 @@ GameObject:
   - component: {fileID: 4755277233417778}
   - component: {fileID: 198274090032540288}
   - component: {fileID: 199563793383551432}
-  m_Layer: 18
+  m_Layer: 17
   m_Name: vfx_Hit_ArrowFire 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

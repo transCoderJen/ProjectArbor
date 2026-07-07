@@ -78,6 +78,7 @@ namespace ShiftedSignal.Garden.Units
             base.Start();
 
             Bus<UnitSpawnEvent>.Raise(new UnitSpawnEvent(this));
+            Bus<UnitDeathEvent>.OnEvent += HandleUnitDeath;
 
             if (DameagableSensor != null)
             {
@@ -89,12 +90,47 @@ namespace ShiftedSignal.Garden.Units
 
         protected virtual void OnDestroy()
         {
-            Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
+            if (Application.isPlaying)
+                Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
+            
+            Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+
             if (DameagableSensor != null)
             {
                 DameagableSensor.OnUnitEnter -= HandleUnitEnter;
                 DameagableSensor.OnUnitExit -= HandleUnitExit;
             }
+        }
+
+        private void HandleUnitDeath(UnitDeathEvent evt)
+        {
+            if (!graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable))
+                return;
+
+            if (targetVariable.Value == null)
+                return;
+
+            if (evt.Unit == null || evt.Unit.gameObject != targetVariable.Value)
+                return;
+
+            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
+            GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
+
+            if (nextTarget != null)
+            {
+                graphAgent.SetVariableValue("TargetGameObject", nextTarget);
+                graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+                return;
+            }
+
+            graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
+
+            if (IsAttackMoveActive())
+            {
+                return;
+            }
+
+            graphAgent.SetVariableValue("Command", UnitCommands.Stop);
         }
 
         protected virtual void Update()
@@ -137,6 +173,9 @@ namespace ShiftedSignal.Garden.Units
 
         private void HandleUnitExit(IDamageable damageable)
         {
+            if (!IsAttackMoveActive())
+                return;
+
             GameObject exitingTarget = null;
             Vector3 lastTargetPosition = transform.position;
 
@@ -146,12 +185,7 @@ namespace ShiftedSignal.Garden.Units
                 lastTargetPosition = damageable.Transform.position;
             }
 
-            if (!IsAttackMoveActive())
-                return;
-        
             List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
-
-            
 
             if (!graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable)
                 || exitingTarget == null
@@ -195,6 +229,9 @@ namespace ShiftedSignal.Garden.Units
 
             foreach (IDamageable target in DameagableSensor.Damageables)
             {
+                if (target.CurrentHealth <= 0)
+                    continue;
+
                 Debug.Log($"{name} checking target: {target}");
 
                 if (target == null)

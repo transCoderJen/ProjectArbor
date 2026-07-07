@@ -24,6 +24,8 @@ public class Projectile : MonoBehaviour
     [SerializeField] private Vector3 OffsetHit = Vector3.zero;
     [SerializeField] private List<GameObject> Trails = new();
 
+    [SerializeField] private LayerMask HitMask = ~0;
+
     private Rigidbody rb;
 
     private float speed;
@@ -41,6 +43,7 @@ public class Projectile : MonoBehaviour
     private bool initialized;
     private bool collided;
     private bool canMove;
+    private bool isReturningToPool;
 
     private GameObject target;
     private RotateToMouseScript rotateToMouse;
@@ -58,15 +61,20 @@ public class Projectile : MonoBehaviour
 
     private void OnEnable()
     {
+        isReturningToPool = false;
         ResetProjectileState();
     }
 
     private void OnDisable()
     {
         StopRunningCoroutines();
-        ResetOwnerCollision();
 
         initialized = false;
+        canMove = false;
+        collided = false;
+        isReturningToPool = false;
+
+        owner = null;
         target = null;
         rotateToMouse = null;
     }
@@ -95,6 +103,7 @@ public class Projectile : MonoBehaviour
         this.rotateToMouse = rotateToMouse;
 
         initialized = true;
+        isReturningToPool = false;
 
         ResetProjectileState();
 
@@ -139,20 +148,6 @@ public class Projectile : MonoBehaviour
     {
         this.owner = owner;
 
-        Collider[] ownerColliders = owner.GetComponentsInChildren<Collider>();
-        Collider[] projectileColliders = GetComponentsInChildren<Collider>();
-
-        foreach (Collider ownerCollider in ownerColliders)
-        {
-            foreach (Collider projectileCollider in projectileColliders)
-            {
-                Physics.IgnoreCollision(ownerCollider, projectileCollider, true);
-            }
-        }
-    }
-
-    private void ResetOwnerCollision()
-    {
         if (owner == null)
             return;
 
@@ -161,28 +156,30 @@ public class Projectile : MonoBehaviour
 
         foreach (Collider ownerCollider in ownerColliders)
         {
+            if (ownerCollider == null)
+                continue;
+
             foreach (Collider projectileCollider in projectileColliders)
             {
-                Physics.IgnoreCollision(ownerCollider, projectileCollider, false);
+                if (projectileCollider == null)
+                    continue;
+
+                Physics.IgnoreCollision(ownerCollider, projectileCollider, true);
             }
         }
-
-        owner = null;
     }
 
     public void SetDamageData(DamageData damageData)
     {
         this.damageData = damageData;
-        Debug.Log($"Projectile received damage data: {damageData.Amount}, team: {damageData.AttackerTeam}");
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (!initialized || collided)
+        if (!initialized || collided || isReturningToPool)
             return;
 
-        if (owner != null &&
-            collision.transform.IsChildOf(owner.transform))
+        if (owner != null && collision.transform.IsChildOf(owner.transform))
             return;
 
         IDamageable damageable =
@@ -202,15 +199,10 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        // Hit the world.
         if (bounce)
-        {
             BounceProjectile(collision);
-        }
         else
-        {
             HandleImpact(collision.contacts[0]);
-        }
     }
 
     private void ResetProjectileState()
@@ -238,7 +230,66 @@ public class Projectile : MonoBehaviour
             return;
 
         Vector3 moveDirection = (transform.forward + accuracyOffset).normalized;
-        rb.MovePosition(rb.position + moveDirection * (speed * Time.fixedDeltaTime));
+        Vector3 movement = moveDirection * (speed * Time.fixedDeltaTime);
+
+        if (Physics.Raycast(
+                rb.position,
+                moveDirection,
+                out RaycastHit hit,
+                movement.magnitude,
+                HitMask,
+                QueryTriggerInteraction.Ignore))
+        {
+            if (owner != null && hit.collider.transform.IsChildOf(owner.transform))
+            {
+                rb.MovePosition(rb.position + movement);
+                return;
+            }
+
+            HandleRaycastHit(hit);
+            return;
+        }
+
+        rb.MovePosition(rb.position + movement);
+    }
+
+    private void HandleRaycastHit(RaycastHit hit)
+    {
+        IDamageable damageable =
+            hit.collider.GetComponentInParent<IDamageable>();
+
+        Quaternion rotation = AlignWithNormals
+            ? Quaternion.FromToRotation(Vector3.up, hit.normal)
+            : Quaternion.identity;
+
+        if (damageable != null)
+        {
+            rb.position = damageable.TargetPoint;
+
+            damageable.TakeDamage(damageData);
+
+            SpawnHitVFX(damageable.TargetPoint, rotation);
+        }
+        else
+        {
+            rb.position = hit.point;
+
+            SpawnHitVFX(hit.point, rotation);
+        }
+
+        collided = true;
+        canMove = false;
+
+        DetachTrails();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+
+        ReturnToPool();
     }
 
     private Vector3 GetAccuracyOffset()
@@ -291,6 +342,29 @@ public class Projectile : MonoBehaviour
         canMove = false;
     }
 
+    private void HandleImpact(ContactPoint contact)
+    {
+        collided = true;
+        canMove = false;
+
+        DetachTrails();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+
+        Quaternion rotation = AlignWithNormals
+            ? Quaternion.FromToRotation(Vector3.up, contact.normal)
+            : Quaternion.identity;
+
+        SpawnHitVFX(contact.point, rotation);
+
+        ReturnToPool();
+    }
+
     private void SpawnMuzzle()
     {
         if (MuzzlePrefab == null)
@@ -332,7 +406,8 @@ public class Projectile : MonoBehaviour
             return;
         }
 
-        ParticleSystem childParticleSystem = particleObject.GetComponentInChildren<ParticleSystem>();
+        ParticleSystem childParticleSystem =
+            particleObject.GetComponentInChildren<ParticleSystem>();
 
         if (childParticleSystem != null)
         {
@@ -345,6 +420,9 @@ public class Projectile : MonoBehaviour
 
     private void DetachTrails()
     {
+        if (!Application.isPlaying)
+            return;
+
         if (Trails == null || Trails.Count == 0)
             return;
 
@@ -372,8 +450,46 @@ public class Projectile : MonoBehaviour
 
     private void ReturnToPool()
     {
+        if (isReturningToPool)
+            return;
+
+        isReturningToPool = true;
+
         StopRunningCoroutines();
+        ResetOwnerCollision();
+
         ObjectPoolManager.ReturnObjectToPool(gameObject);
+    }
+
+    private void ResetOwnerCollision()
+    {
+        if (!Application.isPlaying)
+        {
+            owner = null;
+            return;
+        }
+
+        if (owner == null)
+            return;
+
+        Collider[] ownerColliders = owner.GetComponentsInChildren<Collider>();
+        Collider[] projectileColliders = GetComponentsInChildren<Collider>();
+
+        foreach (Collider ownerCollider in ownerColliders)
+        {
+            if (ownerCollider == null)
+                continue;
+
+            foreach (Collider projectileCollider in projectileColliders)
+            {
+                if (projectileCollider == null)
+                    continue;
+
+                Physics.IgnoreCollision(ownerCollider, projectileCollider, false);
+            }
+        }
+
+        owner = null;
     }
 
     private void StopRunningCoroutines()
@@ -389,28 +505,5 @@ public class Projectile : MonoBehaviour
             StopCoroutine(buildUpRoutine);
             buildUpRoutine = null;
         }
-    }
-
-    private void HandleImpact(ContactPoint contact)
-    {
-        collided = true;
-        canMove = false;
-
-        DetachTrails();
-
-        if (rb != null)
-        {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
-            rb.isKinematic = true;
-        }
-
-        Quaternion rotation = AlignWithNormals
-            ? Quaternion.FromToRotation(Vector3.up, contact.normal)
-            : Quaternion.identity;
-
-        SpawnHitVFX(contact.point, rotation);
-
-        ReturnToPool();
     }
 }

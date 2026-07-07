@@ -19,7 +19,7 @@ MonoBehaviour:
   <Health>k__BackingField: 300
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 0}
-  <Team>k__BackingField: 0
+  <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 0}

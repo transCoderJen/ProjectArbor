@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Units
@@ -23,6 +24,7 @@ namespace ShiftedSignal.Garden.Units
         [field: SerializeField] public bool CanDamageBuildables { get; private set; } = true;
 
         [Header("Projectile")]
+        [field: SerializeField] public PooledObjectList ProjectileType { get; private set; } = PooledObjectList.RedArrowProjectile;
         [field: SerializeField] public float ProjectileSpeed { get; private set; } = 12f;
 
         [field: SerializeField]

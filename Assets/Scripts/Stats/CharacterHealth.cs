@@ -16,6 +16,7 @@ namespace ShiftedSignal.Garden.Stats
         [SerializeField] private bool isInvincible;
         [SerializeField] private CombatTeam team;
         [SerializeField] private TargetPriority targetPriority;
+
          public CombatTeam Team => team;
 
         private Entity entity;
@@ -34,6 +35,18 @@ namespace ShiftedSignal.Garden.Stats
         public TargetPriority TargetPriority => targetPriority;
 
         public Action OnHealthChanged = delegate { };
+
+        public virtual Vector3 TargetPoint
+        {
+            get
+            {
+                Collider collider = GetComponentInParent<Collider>();
+
+                return collider != null
+                    ? collider.bounds.center
+                    : transform.position;
+            }
+        }
 
         protected virtual void Awake()
         {

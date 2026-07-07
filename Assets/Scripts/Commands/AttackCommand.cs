@@ -18,7 +18,10 @@ namespace ShiftedSignal.Garden.Commands
             if (context.Commandable is not IAttacker attacker)
                 return;
 
-            if (context.Hit.collider.TryGetComponent(out IDamageable damageable))
+            IDamageable damageable =
+                context.Hit.collider.GetComponentInParent<IDamageable>();
+
+            if (damageable != null)
             {
                 attacker.Attack(damageable);
             }
@@ -26,8 +29,6 @@ namespace ShiftedSignal.Garden.Commands
             {
                 attacker.Attack(context.Hit.point);
             }
-
-            
         }
 
         public override bool IsLocked(CommandContext context) => false;

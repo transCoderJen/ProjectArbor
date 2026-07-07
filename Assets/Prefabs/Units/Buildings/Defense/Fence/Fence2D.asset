@@ -19,7 +19,7 @@ MonoBehaviour:
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 10
   <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
-  <Team>k__BackingField: 0
+  <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}

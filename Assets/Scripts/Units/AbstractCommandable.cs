@@ -32,6 +32,41 @@ namespace ShiftedSignal.Garden.Units
         public delegate void HealthUpdatedEvent(AbstractCommandable commandable, int lastHealth, int newHealth);
         public event HealthUpdatedEvent OnHealthUpdated;
 
+        public virtual Vector3 TargetPoint
+        {
+            get
+            {
+                Collider[] colliders = GetComponentsInChildren<Collider>();
+
+                Bounds? combinedBounds = null;
+
+                foreach (Collider collider in colliders)
+                {
+                    if (collider == null)
+                        continue;
+
+                    if (collider.isTrigger)
+                        continue;
+
+                    if (combinedBounds == null)
+                    {
+                        combinedBounds = collider.bounds;
+                    }
+                    else
+                    {
+                        Bounds bounds = combinedBounds.Value;
+                        bounds.Encapsulate(collider.bounds);
+                        combinedBounds = bounds;
+                    }
+                }
+
+                if (combinedBounds.HasValue)
+                    return combinedBounds.Value.center;
+
+                return transform.position;
+            }
+        }
+
         protected virtual void Start()
         {
             int maxHealth = Config != null ? Config.Health : MaxHealth;
@@ -43,6 +78,12 @@ namespace ShiftedSignal.Garden.Units
 
         public virtual void TakeDamage(DamageData damageData)
         {
+            Debug.Log(
+                $"{name} TakeDamage | " +
+                $"AttackerTeam: {damageData.AttackerTeam} | " +
+                $"TargetTeam: {Team} | " +
+                $"RulesPass: {DamageRules.CanDamage(damageData.AttackerTeam, Team)}");
+
             if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
                 return;
 

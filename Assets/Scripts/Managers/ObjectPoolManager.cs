@@ -262,7 +262,7 @@ namespace ShiftedSignal.Garden.Managers
     public enum PooledObjectList
     {
         None,
-        Bullet,
+        RedArrowProjectile,
         EnemyProjectile,
         SlashBlue,
         SlashRed,
@@ -272,7 +272,8 @@ namespace ShiftedSignal.Garden.Managers
         HealArea,
         HeartRoot,
         WolfEnemy,
-        VillagerEnemy
+        VillagerEnemy,
+        BlueBubbleProjectile
     }
 
     public class PoolRuntimeData

@@ -9,6 +9,7 @@ namespace ShiftedSignal.Garden.Interfaces
         public int MaxHealth { get; }
         public int CurrentHealth { get; }
         public Transform Transform { get; }
+        Vector3 TargetPoint { get; }
 
         CombatTeam Team { get; }
         TargetPriority TargetPriority { get; }

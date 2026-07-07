@@ -67,7 +67,7 @@ namespace ShiftedSignal.Garden.Behavior
             {
                 navMeshAgent.SetDestination(targetTransform.position);
                 navMeshAgent.isStopped = false;
-                animator?.SetBool(AnimationConstants.ATACK, false);
+                animator?.SetBool(AnimationConstants.ATTACK, false);
                 return Status.Running;
             }
 
@@ -79,7 +79,7 @@ namespace ShiftedSignal.Garden.Behavior
 
             unit.SetRotation(lookRotation);
 
-            animator?.SetBool(AnimationConstants.ATACK, true);
+            animator?.SetBool(AnimationConstants.ATTACK, true);
 
             if (Time.time >= lastAttackTime + AttackConfig.Value.AttackDelay)
             {
@@ -106,9 +106,9 @@ namespace ShiftedSignal.Garden.Behavior
 
         protected override void OnEnd()
         {
-            animator?.SetBool(AnimationConstants.ATACK, false);
-            
-            if (navMeshAgent != null)
+            animator?.SetBool(AnimationConstants.ATTACK, false);
+
+            if (navMeshAgent != null && navMeshAgent.isOnNavMesh)
                 navMeshAgent.isStopped = false;
         }
 
@@ -116,8 +116,7 @@ namespace ShiftedSignal.Garden.Behavior
         {
             Transform spawnPoint = attacker.ProjectileSpawnPoint;
 
-            Vector3 targetPoint = GetTargetCenterPoint();
-            Vector3 direction = targetPoint - spawnPoint.position;
+            Vector3 direction = targetDamageable.TargetPoint - spawnPoint.position;
 
             if (direction.sqrMagnitude < 0.001f)
                 return;
@@ -127,11 +126,11 @@ namespace ShiftedSignal.Garden.Behavior
                 Vector3.up);
 
             GameObject projectileObject = ObjectPoolManager.SpawnObject(
-                PooledObjectList.Bullet,
+                AttackConfig.Value.ProjectileType,
                 spawnPoint.position,
                 rotation,
                 null,
-                10f);
+                1);
 
             if (projectileObject == null)
                 return;
@@ -148,12 +147,8 @@ namespace ShiftedSignal.Garden.Behavior
                     bounceForce: AttackConfig.Value.ProjectileBounceForce,
                     maxLifetime: AttackConfig.Value.ProjectileLifetime);
 
-                Debug.Log($"Firing projectile from {Self.Value.name} at {Target.Value.name}");
-
                 projectile.SetOwner(Self.Value);
                 projectile.SetDamageData(CreateDamageData());
-
-                Debug.Log($"Projectile damage set: {AttackConfig.Value.AttackDamage}");
             }
         }
 
@@ -176,17 +171,6 @@ namespace ShiftedSignal.Garden.Behavior
                 && Target.Value != null
                 && Target.Value.GetComponentInParent<IDamageable>() != null
                 && AttackConfig.Value != null;
-        }
-
-        private Vector3 GetTargetCenterPoint()
-        {
-            SpriteRenderer spriteRenderer =
-                Target.Value.GetComponentInChildren<SpriteRenderer>();
-
-            if (spriteRenderer != null)
-                return spriteRenderer.bounds.center;
-
-            return targetTransform.position;
         }
     }
 }

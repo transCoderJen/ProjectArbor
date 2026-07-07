@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a12620121fb4bb44b8496b35276ece89, type: 3}
-  m_Name: Rifleman Attack Config
+  m_Name: Grenadier Attack Congfig
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 1
-  <AttackDamage>k__BackingField: 100
-  <AttackRange>k__BackingField: 45
-  <AttackDelay>k__BackingField: 0.4
+  <AttackDamage>k__BackingField: 0
+  <AttackRange>k__BackingField: 60
+  <AttackDelay>k__BackingField: 1
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1
   <CanDamageBuildables>k__BackingField: 1
@@ -24,7 +24,7 @@ MonoBehaviour:
   <ProjectileAccuracy>k__BackingField: 100
   <ProjectileBuildUpTime>k__BackingField: 0
   <ProjectileRotate>k__BackingField: 0
-  <ProjectileRotateAmount>k__BackingField: 0
+  <ProjectileRotateAmount>k__BackingField: 45
   <ProjectileBounce>k__BackingField: 0
-  <ProjectileBounceForce>k__BackingField: 0
+  <ProjectileBounceForce>k__BackingField: 60
   <ProjectileLifetime>k__BackingField: 5

@@ -21,7 +21,7 @@ namespace ShiftedSignal.Garden.Units
         [field: SerializeField] public int Cost { get; private set; }
 
         [Header("Material Cost")]
-        [field: SerializeField] public RequiredSupply[] RequiredMSupplies { get; private set; }
+        [field: SerializeField] public RequiredSupply[] RequiredSupplies { get; private set; }
 
         public bool CanAfford()
         {
@@ -36,12 +36,12 @@ namespace ShiftedSignal.Garden.Units
 
         private bool HasRequiredSupplies()
         {
-            if (RequiredMSupplies == null)
+            if (RequiredSupplies == null)
                 return true;
 
-            for (int i = 0; i < RequiredMSupplies.Length; i++)
+            for (int i = 0; i < RequiredSupplies.Length; i++)
             {
-                RequiredSupply required = RequiredMSupplies[i];
+                RequiredSupply required = RequiredSupplies[i];
 
                 if (required.Material == null)
                     continue;
@@ -69,12 +69,12 @@ namespace ShiftedSignal.Garden.Units
 
         private void SpendRequiredSupplies()
         {
-            if (RequiredMSupplies == null)
+            if (RequiredSupplies == null)
                 return;
 
-            for (int i = 0; i < RequiredMSupplies.Length; i++)
+            for (int i = 0; i < RequiredSupplies.Length; i++)
             {
-                RequiredSupply required = RequiredMSupplies[i];
+                RequiredSupply required = RequiredSupplies[i];
 
                 if (required.Material == null)
                     continue;

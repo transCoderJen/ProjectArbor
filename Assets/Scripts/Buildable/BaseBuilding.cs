@@ -590,6 +590,13 @@ namespace ShiftedSignal.Garden.Buildable
 
         public override void TakeDamage(DamageData damageData)
         {
+            Debug.Log(
+                $"{name} building hit | " +
+                $"IsActive: {IsActive} | " +
+                $"AttackerTeam: {damageData.AttackerTeam} | " +
+                $"TargetTeam: {Team} | " +
+                $"CanDamageBuildables: {damageData.CanDamageBuildables}");
+
             if (!IsActive)
                 return;
 

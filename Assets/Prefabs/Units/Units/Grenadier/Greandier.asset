@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68bad28b57dc8af47b2ee7aab53e888d, type: 3}
+  m_Name: Greandier
+  m_EditorClassIdentifier: 
+  <ItemID>k__BackingField: Greandier
+  <Name>k__BackingField: Unit
+  <Icon>k__BackingField: {fileID: 0}
+  <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: b04639d092dd4c24d976c8397c103940, type: 3}
+  <Health>k__BackingField: 100
+  <BuildTime>k__BackingField: 5
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: ecdb55d3712925141aa0ad0c57383c7a, type: 2}
+  <Team>k__BackingField: 2
+  <AttackConfig>k__BackingField: {fileID: 11400000, guid: eaac0b3a5d59df946b80c74238ad87e0, type: 2}
+  SaveID: 

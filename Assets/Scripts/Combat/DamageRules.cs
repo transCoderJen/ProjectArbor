@@ -16,15 +16,20 @@ namespace ShiftedSignal.Garden.Combat
                 case CombatTeam.Enemy:
                     return target == CombatTeam.Player ||
                            target == CombatTeam.Friendly ||
-                           target == CombatTeam.Buildable;
+                           target == CombatTeam.Buildable ||
+                           target == CombatTeam.Neutral;
 
                 case CombatTeam.Friendly:
-                    return target == CombatTeam.Enemy;
+                    return target == CombatTeam.Enemy ||
+                           target == CombatTeam.Neutral;
 
                 case CombatTeam.Buildable:
-                    return target == CombatTeam.Enemy;
+                    return target == CombatTeam.Enemy ||
+                           target == CombatTeam.Neutral;
 
                 case CombatTeam.Neutral:
+                    return target != CombatTeam.Neutral;
+
                 default:
                     return false;
             }

@@ -51,7 +51,7 @@ namespace ShiftedSignal.Garden.Buildable
                 Vector3.up);
 
             GameObject projectileObject = ObjectPoolManager.SpawnObject(
-                PooledObjectList.Bullet,
+                PooledObjectList.RedArrowProjectile,
                 spawnPoint.position,
                 rotation,
                 null,
