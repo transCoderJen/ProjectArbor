@@ -26,11 +26,10 @@ namespace ShiftedSignal.Garden.Misc
             float now = Time.unscaledTime; // use unscaled so it's not affected by pause/timeScale
             if (now - _lastClickTime < minClickInterval)
             {
-                Debug.Log("Ignoring rapid duplicate click.");
-                return false;
+                return true;
             }
             _lastClickTime = now;
-            return true;
+            return false;
         }
         
         private static readonly Dictionary<float, WaitForSeconds> WaitDictionary = new Dictionary<float, WaitForSeconds>();

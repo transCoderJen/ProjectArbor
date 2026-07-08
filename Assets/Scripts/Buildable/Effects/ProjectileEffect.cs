@@ -1,3 +1,6 @@
+using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.Effects;
+using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 
@@ -15,6 +18,9 @@ namespace ShiftedSignal.Garden.Buildable
                 return;
 
             if (buildable is not DefenseTower tower)
+                return;
+
+            if (tower.AttackConfig == null)
                 return;
 
             if (!buildable.IsEffectReady(this, tower.AttackCooldown))
@@ -40,7 +46,13 @@ namespace ShiftedSignal.Garden.Buildable
             if (targetCollider == null)
                 return;
 
-            Vector3 targetPoint = GetTargetGroundPoint(targetCollider);
+            IDamageable damageable =
+                targetCollider.GetComponentInParent<IDamageable>();
+
+            Vector3 targetPoint = damageable != null
+                ? damageable.TargetPoint
+                : GetTargetGroundPoint(targetCollider);
+
             Vector3 direction = targetPoint - spawnPoint.position;
 
             if (direction.sqrMagnitude < 0.001f)
@@ -51,7 +63,7 @@ namespace ShiftedSignal.Garden.Buildable
                 Vector3.up);
 
             GameObject projectileObject = ObjectPoolManager.SpawnObject(
-                PooledObjectList.RedArrowProjectile,
+                tower.AttackConfig.ProjectileType,
                 spawnPoint.position,
                 rotation,
                 null,
@@ -63,14 +75,19 @@ namespace ShiftedSignal.Garden.Buildable
             if (projectileObject.TryGetComponent(out Projectile projectile))
             {
                 projectile.Initialize(
-                    speed: tower.ProjectileSpeed,
-                    accuracy: tower.ProjectileAccuracy,
-                    buildUpTime: tower.ProjectileBuildUpTime,
-                    rotate: tower.ProjectileRotate,
-                    rotateAmount: tower.ProjectileRotateAmount,
-                    bounce: tower.ProjectileBounce,
-                    bounceForce: tower.ProjectileBounceForce,
-                    maxLifetime: tower.ProjectileLifetime);
+                    tower.AttackConfig,
+                    target: targetCollider.gameObject,
+                    targetPointOverride: targetPoint);
+
+                projectile.SetOwner(tower.gameObject);
+
+                projectile.SetDamageData(new DamageData(
+                    tower.AttackConfig.AttackDamage,
+                    tower.Team,
+                    tower.transform,
+                    tower.AttackConfig.Knockback,
+                    tower.AttackConfig.IgnoreFriendlyFire,
+                    tower.AttackConfig.CanDamageBuildables));
             }
 
             buildable.MarkEffectUsed(this);
@@ -91,8 +108,14 @@ namespace ShiftedSignal.Garden.Buildable
                 if (enemy == null)
                     continue;
 
-                Vector3 targetGroundPoint = GetTargetGroundPoint(enemy);
-                float distanceSqr = (targetGroundPoint - origin).sqrMagnitude;
+                IDamageable damageable =
+                    enemy.GetComponentInParent<IDamageable>();
+
+                Vector3 targetPoint = damageable != null
+                    ? damageable.TargetPoint
+                    : GetTargetGroundPoint(enemy);
+
+                float distanceSqr = (targetPoint - origin).sqrMagnitude;
 
                 if (distanceSqr < nearestDistanceSqr)
                 {

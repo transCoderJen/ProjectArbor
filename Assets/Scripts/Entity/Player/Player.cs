@@ -325,6 +325,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleAttackInput()
         {
+            if (Helpers.DebounceClicks())
+                return;
+            
             if (!controlsEnabled)
                 return;
 

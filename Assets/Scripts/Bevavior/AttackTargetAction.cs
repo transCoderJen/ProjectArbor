@@ -10,6 +10,7 @@ using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Managers;
 using NUnit.Framework;
+using ShiftedSignal.Garden.Effects;
 
 namespace ShiftedSignal.Garden.Behavior
 {
@@ -138,14 +139,9 @@ namespace ShiftedSignal.Garden.Behavior
             if (projectileObject.TryGetComponent(out Projectile projectile))
             {
                 projectile.Initialize(
-                    speed: AttackConfig.Value.ProjectileSpeed,
-                    accuracy: AttackConfig.Value.ProjectileAccuracy,
-                    buildUpTime: AttackConfig.Value.ProjectileBuildUpTime,
-                    rotate: AttackConfig.Value.ProjectileRotate,
-                    rotateAmount: AttackConfig.Value.ProjectileRotateAmount,
-                    bounce: AttackConfig.Value.ProjectileBounce,
-                    bounceForce: AttackConfig.Value.ProjectileBounceForce,
-                    maxLifetime: AttackConfig.Value.ProjectileLifetime);
+                    AttackConfig.Value,
+                    target: Target.Value,
+                    targetPointOverride: targetDamageable.TargetPoint);
 
                 projectile.SetOwner(Self.Value);
                 projectile.SetDamageData(CreateDamageData());

@@ -31,7 +31,8 @@ namespace ShiftedSignal.Garden.Dialogue
 
         override protected void OnDestroy()
         {
-            inkExternalFunctions.Unbind(story);
+            if (inkExternalFunctions != null && story != null)
+                inkExternalFunctions.Unbind(story);       
         }
 
         private void OnEnable()

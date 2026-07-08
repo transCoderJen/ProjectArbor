@@ -13,14 +13,23 @@ MonoBehaviour:
   m_Name: Rifleman Attack Config
   m_EditorClassIdentifier: 
   <AttackType>k__BackingField: 1
-  <AttackDamage>k__BackingField: 100
-  <AttackRange>k__BackingField: 45
-  <AttackDelay>k__BackingField: 0.4
+  <AttackDamage>k__BackingField: 5
+  <AttackRange>k__BackingField: 80
+  <AttackDelay>k__BackingField: 0.2
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1
   <CanDamageBuildables>k__BackingField: 1
-  <ProjectileType>k__BackingField: 12
-  <ProjectileSpeed>k__BackingField: 500
+  <ProjectileType>k__BackingField: 13
+  <ProjectileSpeed>k__BackingField: 300
+  <ProjectileMovementType>k__BackingField: 0
+  <ArcHeight>k__BackingField: 10
+  <Exploding>k__BackingField: 0
+  <ExplosionType>k__BackingField: 0
+  <ExplosionRadius>k__BackingField: 2
+  <ExplosionDamage>k__BackingField: 3
+  <ExplosionHitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 0
   <ProjectileAccuracy>k__BackingField: 100
   <ProjectileBuildUpTime>k__BackingField: 0
   <ProjectileRotate>k__BackingField: 0

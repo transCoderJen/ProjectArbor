@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Buildable
@@ -7,25 +8,25 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Projectile")]
         [SerializeField] private Transform ProjectileSpawnTransform;
 
+        [Header("Targeting")]
+        [SerializeField] private int TargetBufferSize = 32;
+
         private float nextAttackTime;
         private Collider[] enemyBuffer;
 
-        private TowerStats currentStats;
+        public AttackConfigSO AttackConfig => UnitSO != null
+            ? UnitSO.AttackConfig
+            : null;
 
-        public float AttackRange => currentStats.AttackRange;
-        public float AttackCooldown => currentStats.AttackCooldown;
+        public float AttackRange => AttackConfig != null
+            ? AttackConfig.AttackRange
+            : 5f;
+
+        public float AttackCooldown => AttackConfig != null
+            ? AttackConfig.AttackDelay
+            : 0.2f;
+
         public Collider[] EnemyBuffer => enemyBuffer;
-
-        public float ProjectileSpeed => currentStats.ProjectileSpeed;
-        public float ProjectileAccuracy => currentStats.ProjectileAccuracy;
-        public float ProjectileBuildUpTime => currentStats.ProjectileBuildUpTime;
-        public bool ProjectileRotate => currentStats.ProjectileRotate;
-        public float ProjectileRotateAmount => currentStats.ProjectileRotateAmount;
-        public bool ProjectileBounce => currentStats.ProjectileBounce;
-        public float ProjectileBounceForce => currentStats.ProjectileBounceForce;
-        public float ProjectileLifetime => currentStats.ProjectileLifetime;
-
-        private const int TargetBufferSize = 32;
 
         public override Transform ProjectileSpawnPoint =>
             ProjectileSpawnTransform != null
@@ -36,35 +37,7 @@ namespace ShiftedSignal.Garden.Buildable
         {
             base.Awake();
 
-            InitializeStatsFromBuildableData();
-        }
-
-        private void InitializeStatsFromBuildableData()
-        {
-            if (UnitSO != null && UnitSO.HasTowerStats)
-                currentStats = UnitSO.BaseTowerStats;
-            else
-                currentStats = GetFallbackStats();
-
             enemyBuffer = new Collider[TargetBufferSize];
-        }
-
-        private TowerStats GetFallbackStats()
-        {
-            return new TowerStats
-            {
-                AttackRange = 5f,
-                AttackCooldown = 0.2f,
-
-                ProjectileSpeed = 20f,
-                ProjectileAccuracy = 100f,
-                ProjectileBuildUpTime = 0f,
-                ProjectileRotate = false,
-                ProjectileRotateAmount = 0f,
-                ProjectileBounce = false,
-                ProjectileBounceForce = 0f,
-                ProjectileLifetime = 5f
-            };
         }
 
         protected override void Update()
@@ -72,6 +45,9 @@ namespace ShiftedSignal.Garden.Buildable
             base.Update();
 
             if (!IsActive || !HasConstantEffects)
+                return;
+
+            if (AttackConfig == null)
                 return;
 
             if (Time.time < nextAttackTime)
@@ -90,47 +66,12 @@ namespace ShiftedSignal.Garden.Buildable
 
         public void UpgradeAttackRange(float amount)
         {
-            currentStats.AttackRange += amount;
+            // Later this should modify a runtime stats wrapper, not the SO.
         }
 
         public void UpgradeAttackCooldown(float amount)
         {
-            currentStats.AttackCooldown = Mathf.Max(
-                0.05f,
-                currentStats.AttackCooldown - amount);
-        }
-
-        public void UpgradeProjectileSpeed(float amount)
-        {
-            currentStats.ProjectileSpeed += amount;
-        }
-
-        public void UpgradeProjectileAccuracy(float amount)
-        {
-            currentStats.ProjectileAccuracy = Mathf.Clamp(
-                currentStats.ProjectileAccuracy + amount,
-                0f,
-                100f);
-        }
-
-        public void UpgradeProjectileLifetime(float amount)
-        {
-            currentStats.ProjectileLifetime += amount;
-        }
-
-        public void UpgradeProjectileBounceForce(float amount)
-        {
-            currentStats.ProjectileBounceForce += amount;
-        }
-
-        public void SetProjectileBounce(bool enabled)
-        {
-            currentStats.ProjectileBounce = enabled;
-        }
-
-        public void SetProjectileRotate(bool enabled)
-        {
-            currentStats.ProjectileRotate = enabled;
+            // Later this should modify a runtime stats wrapper, not the SO.
         }
     }
 }

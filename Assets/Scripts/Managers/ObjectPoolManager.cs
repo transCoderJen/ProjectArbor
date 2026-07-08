@@ -273,7 +273,13 @@ namespace ShiftedSignal.Garden.Managers
         HeartRoot,
         WolfEnemy,
         VillagerEnemy,
-        BlueBubbleProjectile
+        BlueCometProjectile,
+        PinkTrailProjectile,
+        Explosion360,
+        ExplosionCircular,
+        ExplosionVertical,
+        OrangeCometProjectile
+
     }
 
     public class PoolRuntimeData

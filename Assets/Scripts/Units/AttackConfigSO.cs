@@ -9,6 +9,12 @@ namespace ShiftedSignal.Garden.Units
         Projectile
     }
 
+    public enum ProjectileMovementType
+    {
+        Straight,
+        Arc
+    }
+
     [CreateAssetMenu(fileName = "Attack Config", menuName = "Units/Attack Config", order = 7)]
     public class AttackConfigSO : ScriptableObject
     {
@@ -26,6 +32,15 @@ namespace ShiftedSignal.Garden.Units
         [Header("Projectile")]
         [field: SerializeField] public PooledObjectList ProjectileType { get; private set; } = PooledObjectList.RedArrowProjectile;
         [field: SerializeField] public float ProjectileSpeed { get; private set; } = 12f;
+        [field: SerializeField] public ProjectileMovementType ProjectileMovementType { get; private set; }
+        [field: SerializeField] public float ArcHeight { get; private set; } = 3f;
+
+        [Header("Explosion")]
+        [field: SerializeField] public bool Exploding { get; private set; }
+        [field: SerializeField] public PooledObjectList ExplosionType { get; private set; } = PooledObjectList.RedArrowProjectile;
+        [field: SerializeField] public float ExplosionRadius { get; private set; } = 2f;
+        [field: SerializeField] public int ExplosionDamage { get; private set; } = 3;
+        [field: SerializeField] public LayerMask ExplosionHitMask { get; private set; }
 
         [field: SerializeField]
         [field: Range(0f, 100f)]
