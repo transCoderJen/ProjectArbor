@@ -9,9 +9,6 @@ namespace ShiftedSignal.Garden.Buildable
     [CreateAssetMenu(fileName = "Attack Nearest Effect", menuName = "Data/Buildable Effects/Attack Nearest")]
     public class ProjectileEffect : BuildableEffect
     {
-        [Header("Targeting")]
-        [SerializeField] private LayerMask EnemyLayer;
-
         public override void Apply(BaseBuilding buildable)
         {
             if (buildable == null)
@@ -23,36 +20,25 @@ namespace ShiftedSignal.Garden.Buildable
             if (tower.AttackConfig == null)
                 return;
 
-            if (!buildable.IsEffectReady(this, tower.AttackCooldown))
+            if (tower.ProjectileSpawnPoint == null)
                 return;
 
-            Transform spawnPoint = buildable.ProjectileSpawnPoint;
+            if (tower.DamageableSensor == null)
+                return;
 
-            int hitCount = Physics.OverlapSphereNonAlloc(
+            if (!tower.IsEffectReady(this, tower.AttackCooldown))
+                return;
+
+            Transform spawnPoint = tower.ProjectileSpawnPoint;
+
+            IDamageable target = tower.DamageableSensor.GetNearestValidTarget(
                 spawnPoint.position,
-                tower.AttackRange,
-                tower.EnemyBuffer,
-                EnemyLayer,
-                QueryTriggerInteraction.Ignore);
+                tower.Team);
 
-            if (hitCount <= 0)
+            if (target == null)
                 return;
 
-            Collider targetCollider = GetNearestEnemyCollider(
-                spawnPoint.position,
-                tower.EnemyBuffer,
-                hitCount);
-
-            if (targetCollider == null)
-                return;
-
-            IDamageable damageable =
-                targetCollider.GetComponentInParent<IDamageable>();
-
-            Vector3 targetPoint = damageable != null
-                ? damageable.TargetPoint
-                : GetTargetGroundPoint(targetCollider);
-
+            Vector3 targetPoint = target.TargetPoint;
             Vector3 direction = targetPoint - spawnPoint.position;
 
             if (direction.sqrMagnitude < 0.001f)
@@ -76,7 +62,7 @@ namespace ShiftedSignal.Garden.Buildable
             {
                 projectile.Initialize(
                     tower.AttackConfig,
-                    target: targetCollider.gameObject,
+                    target: target.Transform.gameObject,
                     targetPointOverride: targetPoint);
 
                 projectile.SetOwner(tower.gameObject);
@@ -90,51 +76,7 @@ namespace ShiftedSignal.Garden.Buildable
                     tower.AttackConfig.CanDamageBuildables));
             }
 
-            buildable.MarkEffectUsed(this);
-        }
-
-        private Collider GetNearestEnemyCollider(
-            Vector3 origin,
-            Collider[] enemies,
-            int hitCount)
-        {
-            Collider nearestEnemy = null;
-            float nearestDistanceSqr = Mathf.Infinity;
-
-            for (int i = 0; i < hitCount; i++)
-            {
-                Collider enemy = enemies[i];
-
-                if (enemy == null)
-                    continue;
-
-                IDamageable damageable =
-                    enemy.GetComponentInParent<IDamageable>();
-
-                Vector3 targetPoint = damageable != null
-                    ? damageable.TargetPoint
-                    : GetTargetGroundPoint(enemy);
-
-                float distanceSqr = (targetPoint - origin).sqrMagnitude;
-
-                if (distanceSqr < nearestDistanceSqr)
-                {
-                    nearestDistanceSqr = distanceSqr;
-                    nearestEnemy = enemy;
-                }
-            }
-
-            return nearestEnemy;
-        }
-
-        private Vector3 GetTargetGroundPoint(Collider targetCollider)
-        {
-            Bounds bounds = targetCollider.bounds;
-
-            return new Vector3(
-                bounds.center.x,
-                bounds.min.y,
-                bounds.center.z);
+            tower.MarkEffectUsed(this);
         }
     }
 }

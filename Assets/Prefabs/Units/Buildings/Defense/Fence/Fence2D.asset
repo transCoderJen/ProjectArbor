@@ -26,15 +26,3 @@ MonoBehaviour:
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 0
-  HasTowerStats: 0
-  BaseTowerStats:
-    AttackRange: 0
-    AttackCooldown: 0
-    ProjectileSpeed: 0
-    ProjectileAccuracy: 0
-    ProjectileBuildUpTime: 0
-    ProjectileRotate: 0
-    ProjectileRotateAmount: 0
-    ProjectileBounce: 0
-    ProjectileBounceForce: 0
-    ProjectileLifetime: 0

@@ -18,7 +18,7 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: c367296dc7d11434491165ed561ae04f, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
-  <SupplyCost>k__BackingField: {fileID: 0}
-  <Team>k__BackingField: 3
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: ecdb55d3712925141aa0ad0c57383c7a, type: 2}
+  <Team>k__BackingField: 2
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 

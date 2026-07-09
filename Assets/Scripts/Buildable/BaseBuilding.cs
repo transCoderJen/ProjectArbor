@@ -121,8 +121,8 @@ namespace ShiftedSignal.Garden.Buildable
         public int QueueSize => buildingQueue.Count;
         public AbstractUnitSO[] Queue => buildingQueue.ToArray();
 
-        [field: SerializeField] public float CurrentQueueStartTime { get; private set; }
-        [field: SerializeField] public AbstractUnitSO BuildingUnit { get; private set; }
+        public float CurrentQueueStartTime { get; private set; }
+        public AbstractUnitSO BuildingUnit { get; private set; }
 
         public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
 
@@ -144,6 +144,8 @@ namespace ShiftedSignal.Garden.Buildable
             Mathf.Max(1, assignedBuilders.Count);
 
         #endregion
+
+        private int unitsSpawnedCount;
 
 
         #region Unity Lifecycle
@@ -239,8 +241,6 @@ namespace ShiftedSignal.Garden.Buildable
 
         public virtual void AddBuildProgress(Worker worker, float amount)
         {
-            Debug.Log($"{name} worker build attempt from {worker?.name}");
-
             if (!IsUnderConstruction)
                 return;
 
@@ -248,7 +248,7 @@ namespace ShiftedSignal.Garden.Buildable
                 return;
 
             float distance = Vector3.Distance(worker.transform.position, transform.position);
-            Debug.Log($"{name} worker distance: {distance}, required: {buildInteractionDistance}");
+            
 
             if (distance > buildInteractionDistance)
                 return;
@@ -707,11 +707,33 @@ namespace ShiftedSignal.Garden.Buildable
 
                 yield return Helpers.GetWait(BuildingUnit.BuildTime);
 
-                Instantiate(BuildingUnit.Prefab, transform.position, Quaternion.identity);
+                Vector3 spawnPosition = GetUnitSpawnPosition();
+                Instantiate(BuildingUnit.Prefab, spawnPosition, Quaternion.identity);
+
                 buildingQueue.RemoveAt(0);
             }
 
+            BuildingUnit = null;
+            CurrentQueueStartTime = 0f;
             OnQueueUpdated?.Invoke(buildingQueue.ToArray());
+        }
+
+        private Vector3 GetUnitSpawnPosition()
+        {
+            float radius = 1.5f;
+            float angle = unitsSpawnedCount * 137.5f * Mathf.Deg2Rad;
+
+            Vector3 position = transform.position + new Vector3(
+                Mathf.Cos(angle),
+                0f,
+                Mathf.Sin(angle)) * radius;
+
+            unitsSpawnedCount++;
+
+            if (NavMesh.SamplePosition(position, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+                return hit.position;
+
+            return position;
         }
 
         #endregion
@@ -732,7 +754,7 @@ namespace ShiftedSignal.Garden.Buildable
             if (!IsUnderConstruction)
                 return;
 
-            // Open Buyilding UI
+            // Open Building UI
         }
 
         public void ContinuousInteract(Player player)

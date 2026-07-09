@@ -1,11 +1,9 @@
-using System;
 using System.Collections;
 using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Components;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
-
 
 namespace ShiftedSignal.Garden.UserInterface.Containers
 {
@@ -16,68 +14,149 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         private Coroutine buildCoroutine;
         private BaseBuilding building;
-        
+
         public void EnableFor(BaseBuilding item)
         {
-            progressBar.SetProgress(0f);
-            gameObject.SetActive(true);
+            Disable();
+
             building = item;
+
+            if (building == null)
+                return;
+
+            gameObject.SetActive(true);
+
+            if (progressBar != null)
+                progressBar.SetProgress(0f);
+
             building.OnQueueUpdated += HandleQueueUpdated;
+
             SetupUnitButtons();
-
-            buildCoroutine = StartCoroutine(UpdateUnitProgress());
-        }
-
-        private void SetupUnitButtons()
-        {
-            int i = 0;
-            for (; i < building.QueueSize; i++)
-            {
-                int index = i;
-                unitButtons[i].EnableFor(building.Queue[i], () => building.CancelBuildingUnit(index));
-            }
-
-            for (; i < unitButtons.Length; i++)
-            {
-                unitButtons[i].Disable();
-            }
+            StartProgressRoutineIfNeeded();
         }
 
         public void Disable()
         {
             if (building != null)
-            {
                 building.OnQueueUpdated -= HandleQueueUpdated;
+
+            if (buildCoroutine != null)
+            {
+                StopCoroutine(buildCoroutine);
+                buildCoroutine = null;
+            }
+
+            building = null;
+
+            if (progressBar != null)
+                progressBar.SetProgress(0f);
+
+            if (unitButtons != null)
+            {
+                foreach (UIBuildQueueButton button in unitButtons)
+                {
+                    if (button != null)
+                        button.Disable();
+                }
             }
 
             gameObject.SetActive(false);
+        }
+
+        private void OnDisable()
+        {
+            if (building != null)
+                building.OnQueueUpdated -= HandleQueueUpdated;
+
+            if (buildCoroutine != null)
+            {
+                StopCoroutine(buildCoroutine);
+                buildCoroutine = null;
+            }
+
             building = null;
-            buildCoroutine = null;
         }
 
         private void HandleQueueUpdated(AbstractUnitSO[] unitsInQueue)
         {
-            if (unitsInQueue.Length == 1 && buildCoroutine == null)
-            {
-                buildCoroutine = StartCoroutine(UpdateUnitProgress());
-            }
+            if (building == null)
+                return;
 
             SetupUnitButtons();
+            StartProgressRoutineIfNeeded();
+        }
+
+        private void SetupUnitButtons()
+        {
+            if (building == null || unitButtons == null)
+                return;
+
+            AbstractUnitSO[] queue = building.Queue;
+
+            int buttonCount = unitButtons.Length;
+            int queueCount = Mathf.Min(queue.Length, buttonCount);
+
+            for (int i = 0; i < queueCount; i++)
+            {
+                int index = i;
+
+                if (unitButtons[i] == null)
+                    continue;
+
+                unitButtons[i].EnableFor(
+                    queue[i],
+                    () =>
+                    {
+                        if (building != null)
+                            building.CancelBuildingUnit(index);
+                    });
+            }
+
+            for (int i = queueCount; i < buttonCount; i++)
+            {
+                if (unitButtons[i] != null)
+                    unitButtons[i].Disable();
+            }
+        }
+
+        private void StartProgressRoutineIfNeeded()
+        {
+            if (building == null)
+                return;
+
+            if (building.QueueSize <= 0)
+                return;
+
+            if (buildCoroutine != null)
+                return;
+
+            buildCoroutine = StartCoroutine(UpdateUnitProgress());
         }
 
         private IEnumerator UpdateUnitProgress()
         {
             while (building != null && building.QueueSize > 0)
             {
-                float startTime = building.CurrentQueueStartTime;
-                float endTime = startTime + building.BuildingUnit.BuildTime;
+                AbstractUnitSO currentUnit = building.BuildingUnit;
 
-                float progress = Mathf.Clamp01((Time.time -startTime) / (endTime - startTime));
+                if (currentUnit == null || progressBar == null)
+                {
+                    yield return null;
+                    continue;
+                }
+
+                float startTime = building.CurrentQueueStartTime;
+                float buildTime = Mathf.Max(0.01f, currentUnit.BuildTime);
+                float progress = Mathf.Clamp01((Time.time - startTime) / buildTime);
+
                 progressBar.SetProgress(progress);
+
                 yield return null;
             }
 
-            
+            if (progressBar != null)
+                progressBar.SetProgress(0f);
+
             buildCoroutine = null;
         }
 

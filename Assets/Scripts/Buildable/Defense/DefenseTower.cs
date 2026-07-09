@@ -11,6 +11,10 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Targeting")]
         [SerializeField] private int TargetBufferSize = 32;
 
+        [SerializeField] private DamageableSensor damageableSensor;
+
+        public DamageableSensor DamageableSensor => damageableSensor;
+
         private float nextAttackTime;
         private Collider[] enemyBuffer;
 
@@ -37,9 +41,19 @@ namespace ShiftedSignal.Garden.Buildable
         {
             base.Awake();
 
+        
             enemyBuffer = new Collider[TargetBufferSize];
         }
 
+        protected override void Start()
+        {
+            if (DamageableSensor != null && AttackConfig != null)
+            {
+                DamageableSensor.SetupFrom(AttackConfig);
+            }
+
+            base.Start();
+        }
         protected override void Update()
         {
             base.Update();

@@ -34,7 +34,7 @@ MonoBehaviour:
         BlackboardGroupReferences: []
         Root:
           rid: 3861482800414457969
-        m_VersionTimestamp: 639189698070439535
+        m_VersionTimestamp: 639191921443421649
     - rid: 3861482767506473816
       type: {class: BlackboardReference, ns: Unity.Behavior, asm: Unity.Behavior}
       data:
@@ -352,6 +352,11 @@ MonoBehaviour:
           rid: 3861482799120253621
         TargetLocation:
           rid: 3861482799120253623
+        sampleRadius: 2
+        stuckCheckInterval: 0.25
+        minProgressDistance: 0.05
+        maxBadChecks: 6
+        directionFlipDot: -0.5
     - rid: 3861482800414457986
       type: {class: HasTargetGameObjectCondition, ns: , asm: Assembly-CSharp}
       data:
@@ -415,6 +420,11 @@ MonoBehaviour:
           rid: 3861482799120253621
         TargetLocation:
           rid: 3861482799120253623
+        sampleRadius: 2
+        stuckCheckInterval: 0.25
+        minProgressDistance: 0.05
+        maxBadChecks: 6
+        directionFlipDot: -0.5
     - rid: 3861482800414457991
       type: {class: VariableValueChangedCondition, ns: Unity.Behavior, asm: Unity.Behavior}
       data:
@@ -466,7 +476,7 @@ MonoBehaviour:
   - rid: 3861482768881680655
   - rid: 3861482788434215266
   - rid: 3861482788434215295
-  m_VersionTimestamp: 639189698070439535
+  m_VersionTimestamp: 639191921443421649
   m_SerializedVersion: 3
   m_DebugInfo: {fileID: -713698950956713752}
   m_RuntimeGraph: {fileID: -3792716119055306192}
@@ -1231,7 +1241,7 @@ MonoBehaviour:
     - rid: 3861482768881680587
       type: {class: ActionNodeModel, ns: Unity.Behavior, asm: Unity.Behavior.Authoring}
       data:
-        Position: {x: -158.93005, y: 408.30432}
+        Position: {x: -158.93005, y: 406.65033}
         ID:
           m_Value0: 8550078407926480583
           m_Value1: 11665088887907238451

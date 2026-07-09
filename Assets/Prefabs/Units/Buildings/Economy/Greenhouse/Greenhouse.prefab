@@ -127,8 +127,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   TransparentAlpha: 0.6
   FadeDuration: 0.2
-  VisibleShadowClipThreshold: 0.2
-  OccludedShadowClipThreshold: 1
   TargetRenderers: []
 --- !u!208 &975523216964746960
 NavMeshObstacle:
@@ -163,11 +161,12 @@ MonoBehaviour:
   <AvailableCommands>k__BackingField:
   - {fileID: 11400000, guid: dd05d2bd1b9ba7744a9c91d2614f32b9, type: 2}
   decalProjector: {fileID: 7918584590872772060}
+  targetPriority: 0
   UnitSO: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
   IsActive: 0
-  GhostMaterial: {fileID: 2100000, guid: 546b4c1be54dc2740b05dab3844f6b57, type: 2}
-  targetType: 1
-  RaidPriority: 50
+  progressBarWorld: {fileID: 0}
+  buildingState: 2
+  buildInteractionDistance: 3
   HasTimedEffects: 0
   HasConstantEffects: 0
   TimedEffects: []
@@ -182,7 +181,8 @@ MonoBehaviour:
   RunOnTimeChanged: 0
   RunOnNightStarted: 0
   <CurrentQueueStartTime>k__BackingField: 0
-  <BuildingUnit>k__BackingField: {fileID: 0}
+  <BuildingUnit>k__BackingField: {fileID: 11400000, guid: e2c42c601c9aed9489922df559347ba9, type: 2}
+  maxBuilders: 3
 --- !u!1 &8405873064106118032
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,6 +4,7 @@ using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Units;
+using Unity.AppUI.Core;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Effects
@@ -153,22 +154,39 @@ namespace ShiftedSignal.Garden.Effects
 
             Vector3 moveDirection = (transform.forward + accuracyOffset).normalized;
             Vector3 movement = moveDirection * (attackConfig.ProjectileSpeed * Time.fixedDeltaTime);
+            
+            bool flowControl = DetectHit(moveDirection, ref movement);
+            if (!flowControl)
+            {
+                return;
+            }
 
+            rb.MovePosition(rb.position + movement);
+        }
+
+        private bool DetectHit(Vector3 moveDirection, ref Vector3 movement)
+        {
             if (Physics.Raycast(
-                    rb.position,
-                    moveDirection,
-                    out RaycastHit hit,
-                    movement.magnitude,
-                    HitMask,
-                    QueryTriggerInteraction.Ignore))
+                                rb.position,
+                                moveDirection,
+                                out RaycastHit hit,
+                                movement.magnitude,
+                                HitMask,
+                                QueryTriggerInteraction.Ignore))
             {
                 if (owner != null && hit.collider.transform.IsChildOf(owner.transform))
                 {
                     rb.MovePosition(rb.position + movement);
-                    return;
+                    return false;
                 }
 
                 IDamageable damageable = hit.collider.GetComponentInParent<IDamageable>();
+
+                if (damageable != null && damageable.Team == damageData.AttackerTeam)
+                {
+                    rb.MovePosition(rb.position + movement);
+                    return false;
+                }
 
                 Vector3 impactPoint = damageable != null
                     ? damageable.TargetPoint
@@ -179,10 +197,10 @@ namespace ShiftedSignal.Garden.Effects
                     : Quaternion.identity;
 
                 HandleImpact(impactPoint, damageable, hitRotation);
-                return;
+                return false;
             }
 
-            rb.MovePosition(rb.position + movement);
+            return true;
         }
 
         private void MoveArcProjectile()
@@ -253,7 +271,9 @@ namespace ShiftedSignal.Garden.Effects
             else
             {
                 if (directTarget != null)
+                {
                     directTarget.TakeDamage(damageData);
+                }
 
                 SpawnHitVFX(impactPoint, hitRotation);
             }

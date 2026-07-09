@@ -26,11 +26,19 @@ namespace ShiftedSignal.Garden.Units
 
         public bool CanAfford()
         {
+            if (SupplyCost == null)
+            {
+                Debug.LogError($"{name} has no SupplyCostSO assigned.");
+                return false;
+            }
+            
             return SupplyCost != null && SupplyCost.CanAfford();
         }
 
         public void SpendCost()
         {
+            
+
             SupplyCost?.Spend();
         }
 
