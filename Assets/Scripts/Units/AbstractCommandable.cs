@@ -21,10 +21,12 @@ namespace ShiftedSignal.Garden.Units
         [Header("Targeting")]
         [SerializeField] private TargetPriority targetPriority;
 
-        protected abstract AbstractUnitSO Config { get; }
+        protected abstract AbstractUnitSO config { get; }
+
+        public AbstractUnitSO Config => config;
 
         public Transform Transform => transform;
-        public CombatTeam Team => Config != null ? Config.Team : CombatTeam.Neutral;
+        public CombatTeam Team => config != null ? config.Team : CombatTeam.Neutral;
         public TargetPriority TargetPriority => targetPriority;
 
         private BaseCommand[] initialCommands;
@@ -69,7 +71,7 @@ namespace ShiftedSignal.Garden.Units
 
         protected virtual void Start()
         {
-            int maxHealth = Config != null ? Config.Health : MaxHealth;
+            int maxHealth = config != null ? config.Health : MaxHealth;
 
             SetHealth(maxHealth, maxHealth);
 

@@ -35,7 +35,7 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Build Info")]
         public BuildingSO UnitSO;
 
-        protected override AbstractUnitSO Config => UnitSO;
+        protected override AbstractUnitSO config => UnitSO;
 
         #endregion
 
@@ -55,9 +55,12 @@ namespace ShiftedSignal.Garden.Buildable
         [SerializeField] private ProgressBarWorld progressBarWorld;
 
         [SerializeField] private BuildingState buildingState = BuildingState.Complete;
-        [SerializeField] private float buildInteractionDistance = 3f;
+        [SerializeField] private float buildInteractionDistance = 8f;
 
         private float buildProgress;
+        private float buildStartTime;
+
+        public float BuildStartTime => buildStartTime;
 
         public BuildingState CurrentBuildingState => buildingState;
         public bool IsComplete => buildingState == BuildingState.Complete;
@@ -229,6 +232,7 @@ namespace ShiftedSignal.Garden.Buildable
 
             buildingState = BuildingState.UnderConstruction;
             buildProgress = 0f;
+            buildStartTime = Time.time;
 
             IsActive = false;
 
@@ -257,6 +261,7 @@ namespace ShiftedSignal.Garden.Buildable
             buildProgress = Mathf.Clamp(buildProgress, 0f, BuildTime);
 
             HandleBuildProgressUpdated(buildProgress, BuildTime);
+
             OnBuildProgressUpdated?.Invoke(buildProgress, BuildTime);
 
             if (buildProgress >= BuildTime)
@@ -272,6 +277,7 @@ namespace ShiftedSignal.Garden.Buildable
             buildProgress = Mathf.Clamp(buildProgress, 0f, BuildTime);
 
             HandleBuildProgressUpdated(buildProgress, BuildTime);
+
             OnBuildProgressUpdated?.Invoke(buildProgress, BuildTime);
 
             if (buildProgress >= BuildTime)

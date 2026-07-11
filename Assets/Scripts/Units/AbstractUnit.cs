@@ -17,7 +17,7 @@ namespace ShiftedSignal.Garden.Units
     public abstract class AbstractUnit : AbstractCommandable, IMoveable, IAttacker
     {
         [Header("Unit Config")]
-        protected override AbstractUnitSO Config => UnitSO;
+        protected override AbstractUnitSO config => UnitSO;
         public AbstractUnitSO UnitData => UnitSO;
         [SerializeField] private AbstractUnitSO UnitSO;
         [SerializeField] private float AnimationUpdateRate = 0.1f;
