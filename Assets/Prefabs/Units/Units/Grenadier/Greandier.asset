@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Greandier
   m_EditorClassIdentifier: 
   <ItemID>k__BackingField: Greandier
-  <Name>k__BackingField: Unit
+  <Name>k__BackingField: Grenadier
   <Icon>k__BackingField: {fileID: 0}
   <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: b04639d092dd4c24d976c8397c103940, type: 3}
   <Health>k__BackingField: 100

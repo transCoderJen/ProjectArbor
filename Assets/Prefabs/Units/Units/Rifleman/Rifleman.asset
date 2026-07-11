@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rifleman
   m_EditorClassIdentifier: 
   <ItemID>k__BackingField: Rifleman
-  <Name>k__BackingField: Unit
+  <Name>k__BackingField: Rifleman
   <Icon>k__BackingField: {fileID: -2127072776, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: 6501654f5063ac743916ddad2f4c8625, type: 3}
   <Health>k__BackingField: 100

@@ -1,4 +1,5 @@
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Units;
 using System;
 using Unity.Behavior;
 using UnityEngine;
@@ -14,7 +15,9 @@ public partial class BuildingUnderConstructionCondition : Condition
         if (BuildTarget == null || BuildTarget.Value == null)
             return false;
 
-        return BuildTarget.Value.CurrentBuildingState == BuildingState.UnderConstruction;
+        // return BuildTarget.Value.CurrentBuildingState == BuildingState.UnderConstruction;
+        return BuildTarget.Value.Progress.State == BuildingProgress.BuildingState.Building;
+
     }
 
 }

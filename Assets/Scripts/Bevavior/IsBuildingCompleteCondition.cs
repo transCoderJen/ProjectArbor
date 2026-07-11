@@ -1,5 +1,6 @@
 using System;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Units;
 using Unity.Behavior;
 using UnityEngine;
 
@@ -14,6 +15,6 @@ public partial class IsBuildingCompleteCondition : Condition
         if (BuildTarget == null || BuildTarget.Value == null)
             return false;
 
-        return BuildTarget.Value.CurrentBuildingState == BuildingState.Complete;
+        return BuildTarget.Value.Progress.State == BuildingProgress.BuildingState.Completed;
     }
 }

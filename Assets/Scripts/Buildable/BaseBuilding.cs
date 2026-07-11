@@ -18,14 +18,6 @@ using UnityEngine.AI;
 
 namespace ShiftedSignal.Garden.Buildable
 {
-    [BlackboardEnum]
-    public enum BuildingState
-    {
-        Preview,
-        UnderConstruction,
-        Complete
-    }
-
     [RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(NavMeshObstacle))]
     public class BaseBuilding : AbstractCommandable, IInteractable, IContinuousInteractable
@@ -53,26 +45,25 @@ namespace ShiftedSignal.Garden.Buildable
 
         [Header("Building State / Progress")]
         [SerializeField] private ProgressBarWorld progressBarWorld;
-
-        [SerializeField] private BuildingState buildingState = BuildingState.Complete;
+        [SerializeField] private BuildingProgress progress = new();
         [SerializeField] private float buildInteractionDistance = 8f;
 
-        private float buildProgress;
-        private float buildStartTime;
+        public BuildingProgress Progress => progress;
 
-        public float BuildStartTime => buildStartTime;
+        public bool IsComplete => progress.IsCompleted;
+        public bool IsUnderConstruction => progress.IsBuilding;
 
-        public BuildingState CurrentBuildingState => buildingState;
-        public bool IsComplete => buildingState == BuildingState.Complete;
-        public bool IsUnderConstruction => buildingState == BuildingState.UnderConstruction;
+        public float BuildProgress => progress.Progress;
 
-        public float BuildProgress => buildProgress;
-        public float BuildTime => UnitSO != null ? UnitSO.BuildTime : 0f;
+        public float BuildTime =>
+            UnitSO != null
+                ? UnitSO.BuildTime
+                : 0f;
 
         public float BuildProgressPercent =>
             BuildTime <= 0f
                 ? 1f
-                : Mathf.Clamp01(buildProgress / BuildTime);
+                : Mathf.Clamp01(progress.Progress / BuildTime);
 
         #endregion
 
@@ -198,9 +189,7 @@ namespace ShiftedSignal.Garden.Buildable
                 Debug.LogWarning($"{name} progressBarWorld is null");
                 return;
             }
-
-            Debug.Log($"{name} enabling progress bar: {current}/{max}");
-
+            
             progressBarWorld.gameObject.SetActive(true);
 
             float progress = max > 0f ? current / max : 1f;
@@ -226,13 +215,11 @@ namespace ShiftedSignal.Garden.Buildable
         {
             if (progressBarWorld != null)
             {
-                progressBarWorld.gameObject.SetActive(false);
                 progressBarWorld.SetProgress(0f);
+                progressBarWorld.gameObject.SetActive(false);
             }
 
-            buildingState = BuildingState.UnderConstruction;
-            buildProgress = 0f;
-            buildStartTime = Time.time;
+            progress.Start();
 
             IsActive = false;
 
@@ -240,56 +227,74 @@ namespace ShiftedSignal.Garden.Buildable
             ShowGhostVisuals();
             SetSolid(false);
 
-            Bus<BuildingPlacedForConstructionEvent>.Raise(new BuildingPlacedForConstructionEvent(this));
+            Bus<BuildingPlacedForConstructionEvent>.Raise(
+                new BuildingPlacedForConstructionEvent(this));
         }
 
-        public virtual void AddBuildProgress(Worker worker, float amount)
+       public virtual void AddBuildProgress(
+            Worker worker,
+            float amount)
         {
-            if (!IsUnderConstruction)
+            if (!progress.IsBuilding)
                 return;
 
             if (worker == null)
                 return;
 
-            float distance = Vector3.Distance(worker.transform.position, transform.position);
-            
+            float distance = Vector3.Distance(
+                worker.transform.position,
+                transform.position);
 
             if (distance > buildInteractionDistance)
                 return;
 
-            buildProgress += amount;
-            buildProgress = Mathf.Clamp(buildProgress, 0f, BuildTime);
-
-            HandleBuildProgressUpdated(buildProgress, BuildTime);
-
-            OnBuildProgressUpdated?.Invoke(buildProgress, BuildTime);
-
-            if (buildProgress >= BuildTime)
-                CompleteBuilding();
+            AddBuildProgressInternal(amount);
         }
 
         public virtual void AddBuildProgress(float amount)
         {
-            if (!IsUnderConstruction)
+            if (!progress.IsBuilding)
                 return;
 
-            buildProgress += amount;
-            buildProgress = Mathf.Clamp(buildProgress, 0f, BuildTime);
+            AddBuildProgressInternal(amount);
+        }
 
-            HandleBuildProgressUpdated(buildProgress, BuildTime);
+        private void AddBuildProgressInternal(float amount)
+        {
+            progress.AddProgress(amount, BuildTime);
 
-            OnBuildProgressUpdated?.Invoke(buildProgress, BuildTime);
+            HandleBuildProgressUpdated(
+                progress.Progress,
+                BuildTime);
 
-            if (buildProgress >= BuildTime)
-                CompleteBuilding();
+            OnBuildProgressUpdated?.Invoke(
+                progress.Progress,
+                BuildTime);
+
+            if (progress.IsCompleted)
+                FinishBuilding();
         }
 
         public virtual void CompleteBuilding()
         {
-            buildingState = BuildingState.Complete;
-            buildProgress = BuildTime;
+            if (!progress.IsCompleted)
+            {
+                progress.Complete(BuildTime);
 
-            OnBuildProgressUpdated?.Invoke(buildProgress, BuildTime);
+                HandleBuildProgressUpdated(
+                    progress.Progress,
+                    BuildTime);
+
+                OnBuildProgressUpdated?.Invoke(
+                    progress.Progress,
+                    BuildTime);
+            }
+
+            FinishBuilding();
+        }
+
+        private void FinishBuilding()
+        {
             HandleBuildCompleted();
             OnBuildCompleted?.Invoke();
 
@@ -624,6 +629,8 @@ namespace ShiftedSignal.Garden.Buildable
 
         protected virtual void DestroyBuilding()
         {
+            progress.MarkDestroyed();
+
             if (OccupiedBlock != null)
             {
                 GrowBlock block = OccupiedBlock;
@@ -646,8 +653,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         public virtual void RestoreFromSave(int savedHP)
         {
-            buildingState = BuildingState.Complete;
-            buildProgress = BuildTime;
+            progress.Complete(BuildTime);
 
             RestoreOriginalMaterials();
             SetSolid(true);
@@ -661,7 +667,10 @@ namespace ShiftedSignal.Garden.Buildable
             SetHealth(restoredHP, MaxHealth);
 
             if (progressBarWorld != null)
+            {
+                progressBarWorld.SetProgress(1f);
                 progressBarWorld.gameObject.SetActive(false);
+            }
         }
 
         #endregion

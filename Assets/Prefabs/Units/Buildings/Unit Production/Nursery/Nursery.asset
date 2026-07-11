@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Nursery
   m_EditorClassIdentifier: 
   <ItemID>k__BackingField: Nursery
-  <Name>k__BackingField: Unit
+  <Name>k__BackingField: Windmill
   <Icon>k__BackingField: {fileID: 0}
   <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: dc01a0ac593ffe9438640fabb59f4df7, type: 3}
   <Health>k__BackingField: 100

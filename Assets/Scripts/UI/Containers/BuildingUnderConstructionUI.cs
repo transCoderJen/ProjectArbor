@@ -27,27 +27,16 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         private IEnumerator AnimateBuildingProgress(BaseBuilding building)
         {
-            if (building == null)
-            {
-                yield break;
-            }
-
-            int frameCount = 0;
-
             while (enabled && building.IsUnderConstruction)
             {
-                frameCount++;
-
-                float progress = building.BuildProgressPercent;
-                progressBar.SetProgress(progress);
+                progressBar.SetProgress(
+                    building.BuildProgressPercent);
 
                 yield return null;
             }
 
-
-            if (building != null && building.IsComplete)
+            if (building.IsComplete)
                 progressBar.SetProgress(1f);
-
         }
     }
 }

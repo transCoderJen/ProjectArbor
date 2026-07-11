@@ -18,11 +18,11 @@ MonoBehaviour:
   <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: 141ef5dbf2811c24db0735287bf874b3, type: 3}
   <Health>k__BackingField: 300
   <BuildTime>k__BackingField: 5
-  <SupplyCost>k__BackingField: {fileID: 0}
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
   <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
-  GhostMaterial: {fileID: 0}
+  GhostMaterial: {fileID: -876546973899608171, guid: 7eee57009178e764f8fa7ecf15808336, type: 3}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 30
