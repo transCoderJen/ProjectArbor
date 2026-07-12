@@ -125,6 +125,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         private float nextDragBuildTime;
         private float currentBuildYRotation;
 
+        private bool buildingPlacementActive;
+        public bool IsPlacingBuilding => buildingPlacementActive;
+        private bool commandDragPlacementEnabled;
         private GameObject ghostInstance;
         private MeshRenderer[] ghostRenderers;
         private SpriteRenderer[] ghostSpriteRenderers;
@@ -282,6 +285,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             UpdateInteractableHighlight();
             HandleDebugInputs();
+
+            if (buildingPlacementActive &&
+                !InManagementState &&
+                !InCommanderMode)
+            {
+                CancelBuildingPlacement();
+            }
 
             CreateGhost();
             HandleGhost();
@@ -509,7 +519,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleBuildDrag()
         {
-            if (!InManagementState)
+            bool managementDragActive = InManagementState;
+
+            bool commandPlacementActive =
+                InCommanderMode &&
+                buildingPlacementActive;
+
+            if (!managementDragActive && !commandPlacementActive)
             {
                 ResetBuildDrag();
                 return;
@@ -518,14 +534,17 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (inputReader == null)
                 return;
 
+            if (commandPlacementActive && !commandDragPlacementEnabled)
+            {
+                HandleSingleCommandPlacement();
+                return;
+            }
+
             if (!inputReader.AttackHeld)
             {
                 ResetBuildDrag();
                 return;
             }
-
-            // if (Time.time < nextDragBuildTime)
-            //     return;
 
             GrowBlock block = GetBlock();
 
@@ -535,19 +554,58 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (dragVisitedBlocks.Contains(block))
                 return;
 
-            dragVisitedBlocks.Add(block);
+            if (commandPlacementActive)
+            {
+                TryPlaceSelectedBuilding(block);
+                return;
+            }
 
-            if (block.HasBuildable)
+            // Old dedicated management building mode.
+            if (TryBuildOnBlock(block))
+                dragVisitedBlocks.Add(block);
+        }
+
+        private void HandleSingleCommandPlacement()
+        {
+            if (Mouse.current == null)
                 return;
 
-            TryBuildOnBlock(block);
-            // if (TryBuildOnBlock(block))
-            //     nextDragBuildTime = Time.time + dragBuildCooldown;
+            if (!Mouse.current.leftButton.wasReleasedThisFrame)
+                return;
+
+            GrowBlock block = GetBlock();
+
+            if (block == null)
+                return;
+
+            TryPlaceSelectedBuilding(block);
         }
 
         private void ResetBuildDrag()
         {
             dragVisitedBlocks.Clear();
+        }
+
+        public bool TryPlaceSelectedBuilding(GrowBlock targetBlock)
+        {
+            if (!buildingPlacementActive)
+                return false;
+
+            if (targetBlock == null)
+                return false;
+
+            if (dragVisitedBlocks.Contains(targetBlock))
+                return false;
+
+            if (!TryBuildOnBlock(targetBlock))
+                return false;
+
+            dragVisitedBlocks.Add(targetBlock);
+
+            if (!commandDragPlacementEnabled)
+                CancelBuildingPlacement();
+
+            return true;
         }
 
         private bool TryBuildOnBlock(GrowBlock block)
@@ -737,9 +795,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         #region Ghost
 
+        public void ShowBuildingGhost(BuildingSO building, bool allowDragPlacement)
+        {
+            if (building == null || building.Prefab == null)
+                return;
+
+            DestroyGhost();
+            ResetBuildDrag();
+
+            EquippedBuildable = building;
+            commandDragPlacementEnabled = allowDragPlacement;
+            buildingPlacementActive = true;
+        }
+        
         private void CreateGhost()
         {
-            if (!InManagementState)
+            if (!buildingPlacementActive)
+                return;
+
+            if (!InManagementState && !InCommanderMode)
                 return;
 
             if (ghostInstance != null)
@@ -749,10 +823,24 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 return;
 
             ghostInstance = Instantiate(EquippedBuildable.Prefab);
-            ghostRenderers = ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
-            ghostSpriteRenderers = ghostInstance.GetComponentsInChildren<SpriteRenderer>(true);
+
+            ghostRenderers =
+                ghostInstance.GetComponentsInChildren<MeshRenderer>(true);
+
+            ghostSpriteRenderers =
+                ghostInstance.GetComponentsInChildren<SpriteRenderer>(true);
 
             ApplyGhostMaterial();
+        }
+
+        public void CancelBuildingPlacement()
+        {
+            buildingPlacementActive = false;
+            commandDragPlacementEnabled = false;
+            EquippedBuildable = null;
+
+            ResetBuildDrag();
+            DestroyGhost();
         }
 
         private void ApplyGhostMaterial()

@@ -22,7 +22,7 @@ MonoBehaviour:
   <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
-  GhostMaterial: {fileID: -876546973899608171, guid: 7eee57009178e764f8fa7ecf15808336, type: 3}
+  GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 30

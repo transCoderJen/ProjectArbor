@@ -40,11 +40,11 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             for (int i = 0; i < actionButtons.Length; i++)
             {
-                BaseCommand actionForSlot = availableCommands.Where(action => action.Slot == i).FirstOrDefault();
+                BaseCommand commandForSlot = availableCommands.FirstOrDefault(command => command.Slot == i);
 
-                if (actionForSlot != null)
+                if (commandForSlot != null)
                 {
-                    actionButtons[i].EnableFor(actionForSlot, HandleClick(actionForSlot));
+                    actionButtons[i].EnableFor(commandForSlot, HandleClick(commandForSlot, selectedUnits.First()));
                 }
                 else
                 {
@@ -53,9 +53,14 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             }
         }
 
-        private UnityAction HandleClick(BaseCommand action)
+        private UnityAction HandleClick(BaseCommand action, AbstractCommandable selectedUnit)
         {
-            return () => Bus<ActionSelectedEvent>.Raise(new ActionSelectedEvent(action));
+            return () =>
+            {
+                action.Activate(selectedUnit);
+
+                Bus<ActionSelectedEvent>.Raise(new ActionSelectedEvent(action));
+            };
         }
     }
 }

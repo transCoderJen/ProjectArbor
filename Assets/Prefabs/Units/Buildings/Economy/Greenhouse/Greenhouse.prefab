@@ -166,8 +166,10 @@ MonoBehaviour:
   UnitSO: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
   IsActive: 0
   progressBarWorld: {fileID: 0}
-  buildingState: 2
-  buildInteractionDistance: 3
+  progress:
+    <Progress>k__BackingField: 0
+    <State>k__BackingField: 1
+  buildInteractionDistance: 8
   HasTimedEffects: 0
   HasConstantEffects: 0
   TimedEffects: []

@@ -14,15 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <ItemID>k__BackingField: Seed Vault
   <Name>k__BackingField: Seed Vault
-  <Icon>k__BackingField: {fileID: 0}
+  <Icon>k__BackingField: {fileID: 1079930780, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: 0ad4f300583783043b46e6656250f87d, type: 3}
   <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
-  <SupplyCost>k__BackingField: {fileID: 0}
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
   <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
-  GhostMaterial: {fileID: 0}
+  GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
   XRotation: 30

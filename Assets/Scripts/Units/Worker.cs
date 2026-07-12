@@ -5,6 +5,7 @@ using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Environment;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.SaveAndLoad;
@@ -174,6 +175,11 @@ namespace ShiftedSignal.Garden.Units
             graphAgent.SetVariableValue("Command", UnitCommands.Build);
         }
 
+        public void Build(BaseBuilding building, GrowBlock targetBlock)
+        {
+            throw new NotImplementedException();
+        }
+
         public void ResumeBuilding(BaseBuilding building)
         {
             throw new System.NotImplementedException();
@@ -305,6 +311,8 @@ namespace ShiftedSignal.Garden.Units
 
             return null;
         }
-#endregion
+
+        
+        #endregion
     }
 }

@@ -304,6 +304,8 @@ namespace ShiftedSignal.Garden.Buildable
             IsActive = true;
             SetHealth(MaxHealth, MaxHealth);
 
+            Bus<BuildingSpawnEvent>.Raise(new BuildingSpawnEvent(this));
+
             if (OccupiedBlock != null)
                 OccupiedBlock.UpdateGridInfo();
         }

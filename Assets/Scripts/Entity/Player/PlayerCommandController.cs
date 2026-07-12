@@ -92,6 +92,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void HandleCommanderUpdate()
         {
+            if (Player.Instance.IsPlacingBuilding) return; 
             HandleRightClick();
             HandleDragSelect();
         }
@@ -150,10 +151,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleMouseDown()
         {
-            selectionBox.gameObject.SetActive(true);
-            startingMousePosition = Mouse.current.position.ReadValue();
-            addedUnits.Clear();
             wasMouseDownOnUI = EventSystem.current.IsPointerOverGameObject();
+            addedUnits.Clear();
+
+            if (activeAction != null || wasMouseDownOnUI)
+            {
+                selectionBox.gameObject.SetActive(false);
+                selectionBox.sizeDelta = Vector2.zero;
+                return;
+            }
+
+            startingMousePosition = Mouse.current.position.ReadValue();
+            selectionBox.gameObject.SetActive(true);
         }
 
         private void DeselectAllUnits()

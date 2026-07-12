@@ -1,3 +1,4 @@
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Commands
@@ -13,5 +14,9 @@ namespace ShiftedSignal.Garden.Commands
         public abstract void Handle(CommandContext context);
 
         public abstract bool IsLocked(CommandContext context);
+
+        public virtual void Activate(AbstractCommandable commandable)
+        {
+        }
     }
 }

@@ -1,4 +1,5 @@
 
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Commands
@@ -16,6 +17,8 @@ namespace ShiftedSignal.Garden.Commands
         public override void Handle(CommandContext context)
         {
             context.Commandable.SetCommandOverrides(Commands);
+            if (Player.Instance.IsPlacingBuilding)
+                Player.Instance.CancelBuildingPlacement();
         }
 
         public override bool IsLocked(CommandContext context) => false;

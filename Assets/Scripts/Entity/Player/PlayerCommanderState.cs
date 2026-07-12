@@ -46,8 +46,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (Keyboard.current != null &&
                 Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                TryExitCommanderMode();
-                return;
+                if (Player.IsPlacingBuilding)
+                {
+                    Player.CancelBuildingPlacement();
+                }
+                else
+                {
+                    TryExitCommanderMode();
+                    return;
+                }
             }
 
             PlayerCommanderController commanderController =

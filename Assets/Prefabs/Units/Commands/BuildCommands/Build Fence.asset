@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 353c2407ad65e0e4ca7d797bc368cca4, type: 3}
+  m_Name: Build Fence
+  m_EditorClassIdentifier: 
+  <Icon>k__BackingField: {fileID: 503701742, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
+  <Slot>k__BackingField: 0
+  <RequiresClickToActivate>k__BackingField: 1
+  <GhostPrefab>k__BackingField: {fileID: 0}
+  <AllowDragPlacement>k__BackingField: 1
+  <Building>k__BackingField: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
