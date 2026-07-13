@@ -15,10 +15,11 @@ MonoBehaviour:
   <ItemID>k__BackingField: Compost Bin
   <Name>k__BackingField: Composts Bin
   <Icon>k__BackingField: {fileID: 1999981434, guid: da12e08b4d70d584b9df54e142554f50, type: 3}
-  <Prefab>k__BackingField: {fileID: 7523470629771963246, guid: 207ed1b8f279fe949b12e40be96b58c5, type: 3}
-  <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 0}
+  <unlockRequirements>k__BackingField: []
+  <Prefab>k__BackingField: {fileID: 7523470629771963246, guid: 207ed1b8f279fe949b12e40be96b58c5, type: 3}
+  <Health>k__BackingField: 100
   <Team>k__BackingField: 0
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 

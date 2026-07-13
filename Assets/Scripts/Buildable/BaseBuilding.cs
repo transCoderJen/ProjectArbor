@@ -606,8 +606,8 @@ namespace ShiftedSignal.Garden.Buildable
             Debug.Log(
                 $"{name} building hit | " +
                 $"IsActive: {IsActive} | " +
-                $"AttackerTeam: {damageData.AttackerTeam} | " +
-                $"TargetTeam: {Team} | " +
+                $"AttackerTeam: {damageData.Owner} | " +
+                $"TargetTeam: {Owner} | " +
                 $"CanDamageBuildables: {damageData.CanDamageBuildables}");
 
             if (!IsActive)

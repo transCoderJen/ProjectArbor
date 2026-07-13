@@ -1,6 +1,7 @@
 using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.GridSystem;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace ShiftedSignal.Garden.Commands
         menuName = "Units/Commands/Build Building")]
     public class BuildBuildingCommand : BaseCommand
     {
+        [field: SerializeField] private TechTreeSO techTree;
         [field: SerializeField] public bool AllowDragPlacement { get; private set; }
         [field: SerializeField] public BuildingSO Building { get; private set; }
 
@@ -42,9 +44,6 @@ namespace ShiftedSignal.Garden.Commands
             Player.Instance.TryPlaceSelectedBuilding(targetBlock);
         }
 
-        public override bool IsLocked(CommandContext context)
-        {
-            return Building == null || !Building.CanAfford();
-        }
+        public override bool IsLocked(CommandContext context) => !Building.CanAfford() || !techTree.IsUnlocked(Building);
     }
 }

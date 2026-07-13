@@ -33,7 +33,7 @@ namespace ShiftedSignal.Garden.Buildable
 
             IDamageable target = tower.DamageableSensor.GetNearestValidTarget(
                 spawnPoint.position,
-                tower.Team);
+                tower.Owner);
 
             if (target == null)
                 return;
@@ -69,7 +69,7 @@ namespace ShiftedSignal.Garden.Buildable
 
                 projectile.SetDamageData(new DamageData(
                     tower.AttackConfig.AttackDamage,
-                    tower.Team,
+                    tower.Owner,
                     tower.transform,
                     tower.AttackConfig.Knockback,
                     tower.AttackConfig.IgnoreFriendlyFire,

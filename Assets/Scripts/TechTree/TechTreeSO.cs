@@ -15,49 +15,72 @@ namespace ShiftedSignal.Garden.TechTree
 
         public IEnumerable<UnlockableSO> AllUnlockables => allUnlockables.ToList();
 
-        private Dictionary<CombatTeam, Dictionary<UnlockableSO, Dependency>> techTrees;
+        private Dictionary<UnlockableSO, Dependency> techTree;
+
+        public bool IsUnlocked(UnlockableSO unlockable) => techTree.TryGetValue(unlockable, out Dependency dependency)
+            && dependency.IsUnlocked;
 
         private void OnEnable()
         {
-            // if (techTrees == null)
-            // {
-            //     BuildTechTrees();
-            // }
+            if (techTree == null)
+            {
+                BuildTechTrees();
+            }
 
-
-
+            Bus<BuildingSpawnEvent>.OnEvent += HandleBuildingSpawn;
         }
 
         void OnDisable()
         {
-            techTrees = null;
+            techTree = null;
+            Bus<BuildingSpawnEvent>.OnEvent -= HandleBuildingSpawn;
+        }
+
+        private void HandleBuildingSpawn(BuildingSpawnEvent evt)
+        {
+            if (evt.Building == null)
+                return;
+
+            UnlockableSO spawnedBuilding = evt.Building.UnitSO;
+
+            foreach (Dependency dependency in techTree.Values)
+            {
+                dependency.UnlockDependency(spawnedBuilding);
+            }
         }
 
         private void BuildTechTrees()
         {
-            techTrees = new Dictionary<CombatTeam, Dictionary<UnlockableSO, Dependency>>();
-            Debug.Log($"Building Tech Tree {name}");
+            techTree = new Dictionary<UnlockableSO, Dependency>(
+                allUnlockables.Count);
 
-            foreach(CombatTeam owner in Enum.GetValues(typeof(CombatTeam)))
+            foreach(UnlockableSO unlockableSO in allUnlockables)
             {
-                Debug.Log(($"Adding {owner} to Tech Tree Dictionary"));
-                techTrees.Add(owner, new Dictionary<UnlockableSO, Dependency>());
-
-                foreach(UnlockableSO unlockableSO in allUnlockables)
-                {
-                    techTrees[owner].Add(unlockableSO, new Dependency(unlockableSO));
-                    Debug.Log($"Configuring {unlockableSO}'s {unlockableSO.UnlockRequirements.Count()} dependencies");
-                }
-            }
+                techTree.Add(unlockableSO, new Dependency(unlockableSO));
+                Debug.Log($"Configuring {unlockableSO}'s {unlockableSO.UnlockRequirements.Count()} dependencies");
+            }   
         }
 
         private readonly struct Dependency
         {
             public HashSet<UnlockableSO> Dependencies { get; }
+            public bool IsUnlocked => Dependencies.Count == metDependencies.Count;
+            private readonly Dictionary<UnlockableSO, int> metDependencies;
 
             public Dependency(UnlockableSO unlockable)
             {
                 Dependencies = new HashSet<UnlockableSO>(unlockable.UnlockRequirements);
+                metDependencies = new Dictionary<UnlockableSO, int>(Dependencies.Count);
+            }
+
+            public void UnlockDependency(UnlockableSO dependency)
+            {
+                Debug.Log($"Attempting to unlock dependancy { dependency.Name}");
+
+                if (Dependencies.Contains(dependency) && !metDependencies.TryAdd(dependency, 1))
+                {
+                    metDependencies[dependency]++;
+                }
             }
         }
     }

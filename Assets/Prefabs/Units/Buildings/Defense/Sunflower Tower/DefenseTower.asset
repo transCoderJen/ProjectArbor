@@ -15,10 +15,11 @@ MonoBehaviour:
   <ItemID>k__BackingField: DefenseTower
   <Name>k__BackingField: Unit
   <Icon>k__BackingField: {fileID: -1799698039, guid: 93dec65306ab0eb409b3d4dd942ccc47, type: 3}
-  <Prefab>k__BackingField: {fileID: 3836948818877905757, guid: 25da75055d29dbd499a5ccd831bcbe03, type: 3}
-  <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
+  <unlockRequirements>k__BackingField: []
+  <Prefab>k__BackingField: {fileID: 3836948818877905757, guid: 25da75055d29dbd499a5ccd831bcbe03, type: 3}
+  <Health>k__BackingField: 100
   <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 11400000, guid: 7f7c39eb5f5d7fe418d06a45dba9a380, type: 2}
   SaveID: 

@@ -182,7 +182,7 @@ namespace ShiftedSignal.Garden.Effects
 
                 IDamageable damageable = hit.collider.GetComponentInParent<IDamageable>();
 
-                if (damageable != null && damageable.Team == damageData.AttackerTeam)
+                if (damageable != null && damageable.Owner == damageData.Owner)
                 {
                     rb.MovePosition(rb.position + movement);
                     return false;
@@ -320,7 +320,7 @@ namespace ShiftedSignal.Garden.Effects
 
                 DamageData explosionDamage = new DamageData(
                     attackConfig.ExplosionDamage,
-                    damageData.AttackerTeam,
+                    damageData.Owner,
                     damageData.Attacker,
                     damageData.Knockback,
                     damageData.IgnoreFriendlyFire,

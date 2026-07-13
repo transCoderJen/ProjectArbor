@@ -54,7 +54,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             DamageData damageData = new DamageData(
                 player.AttackDamage,
-                CombatTeam.Player,
+                Owner.Player,
                 player.transform,
                 true);
 

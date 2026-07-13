@@ -15,11 +15,12 @@ MonoBehaviour:
   <ItemID>k__BackingField: Nursery
   <Name>k__BackingField: Windmill
   <Icon>k__BackingField: {fileID: 0}
-  <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: dc01a0ac593ffe9438640fabb59f4df7, type: 3}
-  <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 0}
-  <Team>k__BackingField: 0
+  <unlockRequirements>k__BackingField: []
+  <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: dc01a0ac593ffe9438640fabb59f4df7, type: 3}
+  <Health>k__BackingField: 100
+  <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 0}

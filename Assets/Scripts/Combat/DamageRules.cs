@@ -4,7 +4,7 @@ namespace ShiftedSignal.Garden.Combat
 {
     public static class DamageRules
     {
-        public static bool CanDamage(CombatTeam attacker, CombatTeam target)
+        public static bool CanDamage(Owner attacker, Owner target)
         {
             bool sameTeam = attacker == target;
 
@@ -13,26 +13,26 @@ namespace ShiftedSignal.Garden.Combat
 
             switch (attacker)
             {
-                case CombatTeam.Player:
-                    return target == CombatTeam.Enemy ||
-                        target == CombatTeam.Neutral;
+                case Owner.Player:
+                    return target == Owner.Enemy ||
+                        target == Owner.Unowned;
 
-                case CombatTeam.Enemy:
-                    return target == CombatTeam.Player ||
-                        target == CombatTeam.Friendly ||
-                        target == CombatTeam.Buildable ||
-                        target == CombatTeam.Neutral;
+                case Owner.Enemy:
+                    return target == Owner.Player ||
+                        target == Owner.Friendly ||
+                        target == Owner.Buildable ||
+                        target == Owner.Unowned;
 
-                case CombatTeam.Friendly:
-                    return target == CombatTeam.Enemy ||
-                        target == CombatTeam.Neutral;
+                case Owner.Friendly:
+                    return target == Owner.Enemy ||
+                        target == Owner.Unowned;
 
-                case CombatTeam.Buildable:
-                    return target == CombatTeam.Enemy ||
-                        target == CombatTeam.Neutral;
+                case Owner.Buildable:
+                    return target == Owner.Enemy ||
+                        target == Owner.Unowned;
 
-                case CombatTeam.Neutral:
-                    return target != CombatTeam.Neutral;
+                case Owner.Unowned:
+                    return target != Owner.Unowned;
 
                 default:
                     return false;

@@ -143,7 +143,7 @@ namespace ShiftedSignal.Garden.EntitySpace.EnemySpace.EnemyTypes.Wolf
             damageable.TakeDamage(
                 new DamageData(
                     DebugAttackDamage,
-                    CombatTeam.Enemy,
+                    Owner.Enemy,
                     wolf.transform
                 )
             );

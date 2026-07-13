@@ -10,9 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 75f2fc624c83a3a44ac66ba81fcfb9cd, type: 3}
-  m_Name: Build Rootling
+  m_Name: Build Grenadier
   m_EditorClassIdentifier: 
   <Icon>k__BackingField: {fileID: -1200212407, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   <Slot>k__BackingField: 1
   <RequiresClickToActivate>k__BackingField: 0
+  techTree: {fileID: 11400000, guid: a9bc361e44a24f24c844c8d1badba98d, type: 2}
   <Unit>k__BackingField: {fileID: 11400000, guid: ec94da950a5f1ae43a97d549551d5c53, type: 2}

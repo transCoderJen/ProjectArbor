@@ -12,7 +12,7 @@ namespace ShiftedSignal.Garden.Units
         [field: SerializeField] public int Health { get; private set; } = 100;
 
         [field: Header("Combat")]
-        [field: SerializeField] public CombatTeam Team { get; private set; } = CombatTeam.Neutral;
+        [field: SerializeField] public Owner Team { get; private set; } = Owner.Unowned;
         [field: SerializeField] public AttackConfigSO AttackConfig { get; private set; }
         
         public bool CanAfford()

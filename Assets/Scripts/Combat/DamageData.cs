@@ -2,20 +2,13 @@ using UnityEngine;
 
 namespace ShiftedSignal.Garden.Combat
 {
-    public enum CombatTeam
-    {
-        Neutral,
-        Player,
-        Enemy,
-        Friendly,
-        Buildable
-    }
+    
 
     public readonly struct DamageData
     {
         public readonly int Amount;
         public readonly Transform Attacker;
-        public readonly CombatTeam AttackerTeam;
+        public readonly Owner Owner;
 
         public readonly bool Knockback;
 
@@ -24,7 +17,7 @@ namespace ShiftedSignal.Garden.Combat
 
         public DamageData(
             int amount,
-            CombatTeam attackerTeam,
+            Owner owner,
             Transform attacker = null,
             bool knockback = true,
             bool ignoreFriendlyFire = true,
@@ -32,7 +25,7 @@ namespace ShiftedSignal.Garden.Combat
         {
             Amount = Mathf.Max(1, amount);
 
-            AttackerTeam = attackerTeam;
+            Owner = owner;
             Attacker = attacker;
 
             Knockback = knockback;

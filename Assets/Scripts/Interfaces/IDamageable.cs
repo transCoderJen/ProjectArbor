@@ -10,8 +10,7 @@ namespace ShiftedSignal.Garden.Interfaces
         public int CurrentHealth { get; }
         public Transform Transform { get; }
         Vector3 TargetPoint { get; }
-
-        CombatTeam Team { get; }
+        Owner Owner { get; }
         TargetPriority TargetPriority { get; }
 
         virtual void TakeDamage(DamageData damageData)

@@ -12,6 +12,7 @@ namespace ShiftedSignal.Garden.Units
     public class DamageableSensor : MonoBehaviour
     {
         public List<IDamageable> Damageables => damageables.ToList();
+        public Owner Owner { get; set; }
 
         public delegate void UnitDetectionEvent(IDamageable damageable);
         public event UnitDetectionEvent OnUnitEnter;
@@ -40,28 +41,29 @@ namespace ShiftedSignal.Garden.Units
 
         private void OnTriggerEnter(Collider other)
         {
-            IDamageable damageable = other.GetComponentInParent<IDamageable>();
-
-            if (damageable == null)
-                return;
-
-            if (!damageables.Add(damageable))
-                return;
-
-            OnUnitEnter?.Invoke(damageable);
+            if (collider.TryGetComponent(out IDamageable damageable) && damageable.Owner != Owner)
+            {
+                damageables.Add(damageable);
+                OnUnitEnter?.Invoke(damageable);
+            }
 
             if (damageables.Count == 1)
+            {
                 Bus<UnitDeathEvent>.OnEvent += HandleUnitDeath;
+            }
         }
 
         private void OnTriggerExit(Collider other)
         {
-            IDamageable damageable = other.GetComponentInParent<IDamageable>();
+            if (collider.TryGetComponent(out IDamageable damageable) && damageables.Remove(damageable))
+            {
+                OnUnitExit?.Invoke(damageable);
+            }
 
-            if (damageable == null)
-                return;
-
-            RemoveDamageable(damageable);
+            if (damageables.Count == 0)
+            {
+                Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+            }
         }
 
         private void OnDestroy()
@@ -71,25 +73,15 @@ namespace ShiftedSignal.Garden.Units
 
         private void HandleUnitDeath(UnitDeathEvent evt)
         {
-            RemoveDamageable(evt.Unit);
-        }
-
-        private void RemoveDamageable(IDamageable damageable)
-        {
-            if (damageable == null)
-                return;
-
-            damageables.Remove(damageable);
-
-            OnUnitExit?.Invoke(damageable);
-
-            if (damageables.Count == 0)
-                Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+            if (damageables.Contains(evt.Unit))
+            {
+                OnTriggerExit(evt.Unit.GetComponent<Collider>());
+            }
         }
 
         private readonly List<IDamageable> damageablesToRemove = new();
 
-        public IDamageable GetNearestValidTarget(Vector3 origin, CombatTeam attackerTeam)
+        public IDamageable GetNearestValidTarget(Vector3 origin, Owner attackerTeam)
         {
             IDamageable nearestTarget = null;
             float nearestDistanceSqr = Mathf.Infinity;
@@ -104,7 +96,7 @@ namespace ShiftedSignal.Garden.Units
                     continue;
                 }
 
-                if (!DamageRules.CanDamage(attackerTeam, damageable.Team))
+                if (!DamageRules.CanDamage(attackerTeam, damageable.Owner))
                     continue;
 
                 Vector3 targetPoint = damageable.TargetPoint;

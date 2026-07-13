@@ -152,7 +152,7 @@ namespace ShiftedSignal.Garden.Behavior
         {
             return new DamageData(
                 AttackConfig.Value.AttackDamage,
-                selfDamageable != null ? selfDamageable.Team : CombatTeam.Neutral,
+                selfDamageable != null ? selfDamageable.Owner : Owner.Unowned,
                 selfTransform,
                 AttackConfig.Value.Knockback,
                 AttackConfig.Value.IgnoreFriendlyFire,

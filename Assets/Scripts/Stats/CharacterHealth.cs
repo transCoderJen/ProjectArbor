@@ -14,10 +14,10 @@ namespace ShiftedSignal.Garden.Stats
 
         [Header("Damage")]
         [SerializeField] private bool isInvincible;
-        [SerializeField] private CombatTeam team;
+        [SerializeField] private Owner owner;
         [SerializeField] private TargetPriority targetPriority;
 
-         public CombatTeam Team => team;
+        public Owner Owner => owner;
 
         private Entity entity;
 
@@ -133,7 +133,7 @@ namespace ShiftedSignal.Garden.Stats
 
         public void TakeDamage(DamageData damageData)
         {
-            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
+            if (!DamageRules.CanDamage(damageData.Owner, Owner))
                 return;
 
             TakeDamage(

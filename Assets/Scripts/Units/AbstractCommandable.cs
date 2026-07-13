@@ -26,7 +26,7 @@ namespace ShiftedSignal.Garden.Units
         public AbstractUnitSO Config => config;
 
         public Transform Transform => transform;
-        public CombatTeam Team => config != null ? config.Team : CombatTeam.Neutral;
+        public Owner Owner => config != null ? config.Team : Owner.Unowned;
         public TargetPriority TargetPriority => targetPriority;
 
         private BaseCommand[] initialCommands;
@@ -82,11 +82,11 @@ namespace ShiftedSignal.Garden.Units
         {
             Debug.Log(
                 $"{name} TakeDamage | " +
-                $"AttackerTeam: {damageData.AttackerTeam} | " +
-                $"TargetTeam: {Team} | " +
-                $"RulesPass: {DamageRules.CanDamage(damageData.AttackerTeam, Team)}");
+                $"AttackerTeam: {damageData.Owner} | " +
+                $"TargetTeam: {Owner} | " +
+                $"RulesPass: {DamageRules.CanDamage(damageData.Owner, Owner)}");
 
-            if (!DamageRules.CanDamage(damageData.AttackerTeam, Team))
+            if (!DamageRules.CanDamage(damageData.Owner, Owner))
                 return;
 
             if (CurrentHealth <= 0)

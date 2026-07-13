@@ -10,15 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68bad28b57dc8af47b2ee7aab53e888d, type: 3}
-  m_Name: Greandier
+  m_Name: Grenadier
   m_EditorClassIdentifier: 
-  <ItemID>k__BackingField: Greandier
+  <ItemID>k__BackingField: Grenadier
   <Name>k__BackingField: Grenadier
   <Icon>k__BackingField: {fileID: 0}
-  <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: b04639d092dd4c24d976c8397c103940, type: 3}
-  <Health>k__BackingField: 100
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 11400000, guid: ecdb55d3712925141aa0ad0c57383c7a, type: 2}
+  <unlockRequirements>k__BackingField:
+  - {fileID: 11400000, guid: 97180777b45b63740aafc797268d8f28, type: 2}
+  <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: b04639d092dd4c24d976c8397c103940, type: 3}
+  <Health>k__BackingField: 100
   <Team>k__BackingField: 2
   <AttackConfig>k__BackingField: {fileID: 11400000, guid: eaac0b3a5d59df946b80c74238ad87e0, type: 2}
   SaveID: 

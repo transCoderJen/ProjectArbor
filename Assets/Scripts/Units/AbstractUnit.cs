@@ -246,14 +246,14 @@ namespace ShiftedSignal.Garden.Units
                     continue;
                 }
 
-                if (target.Team == Team)
+                if (target.Owner == Owner)
                 {
-                    Debug.Log($"Skipped target: same team {target.Team}");
+                    Debug.Log($"Skipped target: same team {target.Owner}");
                     continue;
                 }
 
                 GameObject targetObject = target.Transform.gameObject;
-                Debug.Log($"Added enemy target: {targetObject.name}, team: {target.Team}");
+                Debug.Log($"Added enemy target: {targetObject.name}, team: {target.Owner}");
 
                 nearbyEnemies.Add(targetObject);
             }
