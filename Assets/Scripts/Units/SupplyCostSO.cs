@@ -85,5 +85,40 @@ namespace ShiftedSignal.Garden.Units
                     new SupplyEvent(-required.Amount, required.Material));
             }
         }
+
+        public void Refund()
+        {
+            if (PlayerManager.Instance == null)
+                return;
+
+            if (Cost > 0)
+            {
+                PlayerManager.Instance.Currency += Cost;
+
+                Bus<CurrencyUpdatedEvent>.Raise(
+                    new CurrencyUpdatedEvent(Cost));
+            }
+
+            RefundRequiredSupplies();
+        }
+
+        private void RefundRequiredSupplies()
+        {
+            if (RequiredSupplies == null)
+                return;
+
+            for (int i = 0; i < RequiredSupplies.Length; i++)
+            {
+                RequiredSupply required = RequiredSupplies[i];
+
+                if (required.Material == null || required.Amount <= 0)
+                    continue;
+
+                Bus<SupplyEvent>.Raise(
+                    new SupplyEvent(
+                        required.Amount,
+                        required.Material));
+            }
+        }
     }
 }

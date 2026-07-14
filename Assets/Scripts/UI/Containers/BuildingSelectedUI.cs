@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
@@ -72,7 +73,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             OnBuildingQueueUpdated();
         }
 
-        private void OnBuildingQueueUpdated(AbstractUnitSO[] _ = null)
+        private void OnBuildingQueueUpdated(UnlockableSO[] _ = null)
         {
             if (selectedBuilding == null)
                 return;

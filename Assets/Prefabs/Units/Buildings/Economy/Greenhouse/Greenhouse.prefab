@@ -162,6 +162,7 @@ MonoBehaviour:
   <AvailableCommands>k__BackingField:
   - {fileID: 11400000, guid: dd05d2bd1b9ba7744a9c91d2614f32b9, type: 2}
   - {fileID: 11400000, guid: 8f8c52aff92380741b345e290ed48a21, type: 2}
+  - {fileID: 11400000, guid: bbc28983d62fcba4a81709ed1738453f, type: 2}
   decalProjector: {fileID: 7918584590872772060}
   targetPriority: 0
   UnitSO: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}

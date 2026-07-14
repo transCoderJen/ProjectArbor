@@ -8,7 +8,7 @@ namespace ShiftedSignal.Garden.Commands
     [CreateAssetMenu(fileName = "Build Unit", menuName = "Buildiings/Commands/Build Unit", order = 120)]
     public class BuildUnitCommand : BaseCommand
     {
-        [field: SerializeField] private TechTreeSO techTree;
+        // [field: SerializeField] private TechTreeSO techTree;
         [field: SerializeField] public AbstractUnitSO Unit { get; private set; }
 
         public override bool CanHandle(CommandContext context)
@@ -21,9 +21,9 @@ namespace ShiftedSignal.Garden.Commands
             // if (!Unit.Cost.HasEnoughSupplies()) return;
 
             BaseBuilding building = (BaseBuilding)context.Commandable;
-            building.BuildUnit(Unit);
+            building.BuildUnlockable(Unit);
         }
 
-        public override bool IsLocked(CommandContext context) => !Unit.CanAfford() || !techTree.IsUnlocked(Unit);
+        public override bool IsLocked(CommandContext context) => !Unit.CanAfford() || !Unit.TechTree.IsUnlocked(Unit);
     }
 }

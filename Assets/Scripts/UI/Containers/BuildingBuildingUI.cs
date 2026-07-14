@@ -1,16 +1,19 @@
 using System.Collections;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Components;
 using ShiftedSignal.Garden.UserInterface.Managers;
+using TMPro;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class BuildingBuildingUI : MonoBehaviour, IUIElement<BaseBuilding>
     {
-        [SerializeField] private UIBuildQueueButton[] unitButtons;
-        [SerializeField] private ProgressBar progressBar;
+        [SerializeField] private TextMeshProUGUI BuildingText;
+        [SerializeField] private UIBuildQueueButton[] UnitButtons;
+        [SerializeField] private ProgressBar ProgressBar;
 
         private Coroutine buildCoroutine;
         private BaseBuilding building;
@@ -26,8 +29,8 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             gameObject.SetActive(true);
 
-            if (progressBar != null)
-                progressBar.SetProgress(0f);
+            if (ProgressBar != null)
+                ProgressBar.SetProgress(0f);
 
             building.OnQueueUpdated += HandleQueueUpdated;
 
@@ -48,12 +51,12 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             building = null;
 
-            if (progressBar != null)
-                progressBar.SetProgress(0f);
+            if (ProgressBar != null)
+                ProgressBar.SetProgress(0f);
 
-            if (unitButtons != null)
+            if (UnitButtons != null)
             {
-                foreach (UIBuildQueueButton button in unitButtons)
+                foreach (UIBuildQueueButton button in UnitButtons)
                 {
                     if (button != null)
                         button.Disable();
@@ -77,7 +80,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             building = null;
         }
 
-        private void HandleQueueUpdated(AbstractUnitSO[] unitsInQueue)
+        private void HandleQueueUpdated(UnlockableSO[] unitsInQueue)
         {
             if (building == null)
                 return;
@@ -88,22 +91,22 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         private void SetupUnitButtons()
         {
-            if (building == null || unitButtons == null)
+            if (building == null || UnitButtons == null)
                 return;
 
-            AbstractUnitSO[] queue = building.Queue;
+            UnlockableSO[] queue = building.Queue;
 
-            int buttonCount = unitButtons.Length;
+            int buttonCount = UnitButtons.Length;
             int queueCount = Mathf.Min(queue.Length, buttonCount);
 
             for (int i = 0; i < queueCount; i++)
             {
                 int index = i;
 
-                if (unitButtons[i] == null)
+                if (UnitButtons[i] == null)
                     continue;
 
-                unitButtons[i].EnableFor(
+                UnitButtons[i].EnableFor(
                     queue[i],
                     () =>
                     {
@@ -114,8 +117,8 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             for (int i = queueCount; i < buttonCount; i++)
             {
-                if (unitButtons[i] != null)
-                    unitButtons[i].Disable();
+                if (UnitButtons[i] != null)
+                    UnitButtons[i].Disable();
             }
         }
 
@@ -137,9 +140,9 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         {
             while (building != null && building.QueueSize > 0)
             {
-                AbstractUnitSO currentUnit = building.BuildingUnit;
+                UnlockableSO currentUnit = building.SOBeingBuilt;
 
-                if (currentUnit == null || progressBar == null)
+                if (currentUnit == null || ProgressBar == null)
                 {
                     yield return null;
                     continue;
@@ -149,27 +152,27 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 float buildTime = Mathf.Max(0.01f, currentUnit.BuildTime);
                 float progress = Mathf.Clamp01((Time.time - startTime) / buildTime);
 
-                progressBar.SetProgress(progress);
+                ProgressBar.SetProgress(progress);
 
                 yield return null;
             }
 
-            if (progressBar != null)
-                progressBar.SetProgress(0f);
+            if (ProgressBar != null)
+                ProgressBar.SetProgress(0f);
 
             buildCoroutine = null;
         }
 
         public void SetBuildProgress(float current, float required)
         {
-            if (progressBar == null)
+            if (ProgressBar == null)
                 return;
 
             float progress = required <= 0f
                 ? 1f
                 : Mathf.Clamp01(current / required);
 
-            progressBar.SetProgress(progress);
+            ProgressBar.SetProgress(progress);
         }
     }
 }

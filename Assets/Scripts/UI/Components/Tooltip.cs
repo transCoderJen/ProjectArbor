@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Text;
 using ShiftedSignal.Garden.Commands;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
 using TMPro;
 using UnityEngine;
@@ -16,6 +18,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         public float HoverDelay { get; private set; } = 0.5f;
 
         [SerializeField] private TextMeshProUGUI text;
+        [SerializeField] private TechTreeSO techTree;
 
         private readonly StringBuilder stringBuilder = new();
 
@@ -33,26 +36,43 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             }
 
             stringBuilder.Clear();
-
             stringBuilder.AppendLine(command.name);
 
-            SupplyCostSO supplyCost = GetSupplyCost(command);
+            UnlockableSO unlockable = GetUnlockable(command);
 
-            if (supplyCost != null)
+            if (unlockable != null &&
+                techTree != null &&
+                !techTree.IsUnlocked(unlockable))
             {
-                AddSupplyCostText(supplyCost);
+                AddUnlockRequirementsText(unlockable);
             }
+            else
+            {
+                SupplyCostSO supplyCost = GetSupplyCost(command);
 
-            // Add this back if BaseCommand still has TooltipText.
-            // if (!string.IsNullOrWhiteSpace(command.TooltipText))
-            // {
-            //     stringBuilder.AppendLine();
-            //     stringBuilder.AppendLine(command.TooltipText);
-            // }
+                if (supplyCost != null)
+                {
+                    AddSupplyCostText(supplyCost);
+                }
+            }
 
             text.text = stringBuilder.ToString().TrimEnd();
 
             ResizeTooltip();
+        }
+
+        private static UnlockableSO GetUnlockable(BaseCommand command)
+        {
+            return command switch
+            {
+                BuildUnitCommand buildUnitCommand =>
+                    buildUnitCommand.Unit,
+
+                BuildBuildingCommand buildBuildingCommand =>
+                    buildBuildingCommand.Building,
+
+                _ => null
+            };
         }
 
         private static SupplyCostSO GetSupplyCost(BaseCommand command)
@@ -69,6 +89,31 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             };
         }
 
+        private void AddUnlockRequirementsText(
+            UnlockableSO unlockable)
+        {
+            stringBuilder.AppendLine("Requires:");
+
+            IEnumerable<UnlockableSO> unmetDependencies =
+                techTree.GetUnmetDependencies(unlockable);
+
+            bool foundRequirement = false;
+
+            foreach (UnlockableSO dependency in unmetDependencies)
+            {
+                if (dependency == null)
+                    continue;
+
+                stringBuilder.AppendLine($"• {dependency.Name}");
+                foundRequirement = true;
+            }
+
+            if (!foundRequirement)
+            {
+                stringBuilder.AppendLine("• Unknown requirement");
+            }
+        }
+
         private void AddSupplyCostText(SupplyCostSO supplyCost)
         {
             if (supplyCost.Cost > 0)
@@ -76,14 +121,16 @@ namespace ShiftedSignal.Garden.UserInterface.Components
                 stringBuilder.AppendLine($"Gold: {supplyCost.Cost}");
             }
 
-            RequiredSupply[] requiredSupplies = supplyCost.RequiredSupplies;
+            RequiredSupply[] requiredSupplies =
+                supplyCost.RequiredSupplies;
 
             if (requiredSupplies == null)
                 return;
 
             for (int i = 0; i < requiredSupplies.Length; i++)
             {
-                RequiredSupply requiredSupply = requiredSupplies[i];
+                RequiredSupply requiredSupply =
+                    requiredSupplies[i];
 
                 if (requiredSupply.Material == null ||
                     requiredSupply.Amount <= 0)
@@ -92,7 +139,8 @@ namespace ShiftedSignal.Garden.UserInterface.Components
                 }
 
                 stringBuilder.AppendLine(
-                    $"{requiredSupply.Material.Name}: {requiredSupply.Amount}");
+                    $"{requiredSupply.Material.Name}: " +
+                    $"{requiredSupply.Amount}");
             }
         }
 

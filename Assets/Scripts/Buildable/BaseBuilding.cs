@@ -9,6 +9,7 @@ using ShiftedSignal.Garden.GridSystem;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Tools;
 using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Components;
@@ -110,15 +111,15 @@ namespace ShiftedSignal.Garden.Buildable
 
         private const int MAX_QUEUE_SIZE = 5;
 
-        private readonly List<AbstractUnitSO> buildingQueue = new(MAX_QUEUE_SIZE);
+        private readonly List<UnlockableSO> buildingQueue = new(MAX_QUEUE_SIZE);
 
         public int QueueSize => buildingQueue.Count;
-        public AbstractUnitSO[] Queue => buildingQueue.ToArray();
+        public UnlockableSO[] Queue => buildingQueue.ToArray();
 
         public float CurrentQueueStartTime { get; private set; }
-        public AbstractUnitSO BuildingUnit { get; private set; }
+        public UnlockableSO SOBeingBuilt { get; private set; }
 
-        public delegate void QueueUpdatedEvent(AbstractUnitSO[] unitsInQueue);
+        public delegate void QueueUpdatedEvent(UnlockableSO[] unitsInQueue);
 
         public event QueueUpdatedEvent OnQueueUpdated;
         public event Action<float, float> OnBuildProgressUpdated;
@@ -679,13 +680,13 @@ namespace ShiftedSignal.Garden.Buildable
 
         #region Unit Queue
 
-        public void BuildUnit(AbstractUnitSO unit)
-        {
-            
+        public void BuildUnlockable(UnlockableSO unlockable)
+        {   
             if (buildingQueue.Count == MAX_QUEUE_SIZE)
                 return;
 
-            buildingQueue.Add(unit);
+            unlockable.SupplyCost.Spend();
+            buildingQueue.Add(unlockable);
 
             if (buildingQueue.Count == 1)
                 StartCoroutine(DoBuildUnits());
@@ -697,6 +698,8 @@ namespace ShiftedSignal.Garden.Buildable
         {
             if (index < 0 || index >= buildingQueue.Count)
                 return;
+
+            RefundCost(index);
 
             buildingQueue.RemoveAt(index);
 
@@ -715,23 +718,38 @@ namespace ShiftedSignal.Garden.Buildable
             }
         }
 
+        private void RefundCost(int index)
+        {
+            if (index < 0 || index >= buildingQueue.Count)
+                return;
+
+            buildingQueue[index]?.SupplyCost?.Refund();
+        }
+
         private IEnumerator DoBuildUnits()
         {
             while (buildingQueue.Count > 0)
             {
-                BuildingUnit = buildingQueue[0];
+                SOBeingBuilt = buildingQueue[0];
                 CurrentQueueStartTime = Time.time;
                 OnQueueUpdated?.Invoke(buildingQueue.ToArray());
 
-                yield return Helpers.GetWait(BuildingUnit.BuildTime);
+                yield return Helpers.GetWait(SOBeingBuilt.BuildTime);
 
-                Vector3 spawnPosition = GetUnitSpawnPosition();
-                Instantiate(BuildingUnit.Prefab, spawnPosition, Quaternion.identity);
+                if (SOBeingBuilt is AbstractUnitSO unitSO)
+                {
+                    Vector3 spawnPosition = GetUnitSpawnPosition();
+                    Instantiate((SOBeingBuilt as AbstractUnitSO).Prefab, spawnPosition, Quaternion.identity);
+                }
+                else if (SOBeingBuilt is UpgradeSO upgrade)
+                {
+                    Bus<UpgradeResearchEvent>.Raise(new UpgradeResearchEvent(upgrade));
+                }
 
                 buildingQueue.RemoveAt(0);
             }
 
-            BuildingUnit = null;
+            SOBeingBuilt = null;
             CurrentQueueStartTime = 0f;
             OnQueueUpdated?.Invoke(buildingQueue.ToArray());
         }

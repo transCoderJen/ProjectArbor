@@ -14,24 +14,10 @@ namespace ShiftedSignal.Garden.Units
         [field: Header("Combat")]
         [field: SerializeField] public Owner Team { get; private set; } = Owner.Unowned;
         [field: SerializeField] public AttackConfigSO AttackConfig { get; private set; }
+
+        [field: SerializeField] public UpgradeSO[] Upgrades { get; private set; }     
         
-        public bool CanAfford()
-        {
-            if (SupplyCost == null)
-            {
-                Debug.LogError($"{name} has no SupplyCostSO assigned.");
-                return false;
-            }
-            
-            return SupplyCost != null && SupplyCost.CanAfford();
-        }
-
-        public void SpendCost()
-        {
-            
-
-            SupplyCost?.Spend();
-        }
+        
 
 
     }

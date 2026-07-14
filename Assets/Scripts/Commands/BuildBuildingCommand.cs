@@ -12,7 +12,6 @@ namespace ShiftedSignal.Garden.Commands
         menuName = "Units/Commands/Build Building")]
     public class BuildBuildingCommand : BaseCommand
     {
-        [field: SerializeField] private TechTreeSO techTree;
         [field: SerializeField] public bool AllowDragPlacement { get; private set; }
         [field: SerializeField] public BuildingSO Building { get; private set; }
 
@@ -44,6 +43,6 @@ namespace ShiftedSignal.Garden.Commands
             Player.Instance.TryPlaceSelectedBuilding(targetBlock);
         }
 
-        public override bool IsLocked(CommandContext context) => !Building.CanAfford() || !techTree.IsUnlocked(Building);
+        public override bool IsLocked(CommandContext context) => !Building.CanAfford() || !Building.TechTree.IsUnlocked(Building);
     }
 }

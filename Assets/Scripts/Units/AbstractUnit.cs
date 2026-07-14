@@ -7,6 +7,7 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
+using ShiftedSignal.Garden.TechTree;
 using Unity.Behavior;
 using UnityEngine;
 using UnityEngine.AI;
@@ -85,6 +86,14 @@ namespace ShiftedSignal.Garden.Units
                 DameagableSensor.OnUnitEnter += HandleUnitEnter;
                 DameagableSensor.OnUnitExit += HandleUnitExit;
                 DameagableSensor.SetupFrom(UnitSO.AttackConfig);
+            }
+
+            foreach(UpgradeSO upgrade in UnitSO.Upgrades)
+            {
+                if (UnitSO.TechTree.IsResearched(upgrade))
+                {
+                    upgrade.Apply(UnitSO);
+                }
             }
         }
 
