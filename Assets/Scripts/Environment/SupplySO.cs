@@ -1,6 +1,7 @@
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
+using UnityEngine.InputSystem.Utilities;
 
 namespace ShiftedSignal.Garden.Environment
 {
@@ -18,6 +19,8 @@ namespace ShiftedSignal.Garden.Environment
 
         [field: SerializeField]
         public ItemData Item { get; private set; }
+
+        public string Name => Item.ItemName;   
         
         public bool HasEnoughSupplies(int amount)
         {

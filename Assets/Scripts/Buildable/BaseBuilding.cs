@@ -681,6 +681,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         public void BuildUnit(AbstractUnitSO unit)
         {
+            
             if (buildingQueue.Count == MAX_QUEUE_SIZE)
                 return;
 
