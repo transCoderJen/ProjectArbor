@@ -21,7 +21,9 @@ namespace ShiftedSignal.Garden.TechTree
         
         [field: SerializeField] protected List<UnlockableSO> unlockRequirements { get; private set; } = new();
         [field: SerializeField] public TechTreeSO TechTree { get; private set; }
-
+        
+        [field: Header("Unlock Requirements")]
+        [field: SerializeField] public bool IsOneTimeUnlock { get; private set; }
         public IEnumerable<UnlockableSO> UnlockRequirements => unlockRequirements.ToList();
 
         public bool CanAfford()

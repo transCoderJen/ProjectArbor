@@ -13,4 +13,6 @@ MonoBehaviour:
   m_Name: Grenadier Cost
   m_EditorClassIdentifier: 
   <Cost>k__BackingField: 50
-  <RequiredSupplies>k__BackingField: []
+  <RequiredSupplies>k__BackingField:
+  - Material: {fileID: 11400000, guid: ce9c2f3c7c8dc274faa5ea17f01b5f91, type: 2}
+    Amount: 5

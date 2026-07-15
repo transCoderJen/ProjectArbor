@@ -18,10 +18,12 @@ MonoBehaviour:
   <BuildTime>k__BackingField: 5
   <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
   <unlockRequirements>k__BackingField: []
+  <TechTree>k__BackingField: {fileID: 0}
   <Prefab>k__BackingField: {fileID: 3836948818877905757, guid: 25da75055d29dbd499a5ccd831bcbe03, type: 3}
   <Health>k__BackingField: 100
   <Team>k__BackingField: 4
   <AttackConfig>k__BackingField: {fileID: 11400000, guid: 7f7c39eb5f5d7fe418d06a45dba9a380, type: 2}
+  <Upgrades>k__BackingField: []
   SaveID: 
   GhostMaterial: {fileID: 2100000, guid: 3b8f1c2dc2cf72d43a644e392f9fdccd, type: 2}
   PlacementMode: 0

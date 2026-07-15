@@ -67,17 +67,23 @@ namespace ShiftedSignal.Garden.TechTree
         private void BuildTechTrees()
         {
             techTree = new Dictionary<UnlockableSO, Dependency>(
-                allUnlockables.Count);
-            
+                allUnlockables.Count
+            );
+
             unlockedDependencies = new HashSet<UnlockableSO>();
 
-            foreach(UnlockableSO unlockableSO in allUnlockables)
+            foreach (UnlockableSO unlockableSO in allUnlockables)
             {
-                techTree.Add(unlockableSO, new Dependency(unlockableSO));
-                unlockedDependencies.Add(unlockableSO);
-                
-                Debug.Log($"Configuring {unlockableSO}'s {unlockableSO.UnlockRequirements.Count()} dependencies");
-            }   
+                techTree.Add(
+                    unlockableSO,
+                    new Dependency(unlockableSO)
+                );
+
+                Debug.Log(
+                    $"Configuring {unlockableSO.name} with " +
+                    $"{unlockableSO.UnlockRequirements.Count()} dependencies"
+                );
+            }
         }
 
         public IEnumerable<UnlockableSO> GetUnmetDependencies(UnlockableSO unlockable)
@@ -123,8 +129,6 @@ namespace ShiftedSignal.Garden.TechTree
 
             public void UnlockDependency(UnlockableSO dependency)
             {
-                Debug.Log($"Attempting to unlock dependancy { dependency.Name}");
-
                 if (Dependencies.Contains(dependency) && !metDependencies.TryAdd(dependency, 1))
                 {
                     metDependencies[dependency]++;

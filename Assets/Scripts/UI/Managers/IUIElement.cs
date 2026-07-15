@@ -6,10 +6,15 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
         void Disable();
     }
 
-    public interface IUIElement<T1, T2>
+    public interface IUIElement<T1,T2>
     {
         void EnableFor(T1 item, T2 callback);
         void Disable();
+    }
 
+    public interface IUIElement<T1, T2, T3>
+    {
+        void EnableFor(T1 item, T2 context, T3 callback);
+        void Disable();
     }
 }

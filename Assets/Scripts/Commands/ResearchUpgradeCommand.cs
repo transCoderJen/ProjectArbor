@@ -27,6 +27,17 @@ namespace ShiftedSignal.Garden.Commands
         }
 
         public override bool IsLocked(CommandContext context) => !Upgrade.CanAfford() || !Upgrade.TechTree.IsUnlocked(Upgrade);
+
+        public override bool IsAvailable(CommandContext context)
+        {
+            Debug.Log($"{Upgrade.Name} is researched {Upgrade.TechTree.IsResearched(Upgrade)}");
+            if (Upgrade.IsOneTimeUnlock && Upgrade.TechTree.IsResearched(Upgrade))
+            {
+                return false;
+            }
+
+            return Upgrade.TechTree.IsUnlocked(Upgrade);
+        }
         
     }
 }

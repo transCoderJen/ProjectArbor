@@ -38,6 +38,12 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 availableCommands.UnionWith(commandable.AvailableCommands);
             }
 
+            availableCommands = availableCommands.Where(action => action.IsAvailable(
+                new CommandContext(
+                    selectedUnits.FirstOrDefault(), new RaycastHit()
+                )
+            )).ToHashSet();
+
             for (int i = 0; i < actionButtons.Length; i++)
             {
                 BaseCommand commandForSlot = availableCommands.FirstOrDefault(command => command.Slot == i);

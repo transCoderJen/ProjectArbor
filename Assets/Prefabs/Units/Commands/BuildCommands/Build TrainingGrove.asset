@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: Build TrainingGrove
   m_EditorClassIdentifier: 
   <Icon>k__BackingField: {fileID: 503701742, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
-  <Slot>k__BackingField: 1
+  <Slot>k__BackingField: 3
   <RequiresClickToActivate>k__BackingField: 1
-  <GhostPrefab>k__BackingField: {fileID: 0}
   <AllowDragPlacement>k__BackingField: 0
-  <Building>k__BackingField: {fileID: 11400000, guid: 7e3e35ec7869297438d6c052ef4f60b6, type: 2}
+  <Building>k__BackingField: {fileID: 11400000, guid: 899954752e3325944965a96cb6f0b2f8, type: 2}
