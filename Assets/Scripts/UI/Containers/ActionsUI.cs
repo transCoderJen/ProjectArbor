@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Components;
 using ShiftedSignal.Garden.UserInterface.Managers;
@@ -15,10 +17,26 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
     public class ActionsUI : MonoBehaviour, IUIElement<HashSet<AbstractCommandable>>
     {
         [SerializeField] private UIActionButton[] actionButtons;
+        private HashSet<BaseBuilding> selectedBuildings = new();
 
         public void EnableFor(HashSet<AbstractCommandable> selectedUnits)
         {
             RefreshButtons(selectedUnits);
+
+            foreach (BaseBuilding building in selectedBuildings)
+            {
+                building.OnQueueUpdated -= OnBuildingQueueUpdated;
+            }
+
+            selectedBuildings = selectedBuildings
+            .Where(selectedUnit => selectedUnit is BaseBuilding)
+            .Cast<BaseBuilding>()
+            .ToHashSet();
+
+            foreach (BaseBuilding building in selectedBuildings)
+            {
+                building.OnQueueUpdated += OnBuildingQueueUpdated;
+            }
         }
 
         public void Disable()
@@ -27,6 +45,18 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             {
                 actionButton.Disable();
             }
+
+            foreach (BaseBuilding building in selectedBuildings)
+            {
+                building.OnQueueUpdated -= OnBuildingQueueUpdated;
+            }
+
+            selectedBuildings.Clear();
+        }
+
+        private void OnBuildingQueueUpdated(UnlockableSO[] unitsInQueue)
+        {
+            RefreshButtons(selectedBuildings.Cast<AbstractCommandable>().ToHashSet());
         }
         
         private void RefreshButtons(HashSet<AbstractCommandable> selectedUnits)

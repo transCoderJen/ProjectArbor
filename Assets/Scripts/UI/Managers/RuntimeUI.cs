@@ -28,6 +28,8 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
             Bus<UnitDeselectedEvent>.OnEvent += HandleUnitDeselected;
             Bus<UnitDeathEvent>.OnEvent += HandleUnitDeath;
             Bus<SupplyEvent>.OnEvent += HandleSupplyChange;
+            Bus<UpgradeResearchEvent>.OnEvent += HandleUpgradeResearch;
+            Bus<BuildingSpawnEvent>.OnEvent += HandleBuildingSpawn;
         }
 
         void Start()
@@ -43,6 +45,21 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
             Bus<UnitDeselectedEvent>.OnEvent -= HandleUnitDeselected;
             Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
             Bus<SupplyEvent>.OnEvent -= HandleSupplyChange;
+            Bus<UpgradeResearchEvent>.OnEvent -= HandleUpgradeResearch;
+            Bus<BuildingSpawnEvent>.OnEvent -= HandleBuildingSpawn;
+        }
+
+        private void HandleBuildingSpawn(BuildingSpawnEvent _)
+        {
+            if (selectedUnits.Count == 1 && selectedUnits.First() is Worker)
+            {
+                actionsUI.EnableFor(selectedUnits);
+            }
+        }
+
+        private void HandleUpgradeResearch(UpgradeResearchEvent _)
+        {
+            RefreshUI();
         }
 
         private void HandleUnitDeath(UnitDeathEvent evt)

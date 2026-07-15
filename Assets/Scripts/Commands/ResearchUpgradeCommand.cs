@@ -1,4 +1,6 @@
 
+using System.Linq;
+using NUnit.Framework;
 using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.TechTree;
@@ -26,11 +28,19 @@ namespace ShiftedSignal.Garden.Commands
             }
         }
 
-        public override bool IsLocked(CommandContext context) => !Upgrade.CanAfford() || !Upgrade.TechTree.IsUnlocked(Upgrade);
+        public override bool IsLocked(CommandContext context){
+            bool isLocked = !Upgrade.CanAfford() || !Upgrade.TechTree.IsUnlocked(Upgrade);
+
+            if (!isLocked && Upgrade.IsOneTimeUnlock && context.Commandable != null && context.Commandable is BaseBuilding building)
+            {
+                isLocked = building.Queue.Contains(Upgrade);
+            }
+
+            return isLocked;
+        }
 
         public override bool IsAvailable(CommandContext context)
         {
-            Debug.Log($"{Upgrade.Name} is researched {Upgrade.TechTree.IsResearched(Upgrade)}");
             if (Upgrade.IsOneTimeUnlock && Upgrade.TechTree.IsResearched(Upgrade))
             {
                 return false;

@@ -19,6 +19,7 @@ MonoBehaviour:
   <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
   <unlockRequirements>k__BackingField: []
   <TechTree>k__BackingField: {fileID: 0}
+  <IsOneTimeUnlock>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 3836948818877905757, guid: 25da75055d29dbd499a5ccd831bcbe03, type: 3}
   <Health>k__BackingField: 100
   <Team>k__BackingField: 4

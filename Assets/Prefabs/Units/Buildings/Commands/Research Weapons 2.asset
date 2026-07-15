@@ -15,4 +15,4 @@ MonoBehaviour:
   <Icon>k__BackingField: {fileID: 21300000, guid: 4be4d75da3282e64fbab743c34270c88, type: 3}
   <Slot>k__BackingField: 2
   <RequiresClickToActivate>k__BackingField: 0
-  <Upgrade>k__BackingField: {fileID: 11400000, guid: b2a16c95a30f7154ba72a03f930da945, type: 2}
+  <Upgrade>k__BackingField: {fileID: 11400000, guid: 2a560091dee7fef46b701772be4411f1, type: 2}
