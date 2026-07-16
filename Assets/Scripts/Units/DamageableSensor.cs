@@ -144,7 +144,7 @@ namespace ShiftedSignal.Garden.Units
             if (attackConfig == null)
                 return;
 
-            collider.radius = attackConfig.AttackRange;
+            collider.radius = attackConfig.Range;
         }
     }
 }

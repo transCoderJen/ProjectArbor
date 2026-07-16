@@ -21,5 +21,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2a560091dee7fef46b701772be4411f1, type: 2}
   <TechTree>k__BackingField: {fileID: 11400000, guid: a9bc361e44a24f24c844c8d1badba98d, type: 2}
   <IsOneTimeUnlock>k__BackingField: 1
-  <PropertyPath>k__BackingField: AttackDamage
+  upgradeID: 5d1eb6e8-93e6-4306-8468-809cb348d12f
+  <PropertyPath>k__BackingField: AttackConfig/Damage
+  <Target>k__BackingField: {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
   <Amount>k__BackingField: 1

@@ -25,7 +25,6 @@ namespace ShiftedSignal.Garden.Units
         [SerializeField] private string instanceID;
         [SerializeField] private DamageableSensor DameagableSensor;
         public virtual Transform ProjectileSpawnPoint => transform;
-
         public string InstanceID => instanceID;
         public void SetInstanceID(string id)
         {
@@ -88,13 +87,13 @@ namespace ShiftedSignal.Garden.Units
                 DameagableSensor.SetupFrom(UnitSO.AttackConfig);
             }
 
-            foreach(UpgradeSO upgrade in UnitSO.Upgrades)
-            {
-                if (UnitSO.TechTree.IsResearched(upgrade))
-                {
-                    upgrade.Apply(UnitSO);
-                }
-            }
+            // foreach(UpgradeSO upgrade in UnitSO.Upgrades)
+            // {
+            //     if (UnitSO.TechTree.IsResearched(upgrade))
+            //     {
+            //         upgrade.Apply(UnitSO);
+            //     }
+            // }
         }
 
         protected virtual void OnDestroy()

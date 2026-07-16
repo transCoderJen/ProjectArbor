@@ -1,27 +1,35 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Stats
 {
-    [System.Serializable]
+    [Serializable]
     public class Stat
     {
-        [SerializeField] private int baseValue;
+        [SerializeField] private float baseValue;
 
-        private readonly List<int> modifiers = new();
+        private readonly List<float> modifiers = new();
 
-        public int BaseValue => baseValue;
+        public float BaseValue => baseValue;
 
-        public int GetValue()
+        public float CurrentValue => baseValue + GetModifiersValue();
+
+        public Stat(float baseValue)
         {
-            return baseValue + GetModifiersValue();
+            this.baseValue = baseValue;
+        }
+        
+        public float GetValue()
+        {
+            return CurrentValue;
         }
 
-        public int GetModifiersValue()
+        public float GetModifiersValue()
         {
-            int total = 0;
+            float total = 0f;
 
-            foreach (int modifier in modifiers)
+            foreach (float modifier in modifiers)
             {
                 total += modifier;
             }
@@ -29,17 +37,17 @@ namespace ShiftedSignal.Garden.Stats
             return total;
         }
 
-        public void SetDefaultValue(int value)
+        public void SetDefaultValue(float value)
         {
             baseValue = value;
         }
 
-        public void AddModifier(int modifier)
+        public void AddModifier(float modifier)
         {
             modifiers.Add(modifier);
         }
 
-        public void RemoveModifier(int modifier)
+        public void RemoveModifier(float modifier)
         {
             modifiers.Remove(modifier);
         }
@@ -47,6 +55,11 @@ namespace ShiftedSignal.Garden.Stats
         public void ClearModifiers()
         {
             modifiers.Clear();
+        }
+
+        public override string ToString()
+        {
+            return $"{CurrentValue} (Base: {BaseValue}, Modifiers: {GetModifiersValue()})";
         }
     }
 }

@@ -19,10 +19,10 @@ namespace ShiftedSignal.Garden.Units
     public class AttackConfigSO : ScriptableObject
     {
         [Header("Attack")]
-        [field: SerializeField] public AttackType AttackType { get; private set; } = AttackType.Melee;
-        [field: SerializeField] public int AttackDamage { get; private set; } = 5;
-        [field: SerializeField] public float AttackRange { get; private set; } = 2f;
-        [field: SerializeField] public float AttackDelay { get; private set; } = 1f;
+        [field: SerializeField] public AttackType Type { get; private set; } = AttackType.Melee;
+        [field: SerializeField] public int Damage { get; private set; } = 5;
+        [field: SerializeField] public float Range { get; private set; } = 2f;
+        [field: SerializeField] public float Delay { get; private set; } = 1f;
 
         [Header("Damage")]
         [field: SerializeField] public bool Knockback { get; private set; } = true;

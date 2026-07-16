@@ -24,7 +24,6 @@ MonoBehaviour:
   <Health>k__BackingField: 100
   <Team>k__BackingField: 8
   <AttackConfig>k__BackingField: {fileID: 0}
-  <Upgrades>k__BackingField: []
   SaveID: 
   GhostMaterial: {fileID: 0}
   PlacementMode: 0

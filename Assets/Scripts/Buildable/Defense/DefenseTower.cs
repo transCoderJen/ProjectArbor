@@ -23,11 +23,11 @@ namespace ShiftedSignal.Garden.Buildable
             : null;
 
         public float AttackRange => AttackConfig != null
-            ? AttackConfig.AttackRange
+            ? AttackConfig.Range
             : 5f;
 
         public float AttackCooldown => AttackConfig != null
-            ? AttackConfig.AttackDelay
+            ? AttackConfig.Delay
             : 0.2f;
 
         public Collider[] EnemyBuffer => enemyBuffer;

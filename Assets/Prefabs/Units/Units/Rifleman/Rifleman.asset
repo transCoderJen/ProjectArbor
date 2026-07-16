@@ -24,6 +24,4 @@ MonoBehaviour:
   <Health>k__BackingField: 100
   <Team>k__BackingField: 2
   <AttackConfig>k__BackingField: {fileID: 11400000, guid: 7f7c39eb5f5d7fe418d06a45dba9a380, type: 2}
-  <Upgrades>k__BackingField:
-  - {fileID: 11400000, guid: b2a16c95a30f7154ba72a03f930da945, type: 2}
   SaveID: 

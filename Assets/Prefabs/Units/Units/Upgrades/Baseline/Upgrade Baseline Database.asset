@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6732bf311223a6948a86ff520107cfa8, type: 3}
+  m_Name: Upgrade Baseline Database
+  m_EditorClassIdentifier: 
+  upgrades:
+  - {fileID: 11400000, guid: b2a16c95a30f7154ba72a03f930da945, type: 2}
+  - {fileID: 11400000, guid: 2a560091dee7fef46b701772be4411f1, type: 2}
+  - {fileID: 11400000, guid: aefb7168e4b45a6478770a68b84ba5e0, type: 2}
+  baselines:
+  - <TargetObject>k__BackingField: {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
+    <PropertyPath>k__BackingField: AttackConfig/Damage
+    valueType: 0
+    intValue: 6
+    floatValue: 0
+    boolValue: 0
+    stringValue: 
+    vector2Value: {x: 0, y: 0}
+    vector3Value: {x: 0, y: 0, z: 0}
+    colorValue: {r: 0, g: 0, b: 0, a: 0}

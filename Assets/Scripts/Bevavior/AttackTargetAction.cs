@@ -64,7 +64,7 @@ namespace ShiftedSignal.Garden.Behavior
             
             animator?.SetFloat(AnimationConstants.SPEED, navMeshAgent.velocity.magnitude);
 
-            if (Vector3.Distance(targetTransform.position, selfTransform.position) >= AttackConfig.Value.AttackRange)
+            if (Vector3.Distance(targetTransform.position, selfTransform.position) >= AttackConfig.Value.Range)
             {
                 navMeshAgent.SetDestination(targetTransform.position);
                 navMeshAgent.isStopped = false;
@@ -82,18 +82,18 @@ namespace ShiftedSignal.Garden.Behavior
 
             animator?.SetBool(AnimationConstants.ATTACK, true);
 
-            if (Time.time >= lastAttackTime + AttackConfig.Value.AttackDelay)
+            if (Time.time >= lastAttackTime + AttackConfig.Value.Delay)
             {
                 lastAttackTime = Time.time;
 
                 
 
-                if (AttackConfig.Value.AttackType == AttackType.Melee)
+                if (AttackConfig.Value.Type == AttackType.Melee)
                 {
                     DamageData damageData = CreateDamageData();
                     targetDamageable.TakeDamage(damageData);
                 }
-                else if (AttackConfig.Value.AttackType == AttackType.Projectile)
+                else if (AttackConfig.Value.Type == AttackType.Projectile)
                 {
                     FireProjectile();
                 }
@@ -151,7 +151,7 @@ namespace ShiftedSignal.Garden.Behavior
         private DamageData CreateDamageData()
         {
             return new DamageData(
-                AttackConfig.Value.AttackDamage,
+                AttackConfig.Value.Damage,
                 selfDamageable != null ? selfDamageable.Owner : Owner.Unowned,
                 selfTransform,
                 AttackConfig.Value.Knockback,

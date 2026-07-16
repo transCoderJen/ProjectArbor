@@ -154,6 +154,19 @@ namespace ShiftedSignal.Garden.Buildable
                 progressBarWorld.gameObject.SetActive(false);
         }
 
+        override protected void Start()
+        {
+            base.Start();
+            
+            // foreach(UpgradeSO upgrade in UnitSO.Upgrades)
+            // {
+            //     if (UnitSO.TechTree.IsResearched(upgrade))
+            //     {
+            //         upgrade.Apply(UnitSO);
+            //     }
+            // }
+        }
+
         protected virtual void Update()
         {
 

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.EventBus;
@@ -68,6 +70,24 @@ namespace ShiftedSignal.Garden.Units
                 return transform.position;
             }
         }
+
+        // void OnEnable()
+        // {
+        //     Bus<UpgradeResearchEvent>.OnEvent += HandleUpgradeResearch;
+        // }
+
+        // void OnDisable()
+        // {
+        //     Bus<UpgradeResearchEvent>.OnEvent -= HandleUpgradeResearch;
+        // }
+
+        // private void HandleUpgradeResearch(UpgradeResearchEvent evt)
+        // {
+        //    if (config.Upgrades.Contains(evt.Upgrade) && Owner != Owner.Enemy)
+        //     {
+        //         evt.Upgrade.Apply(config);
+        //     }
+        // }
 
         protected virtual void Start()
         {

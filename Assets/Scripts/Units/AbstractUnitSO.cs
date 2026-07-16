@@ -15,7 +15,7 @@ namespace ShiftedSignal.Garden.Units
         [field: SerializeField] public Owner Team { get; private set; } = Owner.Unowned;
         [field: SerializeField] public AttackConfigSO AttackConfig { get; private set; }
 
-        [field: SerializeField] public UpgradeSO[] Upgrades { get; private set; }     
+        // [field: SerializeField] public UpgradeSO[] Upgrades { get; private set; }     
         
         
 

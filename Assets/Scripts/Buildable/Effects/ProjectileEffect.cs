@@ -68,7 +68,7 @@ namespace ShiftedSignal.Garden.Buildable
                 projectile.SetOwner(tower.gameObject);
 
                 projectile.SetDamageData(new DamageData(
-                    tower.AttackConfig.AttackDamage,
+                    tower.AttackConfig.Damage,
                     tower.Owner,
                     tower.transform,
                     tower.AttackConfig.Knockback,
