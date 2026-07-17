@@ -31,6 +31,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
             Bus<UpgradeResearchEvent>.OnEvent += HandleUpgradeResearch;
             Bus<BuildingSpawnEvent>.OnEvent += HandleBuildingSpawn;
             Bus<BuildingDeathEvent>.OnEvent += HandleBuildingDeath;
+            Bus<CommandUIRefreshEvent>.OnEvent += HandleRefresh;
         }
 
         void Start()
@@ -49,6 +50,12 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
             Bus<UpgradeResearchEvent>.OnEvent -= HandleUpgradeResearch;
             Bus<BuildingSpawnEvent>.OnEvent -= HandleBuildingSpawn;
             Bus<BuildingDeathEvent>.OnEvent -= HandleBuildingDeath;
+            Bus<CommandUIRefreshEvent>.OnEvent -= HandleRefresh;
+        }
+
+        private void HandleRefresh(CommandUIRefreshEvent _)
+        {
+            RefreshUI();
         }
 
         private void HandleBuildingDeath(BuildingDeathEvent evt)

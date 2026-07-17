@@ -1,5 +1,7 @@
 using System.Linq;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.TechTree;
 using UnityEngine;
 
@@ -44,6 +46,8 @@ namespace ShiftedSignal.Garden.Commands
             building.OnQueueUpdated += updateQueue;
 
             building.BuildUnlockable(Upgrade);
+
+            Bus<CommandUIRefreshEvent>.Raise(new CommandUIRefreshEvent());
         }
 
         private BaseBuilding.QueueUpdatedEvent GetQueueUpdatedFunction(

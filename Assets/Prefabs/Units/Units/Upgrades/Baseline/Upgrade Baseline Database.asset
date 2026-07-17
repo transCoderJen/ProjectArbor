@@ -17,13 +17,29 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2a560091dee7fef46b701772be4411f1, type: 2}
   - {fileID: 11400000, guid: aefb7168e4b45a6478770a68b84ba5e0, type: 2}
   baselines:
-  - <TargetObject>k__BackingField: {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
+  - <TargetObject>k__BackingField: {fileID: 11400000, guid: e2c42c601c9aed9489922df559347ba9, type: 2}
     <PropertyPath>k__BackingField: AttackConfig/Damage
     valueType: 0
-    intValue: 6
+    intValue: 9
+    longValue: 0
     floatValue: 0
+    doubleValue: 0
     boolValue: 0
     stringValue: 
     vector2Value: {x: 0, y: 0}
     vector3Value: {x: 0, y: 0, z: 0}
     colorValue: {r: 0, g: 0, b: 0, a: 0}
+    enumValueName: 
+  - <TargetObject>k__BackingField: {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
+    <PropertyPath>k__BackingField: AttackConfig/Damage
+    valueType: 0
+    intValue: 6
+    longValue: 0
+    floatValue: 0
+    doubleValue: 0
+    boolValue: 0
+    stringValue: 
+    vector2Value: {x: 0, y: 0}
+    vector3Value: {x: 0, y: 0, z: 0}
+    colorValue: {r: 0, g: 0, b: 0, a: 0}
+    enumValueName: 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using ShiftedSignal.Garden.Units;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.TechTree
@@ -15,9 +16,11 @@ namespace ShiftedSignal.Garden.TechTree
         [field: SerializeField]
         public string PropertyPath { get; private set; }
 
-        public string UpgradeID => upgradeID;
+        [field: Header("Targets")]
+        [field: SerializeField]
+        public List<UnitSO> TargetObjects { get; private set; } = new(1);
 
-        public abstract ScriptableObject TargetObject { get; }
+        public string UpgradeID => upgradeID;
 
         public virtual IEnumerable<string> ModifiedPropertyPaths
         {
@@ -30,15 +33,23 @@ namespace ShiftedSignal.Garden.TechTree
             }
         }
 
-        public abstract void Apply();
+        /// <summary>
+        /// Applies this upgrade to one target object.
+        /// UpgradeManager should call this once for every object in TargetObjects.
+        /// </summary>
+        public abstract void Apply(ScriptableObject targetObject);
 
-        protected ResolvedProperty ResolveProperty()
+        /// <summary>
+        /// Resolves PropertyPath against a specific target object.
+        /// </summary>
+        protected ResolvedProperty ResolveProperty(
+            ScriptableObject targetObject)
         {
-            if (TargetObject == null)
+            if (targetObject == null)
             {
                 throw new InvalidPropertyPathException(
                     PropertyPath,
-                    $"Upgrade '{name}' has no target object assigned."
+                    $"Upgrade '{name}' was given a null target object."
                 );
             }
 
@@ -68,7 +79,7 @@ namespace ShiftedSignal.Garden.TechTree
                 );
             }
 
-            object currentOwner = TargetObject;
+            object currentOwner = targetObject;
 
             const BindingFlags flags =
                 BindingFlags.Instance |
@@ -103,7 +114,8 @@ namespace ShiftedSignal.Garden.TechTree
                     );
                 }
 
-                bool isFinalProperty = i == attributes.Length - 1;
+                bool isFinalProperty =
+                    i == attributes.Length - 1;
 
                 if (isFinalProperty)
                 {
@@ -126,7 +138,8 @@ namespace ShiftedSignal.Garden.TechTree
                 {
                     throw new InvalidPropertyPathException(
                         PropertyPath,
-                        $"Intermediate property '{propertyName}' cannot be read."
+                        $"Intermediate property '{propertyName}' " +
+                        $"cannot be read."
                     );
                 }
 
@@ -162,7 +175,9 @@ namespace ShiftedSignal.Garden.TechTree
         protected readonly struct ResolvedProperty
         {
             public object Owner { get; }
+
             public PropertyInfo Property { get; }
+
             public string Path { get; }
 
             public Type PropertyType => Property.PropertyType;
@@ -202,6 +217,13 @@ namespace ShiftedSignal.Garden.TechTree
                         exception.InnerException ?? exception
                     );
                 }
+                catch (Exception exception)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to read property '{Path}'.",
+                        exception
+                    );
+                }
             }
 
             public T GetValue<T>()
@@ -210,18 +232,24 @@ namespace ShiftedSignal.Garden.TechTree
 
                 if (value == null)
                 {
-                    if (default(T) != null)
+                    Type requestedType = typeof(T);
+
+                    bool acceptsNull =
+                        !requestedType.IsValueType ||
+                        Nullable.GetUnderlyingType(requestedType) != null;
+
+                    if (!acceptsNull)
                     {
                         throw new InvalidCastException(
                             $"Property '{Path}' returned null, but " +
-                            $"{typeof(T).FullName} cannot contain null."
+                            $"{requestedType.FullName} cannot contain null."
                         );
                     }
 
                     return default;
                 }
 
-                if (value is not T typedValue)
+                if (!(value is T typedValue))
                 {
                     throw new InvalidCastException(
                         $"Property '{Path}' is type " +
@@ -262,8 +290,8 @@ namespace ShiftedSignal.Garden.TechTree
                 {
                     throw new InvalidCastException(
                         $"Cannot assign a value of type " +
-                        $"{value.GetType().FullName} to property '{Path}' " +
-                        $"of type {propertyType.FullName}."
+                        $"{value.GetType().FullName} to property " +
+                        $"'{Path}' of type {propertyType.FullName}."
                     );
                 }
 
@@ -276,6 +304,13 @@ namespace ShiftedSignal.Garden.TechTree
                     throw new InvalidOperationException(
                         $"The setter for '{Path}' threw an exception.",
                         exception.InnerException ?? exception
+                    );
+                }
+                catch (Exception exception)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to set property '{Path}'.",
+                        exception
                     );
                 }
             }
@@ -294,7 +329,16 @@ namespace ShiftedSignal.Garden.TechTree
             if (string.IsNullOrWhiteSpace(upgradeID))
             {
                 upgradeID = Guid.NewGuid().ToString();
+
                 UnityEditor.EditorUtility.SetDirty(this);
+            }
+
+            for (int i = TargetObjects.Count - 1; i >= 0; i--)
+            {
+                if (TargetObjects[i] == null)
+                {
+                    TargetObjects.RemoveAt(i);
+                }
             }
         }
 #endif

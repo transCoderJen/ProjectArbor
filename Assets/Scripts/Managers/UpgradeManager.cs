@@ -22,7 +22,16 @@ namespace ShiftedSignal.Garden.Managers
         {
             base.Awake();
 
-            baselineDatabase.RestoreAll();
+            if (baselineDatabase != null)
+            {
+                baselineDatabase.RestoreAll();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    $"{nameof(UpgradeManager)} has no baseline database assigned."
+                );
+            }
 
             appliedUpgrades.Clear();
 
@@ -31,16 +40,26 @@ namespace ShiftedSignal.Garden.Managers
 
         private void OnApplicationQuit()
         {
-            baselineDatabase.RestoreAll();
+            RestoreBaselines();
         }
 
         protected override void OnDestroy()
         {
             Bus<UpgradeResearchEvent>.OnEvent -= HandleUpgradeResearch;
 
-            baselineDatabase.RestoreAll();
+            RestoreBaselines();
 
             base.OnDestroy();
+        }
+
+        private void RestoreBaselines()
+        {
+            if (baselineDatabase == null)
+            {
+                return;
+            }
+
+            baselineDatabase.RestoreAll();
         }
 
         private void HandleUpgradeResearch(UpgradeResearchEvent evt)
@@ -72,41 +91,88 @@ namespace ShiftedSignal.Garden.Managers
             if (appliedUpgrades.Contains(upgrade))
             {
                 Debug.Log(
-                    $"Upgrade {upgrade.name} has already been applied. " +
-                    $"Skipping duplicate application."
+                    $"Upgrade '{upgrade.name}' has already been applied. " +
+                    "Skipping duplicate application."
                 );
 
                 return false;
             }
 
-            try
+            if (upgrade.TargetObjects == null ||
+                upgrade.TargetObjects.Count == 0)
             {
-                Debug.Log($"Applying upgrade {upgrade.name}.");
-
-                upgrade.Apply();
-
-                appliedUpgrades.Add(upgrade);
-
-                Debug.Log(
-                    $"Upgrade {upgrade.name} was successfully applied."
-                );
-
-                return true;
-            }
-            catch (Exception exception)
-            {
-                Debug.LogError(
-                    $"Upgrade {upgrade.name} failed while being applied.\n" +
-                    exception
+                Debug.LogWarning(
+                    $"Upgrade '{upgrade.name}' has no target objects assigned."
                 );
 
                 return false;
             }
+
+            bool appliedToAtLeastOneTarget = false;
+
+            for (int i = 0; i < upgrade.TargetObjects.Count; i++)
+            {
+                ScriptableObject targetObject =
+                    upgrade.TargetObjects[i];
+
+                if (targetObject == null)
+                {
+                    Debug.LogWarning(
+                        $"Upgrade '{upgrade.name}' has a null target object " +
+                        $"at index {i}. Skipping that target."
+                    );
+
+                    continue;
+                }
+
+                try
+                {
+                    Debug.Log(
+                        $"Applying upgrade '{upgrade.name}' to " +
+                        $"'{targetObject.name}'."
+                    );
+
+                    upgrade.Apply(targetObject);
+
+                    appliedToAtLeastOneTarget = true;
+
+                    Debug.Log(
+                        $"Upgrade '{upgrade.name}' was applied to " +
+                        $"'{targetObject.name}'."
+                    );
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogError(
+                        $"Upgrade '{upgrade.name}' failed while being applied " +
+                        $"to target '{targetObject.name}'.\n" +
+                        exception
+                    );
+                }
+            }
+
+            if (!appliedToAtLeastOneTarget)
+            {
+                Debug.LogWarning(
+                    $"Upgrade '{upgrade.name}' was not applied to any targets."
+                );
+
+                return false;
+            }
+
+            appliedUpgrades.Add(upgrade);
+
+            Debug.Log(
+                $"Upgrade '{upgrade.name}' was successfully applied."
+            );
+
+            return true;
         }
 
         public bool IsApplied(UpgradeSO upgrade)
         {
-            return upgrade != null && appliedUpgrades.Contains(upgrade);
+            return upgrade != null &&
+                   appliedUpgrades.Contains(upgrade);
         }
     }
 }

@@ -23,5 +23,7 @@ MonoBehaviour:
   <IsOneTimeUnlock>k__BackingField: 1
   upgradeID: 1133b87d-870d-4d90-8953-0f8a787e8df8
   <PropertyPath>k__BackingField: AttackConfig/Damage
-  <Target>k__BackingField: {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
+  <TargetObjects>k__BackingField:
+  - {fileID: 11400000, guid: e2c42c601c9aed9489922df559347ba9, type: 2}
+  - {fileID: 11400000, guid: 0e37018af246b7b47a4ec312c4963c22, type: 2}
   <Amount>k__BackingField: 1
