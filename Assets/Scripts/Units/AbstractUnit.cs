@@ -143,7 +143,8 @@ namespace ShiftedSignal.Garden.Units
 
         protected virtual void Update()
         {
-            UpdateMovementAnimation();
+            if(Helpers.EveryXFrames(10))
+                UpdateMovementAnimation();
         }
 
         private void HandleUnitEnter(IDamageable damageable)

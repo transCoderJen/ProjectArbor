@@ -135,28 +135,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CurrentStage: 0
+  CurrentPlantHealth: 0
+  GrowthProgress: 0
+  IsWatered: 0
+  IsFertilized: 0
+  PreventUse: 0
+  IsActive: 0
+  IsActivationBlock: 0
+  Health: 100
+  Seed: {fileID: 0}
+  SpawnedPlant: {fileID: 0}
   SR: {fileID: 5390414751969265511}
+  CropSprite: {fileID: 1312158679538933271}
+  SelectionBox: {fileID: 1253478706470637801}
   GridIndicator: {fileID: 0}
   BlockActiveSprite: {fileID: 21300000, guid: 1e9a0cb177a8ddf4ca093ca6c993a01b, type: 3}
   SoilTilledSprite: {fileID: 21300000, guid: 4e1f49779b7b14940a1262b8bd96add1, type: 3}
   SoilWateredSprite: {fileID: 21300000, guid: 2048356465f874b4ba38a05d3d2dda5e, type: 3}
-  CropSprite: {fileID: 1312158679538933271}
-  Seed: {fileID: 0}
-  IsWatered: 0
-  PreventUse: 0
-  IsActive: 0
-  IsActivationBlock: 0
   GridPosition: {x: 0, y: 0}
-  SelectionBox: {fileID: 1253478706470637801}
-  GrowBlockMask:
-    serializedVersion: 2
-    m_Bits: 1024
   ObjectMask:
     serializedVersion: 2
     m_Bits: 64
-  health: 100
-  SpawnedPlant: {fileID: 0}
-  HasBuildable: 0
+  currentBuildable: {fileID: 0}
 --- !u!1 &2404249666094589095
 GameObject:
   m_ObjectHideFlags: 0

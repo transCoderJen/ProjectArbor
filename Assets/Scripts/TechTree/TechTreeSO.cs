@@ -30,6 +30,7 @@ namespace ShiftedSignal.Garden.TechTree
             }
 
             Bus<BuildingSpawnEvent>.OnEvent += HandleBuildingSpawn;
+            Bus<BuildingDeathEvent>.OnEvent += HandleBuildingDeath;
             Bus<UpgradeResearchEvent>.OnEvent += HandleUpgradeResearch;
         }
 
@@ -37,7 +38,21 @@ namespace ShiftedSignal.Garden.TechTree
         {
             techTree = null;
             Bus<BuildingSpawnEvent>.OnEvent -= HandleBuildingSpawn;
+            Bus<BuildingDeathEvent>.OnEvent -= HandleBuildingDeath;
             Bus<UpgradeResearchEvent>.OnEvent -= HandleUpgradeResearch;
+        }
+
+        private void HandleBuildingDeath(BuildingDeathEvent evt)
+        {
+            if (evt.Building == null)
+                return;
+
+            UnlockableSO spawnedBuilding = evt.Building.UnitSO;
+
+            foreach (Dependency dependency in techTree.Values)
+            {
+                dependency.LoseDependency(spawnedBuilding);
+            }
         }
 
         private void HandleUpgradeResearch(UpgradeResearchEvent evt)
@@ -135,7 +150,23 @@ namespace ShiftedSignal.Garden.TechTree
                 }
             }
 
-            
+            public void LoseDependency(UnlockableSO dependency)
+            {
+                if (dependency.IsOneTimeUnlock || !metDependencies.TryGetValue(dependency, out int count)) return;
+
+                count--;
+
+                if (count > 0)
+                {
+                    metDependencies[dependency] = count;
+                }
+                else
+                {
+                    metDependencies.Remove(dependency);
+                }
+
+
+            }
         }
     }
 }

@@ -219,6 +219,7 @@ namespace ShiftedSignal.Garden.Buildable
         protected virtual void OnDestroy()
         {
             // RaiderTargetRegistry.Unregister(this);
+            Bus<BuildingDeathEvent>.Raise(new BuildingDeathEvent(this));
         }
 
         #endregion
