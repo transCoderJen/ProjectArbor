@@ -173,7 +173,7 @@ MonoBehaviour:
   progress:
     <Progress>k__BackingField: 0
     <State>k__BackingField: 1
-  buildInteractionDistance: 8
+  buildInteractionDistance: 10
   HasTimedEffects: 0
   HasConstantEffects: 0
   TimedEffects: []
