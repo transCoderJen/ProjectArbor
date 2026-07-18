@@ -22,7 +22,7 @@ MonoBehaviour:
   <IsOneTimeUnlock>k__BackingField: 0
   <Prefab>k__BackingField: {fileID: 6795121680918855025, guid: 141ef5dbf2811c24db0735287bf874b3, type: 3}
   <Health>k__BackingField: 300
-  <Team>k__BackingField: 4
+  <Team>k__BackingField: 8
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
   GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}

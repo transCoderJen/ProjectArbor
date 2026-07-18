@@ -10,18 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 68bad28b57dc8af47b2ee7aab53e888d, type: 3}
-  m_Name: Worker
+  m_Name: Enemy Rifleman
   m_EditorClassIdentifier: 
-  <ItemID>k__BackingField: Worker
-  <Name>k__BackingField: Worker
-  <Icon>k__BackingField: {fileID: 709330468, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
+  <ItemID>k__BackingField: Rifleman
+  <Name>k__BackingField: Rifleman
+  <Icon>k__BackingField: {fileID: -2127072776, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
   <BuildTime>k__BackingField: 5
-  <SupplyCost>k__BackingField: {fileID: 11400000, guid: ddd2e6e5dd427934a9d52b80f47c128b, type: 2}
+  <SupplyCost>k__BackingField: {fileID: 11400000, guid: c9a290148467aba4fa727c6f33452a61, type: 2}
   <unlockRequirements>k__BackingField: []
   <TechTree>k__BackingField: {fileID: 11400000, guid: a9bc361e44a24f24c844c8d1badba98d, type: 2}
   <IsOneTimeUnlock>k__BackingField: 0
-  <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: c367296dc7d11434491165ed561ae04f, type: 3}
+  <Prefab>k__BackingField: {fileID: 7757308472215867856, guid: 6501654f5063ac743916ddad2f4c8625, type: 3}
   <Health>k__BackingField: 100
-  <Team>k__BackingField: 3
-  <AttackConfig>k__BackingField: {fileID: 0}
+  <Team>k__BackingField: 4
+  <AttackConfig>k__BackingField: {fileID: 11400000, guid: b61b7603870b38c429e137478d2cc22a, type: 2}
   SaveID: 

@@ -49,7 +49,7 @@ namespace ShiftedSignal.Garden.Buildable
         {
             if (DamageableSensor != null && AttackConfig != null)
             {
-                DamageableSensor.SetupFrom(AttackConfig);
+                DamageableSensor.SetupFrom(AttackConfig, this.Owner);
             }
 
             base.Start();

@@ -21,8 +21,12 @@ namespace ShiftedSignal.Garden.Units
         [Header("Attack")]
         [field: SerializeField] public AttackType Type { get; private set; } = AttackType.Melee;
         [field: SerializeField] public int Damage { get; private set; } = 5;
-        [field: SerializeField] public float Range { get; private set; } = 2f;
+        [field: SerializeField] public float Range { get; private set; } = 40f;
         [field: SerializeField] public float Delay { get; private set; } = 1f;
+
+        // Distance at which the unit can notice and pursue targets.
+        [field: SerializeField, Min(0f)]
+        public float ScanRange { get; private set; } = 80f;
 
         [Header("Damage")]
         [field: SerializeField] public bool Knockback { get; private set; } = true;

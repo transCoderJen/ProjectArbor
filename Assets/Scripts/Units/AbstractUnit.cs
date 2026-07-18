@@ -84,7 +84,7 @@ namespace ShiftedSignal.Garden.Units
             {
                 DameagableSensor.OnUnitEnter += HandleUnitEnter;
                 DameagableSensor.OnUnitExit += HandleUnitExit;
-                DameagableSensor.SetupFrom(UnitSO.AttackConfig);
+                DameagableSensor.SetupFrom(UnitSO.AttackConfig, Owner);
             }
 
             // foreach(UpgradeSO upgrade in UnitSO.Upgrades)

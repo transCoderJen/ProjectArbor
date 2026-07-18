@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a12620121fb4bb44b8496b35276ece89, type: 3}
+  m_Name: Enemy Rifleman Attack Config
+  m_EditorClassIdentifier: 
+  <Type>k__BackingField: 1
+  <Damage>k__BackingField: 50
+  <Range>k__BackingField: 40
+  <Delay>k__BackingField: 0.1
+  <ScanRange>k__BackingField: 80
+  <Knockback>k__BackingField: 1
+  <IgnoreFriendlyFire>k__BackingField: 1
+  <CanDamageBuildables>k__BackingField: 1
+  <ProjectileType>k__BackingField: 13
+  <ProjectileSpeed>k__BackingField: 300
+  <ProjectileMovementType>k__BackingField: 0
+  <ArcHeight>k__BackingField: 10
+  <Exploding>k__BackingField: 0
+  <ExplosionType>k__BackingField: 0
+  <ExplosionRadius>k__BackingField: 2
+  <ExplosionDamage>k__BackingField: 3
+  <ExplosionHitMask>k__BackingField:
+    serializedVersion: 2
+    m_Bits: 0
+  <ProjectileAccuracy>k__BackingField: 100
+  <ProjectileBuildUpTime>k__BackingField: 0
+  <ProjectileRotate>k__BackingField: 0
+  <ProjectileRotateAmount>k__BackingField: 0
+  <ProjectileBounce>k__BackingField: 0
+  <ProjectileBounceForce>k__BackingField: 0
+  <ProjectileLifetime>k__BackingField: 5

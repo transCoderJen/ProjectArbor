@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a12620121fb4bb44b8496b35276ece89, type: 3}
   m_Name: Grenadier Attack Congfig
   m_EditorClassIdentifier: 
-  <Type>k__BackingField: 0
+  <Type>k__BackingField: 1
   <Damage>k__BackingField: 6
-  <Range>k__BackingField: 2
+  <Range>k__BackingField: 20
   <Delay>k__BackingField: 1
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1
