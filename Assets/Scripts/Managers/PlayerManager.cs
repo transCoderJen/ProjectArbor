@@ -10,6 +10,7 @@ namespace ShiftedSignal.Garden.Managers
     {
         public int Currency;
         public int UnlockedFarmingArea;
+        public GameObject FarmGameObject;
 
         private void OnEnable()
         {

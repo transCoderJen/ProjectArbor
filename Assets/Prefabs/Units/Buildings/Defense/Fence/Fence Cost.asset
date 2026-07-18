@@ -12,7 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99aec1201c83e114fa1affbe4472a8f4, type: 3}
   m_Name: Fence Cost
   m_EditorClassIdentifier: 
-  <Cost>k__BackingField: 5
-  <RequiredSupplies>k__BackingField:
-  - Material: {fileID: 11400000, guid: ce9c2f3c7c8dc274faa5ea17f01b5f91, type: 2}
-    Amount: 1
+  <Cost>k__BackingField: 0
+  <RequiredSupplies>k__BackingField: []

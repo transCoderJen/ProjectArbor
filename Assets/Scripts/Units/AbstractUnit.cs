@@ -5,6 +5,7 @@ using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
+using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.SaveAndLoad;
 using ShiftedSignal.Garden.TechTree;
@@ -86,6 +87,8 @@ namespace ShiftedSignal.Garden.Units
                 DameagableSensor.OnUnitExit += HandleUnitExit;
                 DameagableSensor.SetupFrom(UnitSO.AttackConfig, Owner);
             }
+
+            graphAgent.SetVariableValue("Farm", PlayerManager.Instance.FarmGameObject);
 
             // foreach(UpgradeSO upgrade in UnitSO.Upgrades)
             // {

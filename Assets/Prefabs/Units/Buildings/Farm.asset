@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea0c59e97993e3f40b4fb8e3ed79f9e6, type: 3}
-  m_Name: Fence2D
+  m_Name: Farm
   m_EditorClassIdentifier: 
-  <ItemID>k__BackingField: Fence2D
-  <Name>k__BackingField: Fence
+  <ItemID>k__BackingField: Farm
+  <Name>k__BackingField: Unit
   <Icon>k__BackingField: {fileID: 0}
   <BuildTime>k__BackingField: 5
-  <SupplyCost>k__BackingField: {fileID: 11400000, guid: a1cd75696c1508241a3429882990279f, type: 2}
+  <SupplyCost>k__BackingField: {fileID: 0}
   <unlockRequirements>k__BackingField: []
-  <TechTree>k__BackingField: {fileID: 11400000, guid: a9bc361e44a24f24c844c8d1badba98d, type: 2}
+  <TechTree>k__BackingField: {fileID: 0}
   <IsOneTimeUnlock>k__BackingField: 0
-  <Prefab>k__BackingField: {fileID: 7183955855498715984, guid: e7fa60d464c4ff149aef313aa6cc046d, type: 3}
+  <Prefab>k__BackingField: {fileID: 0}
   <Health>k__BackingField: 100
   <Team>k__BackingField: 2
   <AttackConfig>k__BackingField: {fileID: 0}
   SaveID: 
-  GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
+  GhostMaterial: {fileID: 0}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
-  XRotation: 0
+  XRotation: 30
