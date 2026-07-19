@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Enemy Rifleman Attack Config
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 1
-  <Damage>k__BackingField: 50
+  <Damage>k__BackingField: 15
   <Range>k__BackingField: 40
   <Delay>k__BackingField: 0.1
   <ScanRange>k__BackingField: 80

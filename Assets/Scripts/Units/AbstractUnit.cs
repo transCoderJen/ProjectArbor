@@ -101,10 +101,11 @@ namespace ShiftedSignal.Garden.Units
 
         protected virtual void OnDestroy()
         {
-            if (Application.isPlaying)
-                Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
             
             Bus<UnitDeathEvent>.OnEvent -= HandleUnitDeath;
+
+            if (Application.isPlaying)
+                Bus<UnitDeathEvent>.Raise(new UnitDeathEvent(this));
 
             if (DameagableSensor != null)
             {
@@ -115,13 +116,30 @@ namespace ShiftedSignal.Garden.Units
 
         private void HandleUnitDeath(UnitDeathEvent evt)
         {
-            if (!graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable))
+            if (graphAgent == null ||
+                !graphAgent.isActiveAndEnabled ||
+                !gameObject.activeInHierarchy)
+            {
+                return;
+            }
+
+            // Do not process this unit's own death event.
+            if (evt.Unit == null || evt.Unit == this)
                 return;
 
-            if (targetVariable.Value == null)
+            if (!graphAgent.GetVariable(
+                    "TargetGameObject",
+                    out BlackboardVariable<GameObject> targetVariable))
+            {
+                return;
+            }
+
+            GameObject currentTarget = targetVariable.Value;
+
+            if (currentTarget == null)
                 return;
 
-            if (evt.Unit == null || evt.Unit.gameObject != targetVariable.Value)
+            if (evt.Unit.gameObject != currentTarget)
                 return;
 
             List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
@@ -129,19 +147,27 @@ namespace ShiftedSignal.Garden.Units
 
             if (nextTarget != null)
             {
-                graphAgent.SetVariableValue("TargetGameObject", nextTarget);
-                graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+                graphAgent.SetVariableValue(
+                    "TargetGameObject",
+                    nextTarget);
+
+                graphAgent.SetVariableValue(
+                    "Command",
+                    UnitCommands.Attack);
+
                 return;
             }
 
-            graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
+            graphAgent.SetVariableValue<GameObject>(
+                "TargetGameObject",
+                null);
 
             if (IsAttackMoveActive())
-            {
                 return;
-            }
 
-            graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+            graphAgent.SetVariableValue(
+                "Command",
+                UnitCommands.Stop);
         }
 
         protected virtual void Update()

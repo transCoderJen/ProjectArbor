@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9512d539f2a266d4f943eee9c6d7e688, type: 3}
   m_Name: Show Buildings Command
   m_EditorClassIdentifier: 
+  <Name>k__BackingField: Command
   <Icon>k__BackingField: {fileID: 21300000, guid: a5df28aa58ab6264bb16fe1e21c4e327, type: 3}
   <Slot>k__BackingField: 6
   <RequiresClickToActivate>k__BackingField: 0
   <Commands>k__BackingField:
   - {fileID: 11400000, guid: 416af502c22e462458bc23258ad0ff41, type: 2}
+  - {fileID: 11400000, guid: 5f2cf9f4b8871b04d92f3e5e58bf530f, type: 2}
   - {fileID: 11400000, guid: e3350b29978756a41b9617aeeb112b45, type: 2}
   - {fileID: 11400000, guid: a79814f7f1201644d842a07f2a8bb7f3, type: 2}
   - {fileID: 11400000, guid: 8f9016a1c5636ad40bb78561d23b5df2, type: 2}
