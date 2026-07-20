@@ -11,20 +11,7 @@ namespace ShiftedSignal.Garden.Commands
     {
         public override bool CanHandle(CommandContext context)
         {
-            if (context.Commandable is not Worker)
-                return false;
-
-            if (context.Hit.collider != null &&
-                context.Hit.collider.GetComponentInParent<IFarmSupplySource>() != null)
-            {
-                return true;
-            }
-
-            GrowBlock block = GridManager.Instance?.GetBlock();
-
-            return block != null &&
-                   block.IsActive &&
-                   block.CurrentStage >= GrowBlock.GrowthStage.Ploughed;
+            return context.Commandable is Worker;
         }
 
         public override void Handle(CommandContext context)

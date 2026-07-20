@@ -2,6 +2,8 @@ using System;
 using ShiftedSignal.Garden.Behavior;
 using ShiftedSignal.Garden.Buildable;
 using ShiftedSignal.Garden.Combat;
+using ShiftedSignal.Garden.Dialogue;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.Environment;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
@@ -314,5 +316,15 @@ namespace ShiftedSignal.Garden.Units
 
         
         #endregion
+
+        public override void Interact(Player player)
+        {
+            base.Interact(player);
+
+            DialogueManager.Instance.SetCommandTarget(this);
+
+            Bus<EnterDialogueEvent>.Raise(
+                new EnterDialogueEvent("worker_commands"));
+        }
     }
 }

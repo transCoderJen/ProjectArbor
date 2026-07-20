@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Commands;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -10,7 +11,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace ShiftedSignal.Garden.Units
 {
-    public abstract class AbstractCommandable : MonoBehaviour, ISelectable, IDamageable, IHealable
+    public abstract class AbstractCommandable : MonoBehaviour, ISelectable, IDamageable, IHealable, IInteractable
     {
         [Header("Commandable Stats")]
         [field: SerializeField] public int CurrentHealth { get; private set; }
@@ -32,6 +33,11 @@ namespace ShiftedSignal.Garden.Units
         public TargetPriority TargetPriority => targetPriority;
 
         private BaseCommand[] initialCommands;
+
+        private bool isSelected;
+        private bool isInteractionHighlighted;
+
+        public bool IsSelected => isSelected;
 
         public delegate void HealthUpdatedEvent(AbstractCommandable commandable, int lastHealth, int newHealth);
         public event HealthUpdatedEvent OnHealthUpdated;
@@ -96,6 +102,8 @@ namespace ShiftedSignal.Garden.Units
             SetHealth(maxHealth, maxHealth);
 
             initialCommands = AvailableCommands;
+
+            RefreshSelectionVisual();
         }
 
         public virtual void TakeDamage(DamageData damageData)
@@ -142,24 +150,6 @@ namespace ShiftedSignal.Garden.Units
             Destroy(gameObject);
         }
 
-        public void Select()
-        {
-            if (decalProjector != null)
-                decalProjector.gameObject.SetActive(true);
-
-            Bus<UnitSelectedEvent>.Raise(new UnitSelectedEvent(this));
-        }
-
-        public void Deselect()
-        {
-            if (decalProjector != null)
-                decalProjector.gameObject.SetActive(false);
-
-            SetCommandOverrides(null);
-
-            Bus<UnitDeselectedEvent>.Raise(new UnitDeselectedEvent(this));
-        }
-
         public void SetCommandOverrides(BaseCommand[] commands)
         {
             AvailableCommands =
@@ -169,5 +159,97 @@ namespace ShiftedSignal.Garden.Units
 
             Bus<UnitSelectedEvent>.Raise(new UnitSelectedEvent(this));
         }
+
+        // public void Select()
+        // {
+        //     if (decalProjector != null)
+        //         decalProjector.gameObject.SetActive(true);
+
+        //     Bus<UnitSelectedEvent>.Raise(new UnitSelectedEvent(this));
+        // }
+
+        // public void Deselect()
+        // {
+        //     if (decalProjector != null)
+        //         decalProjector.gameObject.SetActive(false);
+
+        //     SetCommandOverrides(null);
+
+        //     Bus<UnitDeselectedEvent>.Raise(new UnitDeselectedEvent(this));
+        // }
+
+        // #region Interaction
+
+        // public virtual void Interact(Player player)
+        // {
+        //     InteractCommand(player);
+        // }
+
+        // protected virtual void InteractCommand(Player player)
+        // {
+        //     SelectFromInteraction();
+        // }
+
+        // protected virtual void SelectFromInteraction()
+        // {
+        //     // Use the same selection method that commander selection uses.
+        //     Select();
+        // }
+
+        // public virtual void Highlight(bool highlight)
+        // {
+        //     selectionDecal.gameObject.SetActive(highlight || IsSelected);
+        // }
+
+        // #endregion
+
+        public void Select()
+        {
+            if (isSelected)
+                return;
+
+            isSelected = true;
+            RefreshSelectionVisual();
+
+            Bus<UnitSelectedEvent>.Raise(
+                new UnitSelectedEvent(this));
+        }
+
+        public void Deselect()
+        {
+            if (!isSelected)
+                return;
+
+            isSelected = false;
+            SetCommandOverrides(null);
+            RefreshSelectionVisual();
+
+            Bus<UnitDeselectedEvent>.Raise(
+                new UnitDeselectedEvent(this));
+        }
+
+        #region Interaction
+
+        public virtual void Interact(Player player)
+        {
+            Select();
+        }
+
+        public virtual void Highlight(bool highlight)
+        {
+            isInteractionHighlighted = highlight;
+            RefreshSelectionVisual();
+        }
+
+        private void RefreshSelectionVisual()
+        {
+            if (decalProjector == null)
+                return;
+
+            decalProjector.gameObject.SetActive(
+                isSelected || isInteractionHighlighted);
+        }
+
+        #endregion
     }
 }

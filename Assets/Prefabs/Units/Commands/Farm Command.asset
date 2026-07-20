@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38ec3d9da07d9cb4a820a56e3153ca9e, type: 3}
   m_Name: Farm Command
   m_EditorClassIdentifier: 
+  <Name>k__BackingField: Command
   <Icon>k__BackingField: {fileID: 4279260276780606416, guid: 3da05e9f66c9f254c8875335e7e9179e, type: 3}
   <Slot>k__BackingField: 2
-  <RequiresClickToActivate>k__BackingField: 1
+  <RequiresClickToActivate>k__BackingField: 0

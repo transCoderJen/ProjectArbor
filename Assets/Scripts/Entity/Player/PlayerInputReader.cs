@@ -9,7 +9,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
     {
         public event Action<Vector2> MoveChanged;
         public event Action InteractPressed;
-        public event Action ActionPressed;
+        public event Action InteractReleased;
         public event Action AttackPressed;
         public event Action CancelPressed;
 
@@ -17,7 +17,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public Vector2 PointerPosition { get; private set; }
 
         public bool InteractHeld { get; private set; }
-        public bool ActionHeld { get; private set; }
+
         public bool AttackHeld =>
             PlayerInput != null &&
             PlayerInput.actions != null &&
@@ -26,19 +26,20 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public PlayerInput PlayerInput { get; private set; }
 
         private InputAction attackAction;
-        private bool previousAttackHeld;
         private InputAction interactAction;
+
+        private bool previousAttackHeld;
         private bool previousInteractHeld;
 
         private void Awake()
         {
             PlayerInput = GetComponent<PlayerInput>();
 
-            if (PlayerInput != null && PlayerInput.actions != null)
-            {
-                attackAction = PlayerInput.actions["Attack"];
-                interactAction = PlayerInput.actions["Interact"];
-            }
+            if (PlayerInput == null || PlayerInput.actions == null)
+                return;
+
+            attackAction = PlayerInput.actions["Attack"];
+            interactAction = PlayerInput.actions["Interact"];
         }
 
         private void Update()
@@ -48,26 +49,37 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void UpdateHeldInputs()
         {
-            if (interactAction != null)
-            {
-                InteractHeld = interactAction.IsPressed();
+            UpdateInteractInput();
+            UpdateAttackInput();
+        }
 
-                if (InteractHeld && !previousInteractHeld)
-                {
-                    InteractPressed?.Invoke();
-                    ActionPressed?.Invoke();
-                }
+        private void UpdateInteractInput()
+        {
+            if (interactAction == null)
+                return;
 
-                previousInteractHeld = InteractHeld;
-            }
+            InteractHeld = interactAction.IsPressed();
 
+            if (InteractHeld && !previousInteractHeld)
+                InteractPressed?.Invoke();
+
+            if (!InteractHeld && previousInteractHeld)
+                InteractReleased?.Invoke();
+
+            previousInteractHeld = InteractHeld;
+        }
+
+        private void UpdateAttackInput()
+        {
             if (attackAction == null)
                 return;
 
-            if (AttackHeld && !previousAttackHeld)
+            bool attackHeld = AttackHeld;
+
+            if (attackHeld && !previousAttackHeld)
                 AttackPressed?.Invoke();
 
-            previousAttackHeld = AttackHeld;
+            previousAttackHeld = attackHeld;
         }
 
         public void OnMove(InputValue value)
@@ -78,33 +90,18 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnInteract(InputValue value)
         {
-            // Let UpdateHeldInputs handle InteractHeld.
-        }
-
-        public void OnAction(InputValue value)
-        {
-            ActionHeld = value.isPressed;
-
-            if (!value.isPressed)
-                return;
-
-            ActionPressed?.Invoke();
+            // UpdateHeldInputs handles press, held, and release.
         }
 
         public void OnAttack(InputValue value)
         {
-            if (!value.isPressed)
-                return;
-
-            AttackPressed?.Invoke();
+            // UpdateHeldInputs handles the initial press.
         }
 
         public void OnCancel(InputValue value)
         {
-            if (!value.isPressed)
-                return;
-
-            CancelPressed?.Invoke();
+            if (value.isPressed)
+                CancelPressed?.Invoke();
         }
 
         public void OnPointerPosition(InputValue value)
@@ -121,7 +118,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public void ClearHeldInputs()
         {
             InteractHeld = false;
-            ActionHeld = false;
+
+            previousInteractHeld = false;
             previousAttackHeld = false;
         }
     }

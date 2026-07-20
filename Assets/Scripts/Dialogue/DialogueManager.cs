@@ -1,10 +1,11 @@
 using System.Collections;
 using Ink.Runtime;
+using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Misc;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using ShiftedSignal.Garden.Units;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
@@ -13,26 +14,38 @@ namespace ShiftedSignal.Garden.Dialogue
         [Header("Ink Story")]
         [SerializeField] private TextAsset InkJson;
 
+        [Header("Input")]
+        [SerializeField] private PlayerInputReader inputReader;
+
         private Story story;
         private int currentChoiceIndex = -1;
         private string currentSpeakerId = "default";
-        private bool dialoguePlaying = false;
+        private bool dialoguePlaying;
+
         private InkExternalFunctions inkExternalFunctions;
         private InkDialogueVariables inkDialogueVariables;
 
-        override protected void Awake()
+        private bool inputSubscribed;
+
+        
+
+
+        protected override void Awake()
         {
             base.Awake();
+
             story = new Story(InkJson.text);
+
             inkExternalFunctions = new InkExternalFunctions();
             inkExternalFunctions.Bind(story);
+
             inkDialogueVariables = new InkDialogueVariables(story);
         }
 
-        override protected void OnDestroy()
+        private void Start()
         {
-            if (inkExternalFunctions != null && story != null)
-                inkExternalFunctions.Unbind(story);       
+            FindInputReader();
+            SubscribeToInput();
         }
 
         private void OnEnable()
@@ -42,7 +55,10 @@ namespace ShiftedSignal.Garden.Dialogue
             Bus<UpdateDialogueChoiceIndexEvent>.OnEvent += UpdateChoiceIndex;
             Bus<UpdateInkDialogueVariableEvent>.OnEvent += UpdateInkDialogueVariable;
             Bus<QuestStateChangedEvent>.OnEvent += QuestStateChange;
-        }  
+
+            FindInputReader();
+            SubscribeToInput();
+        }
 
         private void OnDisable()
         {
@@ -51,13 +67,68 @@ namespace ShiftedSignal.Garden.Dialogue
             Bus<UpdateDialogueChoiceIndexEvent>.OnEvent -= UpdateChoiceIndex;
             Bus<UpdateInkDialogueVariableEvent>.OnEvent -= UpdateInkDialogueVariable;
             Bus<QuestStateChangedEvent>.OnEvent -= QuestStateChange;
+
+            UnsubscribeFromInput();
         }
+
+        protected override void OnDestroy()
+        {
+            UnsubscribeFromInput();
+
+            if (inkExternalFunctions != null && story != null)
+                inkExternalFunctions.Unbind(story);
+
+            base.OnDestroy();
+        }
+
+    
+        #region Input
+
+        private void FindInputReader()
+        {
+            if (inputReader != null)
+                return;
+
+            if (Player.Instance != null)
+                inputReader = Player.Instance.InputReader;
+        }
+
+        private void SubscribeToInput()
+        {
+            if (inputSubscribed || inputReader == null)
+                return;
+
+            inputReader.InteractPressed += HandleSubmitPressed;
+            inputSubscribed = true;
+        }
+
+        private void UnsubscribeFromInput()
+        {
+            if (!inputSubscribed || inputReader == null)
+                return;
+
+            inputReader.InteractPressed-= HandleSubmitPressed;
+            inputSubscribed = false;
+        }
+
+        private void HandleSubmitPressed()
+        {
+            if (!dialoguePlaying)
+                return;
+
+            Bus<DialogueSubmitEvent>.Raise(new DialogueSubmitEvent());
+        }
+
+        #endregion
+
+        #region Event Handlers
 
         private void QuestStateChange(QuestStateChangedEvent evt)
         {
             Bus<UpdateInkDialogueVariableEvent>.Raise(
-                new UpdateInkDialogueVariableEvent(evt.Quest.Info.ID + "State", new StringValue(evt.Quest.State.ToString()))
-            );
+                new UpdateInkDialogueVariableEvent(
+                    evt.Quest.Info.ID + "State",
+                    new StringValue(evt.Quest.State.ToString())));
         }
 
         private void UpdateInkDialogueVariable(UpdateInkDialogueVariableEvent evt)
@@ -67,38 +138,21 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private void UpdateChoiceIndex(UpdateDialogueChoiceIndexEvent evt)
         {
-            this.currentChoiceIndex = evt.ChoiceIndex;
+            currentChoiceIndex = evt.ChoiceIndex;
         }
 
-        private void Update()
-        {
-            if (!dialoguePlaying)
-                return;
-
-            if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
-                SubmitPressed();
-        }
-
-        public void OnInteract(InputValue value)
-        {
-            if (!dialoguePlaying)
-                return;
-
-            SubmitPressed();
-        }
-
-        private void SubmitPressed()
-        {
-            Bus<DialogueSubmitEvent>.Raise(new DialogueSubmitEvent());
-        }
-
-        private void HandleDialogueAdvanceRequested(DialogueAdvanceRequestedEvent evt)
+        private void HandleDialogueAdvanceRequested(
+            DialogueAdvanceRequestedEvent evt)
         {
             if (!dialoguePlaying)
                 return;
 
             ContinueOrExitStory();
         }
+
+        #endregion
+
+        #region Dialogue
 
         private void EnterDialogueHandler(EnterDialogueEvent evt)
         {
@@ -108,7 +162,8 @@ namespace ShiftedSignal.Garden.Dialogue
             dialoguePlaying = true;
 
             Bus<DialogueStartedEvent>.Raise(new DialogueStartedEvent());
-            Bus<EnablePlayerMovementEvent>.Raise(new EnablePlayerMovementEvent(false));
+            Bus<EnablePlayerMovementEvent>.Raise(
+                new EnablePlayerMovementEvent(false));
 
             if (!string.IsNullOrWhiteSpace(evt.KnotName))
             {
@@ -116,7 +171,8 @@ namespace ShiftedSignal.Garden.Dialogue
             }
             else
             {
-                Debug.LogWarning("Knot name was empty when entering dialogue.");
+                Debug.LogWarning(
+                    "Knot name was empty when entering dialogue.");
             }
 
             inkDialogueVariables.SyncVariablesAndStartListening(story);
@@ -126,7 +182,8 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private void ContinueOrExitStory()
         {
-            if (story.currentChoices.Count > 0 && currentChoiceIndex != -1)
+            if (story.currentChoices.Count > 0 &&
+                currentChoiceIndex != -1)
             {
                 story.ChooseChoiceIndex(currentChoiceIndex);
                 currentChoiceIndex = -1;
@@ -141,23 +198,53 @@ namespace ShiftedSignal.Garden.Dialogue
                 {
                     dialogueLine = story.Continue();
                 }
+
                 if (IsLineBlank(dialogueLine) && !story.canContinue)
                 {
                     StartCoroutine(ExitDialogue());
-                }
-                else
-                {
-                    Bus<DisplayDialogueEvent>.Raise(
-                        new DisplayDialogueEvent(CheckIfNote(), speakerId, dialogueLine, story.currentChoices)
-                    );
+                    return;
                 }
 
-                
+                Bus<DisplayDialogueEvent>.Raise(
+                    new DisplayDialogueEvent(
+                        CheckIfNote(),
+                        speakerId,
+                        dialogueLine,
+                        story.currentChoices));
+
+                return;
             }
-            else if (story.currentChoices.Count == 0)
-            {
+
+            if (story.currentChoices.Count == 0)
                 StartCoroutine(ExitDialogue());
-            }
+        }
+
+        private IEnumerator ExitDialogue()
+        {
+            yield return null;
+
+            dialoguePlaying = false;
+
+            Bus<DialogueFinishedEvent>.Raise(
+                new DialogueFinishedEvent());
+
+            Bus<EnablePlayerMovementEvent>.Raise(
+                new EnablePlayerMovementEvent(true));
+
+            inkDialogueVariables.StopListening(story);
+
+            inkExternalFunctions.SetCommandTargetToNull();
+            
+            story.ResetState();
+        }
+
+        #endregion
+
+        #region Ink Helpers
+
+        public void SetCommandTarget(Worker worker)
+        {
+            inkExternalFunctions.SetCommandTarget(worker);
         }
 
         private bool CheckIfNote()
@@ -193,21 +280,12 @@ namespace ShiftedSignal.Garden.Dialogue
             return currentSpeakerId;
         }
 
-        private IEnumerator ExitDialogue()
-        {
-            yield return null;
-
-            dialoguePlaying = false;
-
-            Bus<DialogueFinishedEvent>.Raise(new DialogueFinishedEvent());
-            Bus<EnablePlayerMovementEvent>.Raise(new EnablePlayerMovementEvent(true));
-            inkDialogueVariables.StopListening(story);
-            story.ResetState();
-        }
-
         private bool IsLineBlank(string dialogueLine)
         {
-            return dialogueLine.Trim().Equals("") || dialogueLine.Trim().Equals("/n");
+            return string.IsNullOrWhiteSpace(dialogueLine) ||
+                   dialogueLine.Trim().Equals("/n");
         }
+
+        #endregion
     }
 }

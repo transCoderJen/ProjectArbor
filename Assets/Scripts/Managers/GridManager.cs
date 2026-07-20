@@ -52,6 +52,9 @@ namespace ShiftedSignal.Garden.Managers
         private Coroutine restoreRoutine;
         private Coroutine growthCoroutine;
 
+        // public bool IsControllerToolTargeting =>
+        //     UsingController && controllerToolTargeting;
+
         #endregion
 
         #region Unity Lifecycle
@@ -235,9 +238,16 @@ namespace ShiftedSignal.Garden.Managers
 
         private void UpdateHoveredBlock()
         {
-            if (Player.Instance == null 
-                || !allowGridHighlighting)
+            if (Player.Instance == null || !allowGridHighlighting)
                 return;
+
+            if (Player.Instance.UsingController &&
+                (!Player.Instance.IsControllerToolTargeting ||
+                Player.Instance.HasNearbyInteractable))
+            {
+                ClearHoveredBlock();
+                return;
+            }
 
             GrowBlock newHoveredBlock = Player.Instance.UsingController
                 ? GetBlockController()
@@ -246,8 +256,7 @@ namespace ShiftedSignal.Garden.Managers
             if (newHoveredBlock == currentHoveredBlock)
                 return;
 
-            if (currentHoveredBlock != null)
-                currentHoveredBlock.Glow(false);
+            currentHoveredBlock?.Glow(false);
 
             currentHoveredBlock = newHoveredBlock;
 
@@ -257,6 +266,14 @@ namespace ShiftedSignal.Garden.Managers
             {
                 currentHoveredBlock.Glow(true);
             }
+        }
+
+        private void ClearHoveredBlock()
+        {
+            if (currentHoveredBlock != null)
+                currentHoveredBlock.Glow(false);
+
+            currentHoveredBlock = null;
         }
 
         #endregion

@@ -4,6 +4,9 @@ EXTERNAL StartQuest(questID)
 EXTERNAL AdvanceQuest(questID)
 EXTERNAL FinishQuest(questID)
 
+EXTERNAL command_farm()
+EXTERNAL command_gather()
+
 // quest ids (questId + "Id" for variable name)
 VAR CollectCoinsQuestID = "CollectCoinsQuest"
 
@@ -14,3 +17,4 @@ VAR CollectCoinsQuestState = "REQUIREMENTS_NOT_MET"
 INCLUDE CoinsQuest\collect_coins_start_npc.ink
 INCLUDE CoinsQuest\collect_coins_finish_npc.ink
 INCLUDE Grandpas_Farm\Luna.ink
+INCLUDE Worker.ink

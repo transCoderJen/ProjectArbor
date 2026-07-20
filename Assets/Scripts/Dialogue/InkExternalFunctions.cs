@@ -1,6 +1,8 @@
 using Ink.Runtime;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.Units;
+using UnityEngine;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
@@ -30,6 +32,8 @@ namespace ShiftedSignal.Garden.Dialogue
     /// </summary>
     public class InkExternalFunctions
     {
+        private Worker commandTarget;
+        
         /// <summary>
         /// Registers all external functions used by Ink.
         /// </summary>
@@ -65,6 +69,16 @@ namespace ShiftedSignal.Garden.Dialogue
             story.BindExternalFunction(
                 "FinishQuest",
                 (string questId) => FinishQuest(questId));
+            
+            story.BindExternalFunction(
+                "command_farm",
+                CommandFarm);
+
+            story.BindExternalFunction(
+                "command_gather",
+                CommandGather);
+
+            
         }
 
         /// <summary>
@@ -79,6 +93,8 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("AcceptQuest");
             story.UnbindExternalFunction("AdvanceQuest");
             story.UnbindExternalFunction("FinishQuest");
+            story.UnbindExternalFunction("command_farm");
+            story.UnbindExternalFunction("command_gather");
         }
 
         /// <summary>
@@ -126,6 +142,50 @@ namespace ShiftedSignal.Garden.Dialogue
         {
             Bus<FinishQuestEvent>.Raise(
                 new FinishQuestEvent(questId));
+        }
+
+        public void SetCommandTarget(Worker worker)
+        {
+            commandTarget = worker;
+        }
+
+        private void CommandFarm()
+        {
+            if (commandTarget == null)
+            {
+                Debug.LogWarning(
+                    "[DialogueManager] Cannot issue Farm command: no Worker target.");
+
+                return;
+            }
+
+            Debug.Log(
+                $"[DialogueManager] Issuing Farm command to {commandTarget.name}.",
+                commandTarget);
+
+            commandTarget.Farm();
+        }
+
+        private void CommandGather()
+        {
+            if (commandTarget == null)
+            {
+                Debug.LogWarning(
+                    "[DialogueManager] Cannot issue Gather command: no Worker target.");
+
+                return;
+            }
+
+            Debug.Log(
+                $"[DialogueManager] Issuing Gather command to {commandTarget.name}.",
+                commandTarget);
+
+            commandTarget.Gather();
+        }
+
+        public void SetCommandTargetToNull()
+        {
+            commandTarget = null;
         }
     }
 }

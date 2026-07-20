@@ -176,6 +176,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         #endregion
 
+        public bool HasNearbyInteractable =>
+            GetClosestInteractable() != null;
+        
+        private bool controllerToolTargeting;
+
+        public bool IsControllerToolTargeting =>
+            UsingController && controllerToolTargeting;
+
         #region Unity Lifecycle
 
         protected override void Awake()
@@ -216,6 +224,20 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                 UsingController = PlayerInput.currentControlScheme == "Gamepad";
 
             StateMachine.Initialize(IdleState);
+
+            foreach (PlayerInput playerInput in PlayerInput.all)
+            {
+                Debug.Log(
+                    $"[PlayerInput] " +
+                    $"Object={playerInput.gameObject.name}, " +
+                    $"Scene={playerInput.gameObject.scene.name}, " +
+                    $"Index={playerInput.playerIndex}, " +
+                    $"Scheme={playerInput.currentControlScheme}, " +
+                    $"Enabled={playerInput.enabled}",
+                    playerInput.gameObject);
+            }
+
+            
         }
 
         protected override void OnEnable()
@@ -228,8 +250,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (inputReader != null)
             {
                 inputReader.MoveChanged += HandleMoveChanged;
-                inputReader.InteractPressed += TryInteract;
-                inputReader.ActionPressed += UseTool;
+                inputReader.InteractPressed += HandleInteractPressed;
+                inputReader.InteractReleased += HandleInteractReleased;
                 inputReader.AttackPressed += HandleAttackInput;
                 inputReader.CancelPressed += HandleCancelInput;
 
@@ -242,6 +264,41 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             Bus<EnablePlayerMovementEvent>.OnEvent += HandleEnablePlayerMovement;
         }
 
+        private void HandleInteractPressed()
+        {
+            if (!controlsEnabled)
+                return;
+
+            IInteractable closestInteractable = GetClosestInteractable();
+
+            if (closestInteractable != null)
+            {
+                closestInteractable.Interact(this);
+                return;
+            }
+
+            if (UsingController && GetBlock() != null)
+            {
+                controllerToolTargeting = true;
+                return;
+            }
+
+            UseTool();
+        }
+
+        private void HandleInteractReleased()
+        {
+            if (!controllerToolTargeting)
+                return;
+
+            controllerToolTargeting = false;
+
+            if (!controlsEnabled)
+                return;
+
+            UseTool();
+        }
+
         protected override void OnDisable()
         {
             base.OnDisable();
@@ -249,8 +306,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (inputReader != null)
             {
                 inputReader.MoveChanged -= HandleMoveChanged;
-                inputReader.InteractPressed -= TryInteract;
-                inputReader.ActionPressed -= UseTool;
+                inputReader.InteractPressed -= HandleInteractPressed;
+                inputReader.InteractReleased -= HandleInteractReleased;
                 inputReader.AttackPressed -= HandleAttackInput;
                 inputReader.CancelPressed -= HandleCancelInput;
 
@@ -358,6 +415,10 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void OnControlsChanged(PlayerInput input)
         {
+            Debug.Log(
+                $"Controls changed. Scheme='{input.currentControlScheme}', " +
+                $"Devices={string.Join(", ", input.devices)}");
+
             UsingController = input.currentControlScheme == "Gamepad";
         }
 
@@ -779,86 +840,84 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             return true;
         }
 
-        private bool IsGateReplacingFence(
-    GrowBlock block,
-    out FencePost2D fenceToReplace)
-{
-    fenceToReplace = null;
+        private bool IsGateReplacingFence(GrowBlock block, out FencePost2D fenceToReplace)
+        {
+            fenceToReplace = null;
 
-    Debug.Log(
-        $"[Gate Replace] Checking replacement. " +
-        $"Block: {(block != null ? block.name : "null")}, " +
-        $"Equipped: {(EquippedBuildable != null ? EquippedBuildable.name : "null")}, " +
-        $"Prefab: {(EquippedBuildable != null && EquippedBuildable.Prefab != null ? EquippedBuildable.Prefab.name : "null")}");
+            Debug.Log(
+                $"[Gate Replace] Checking replacement. " +
+                $"Block: {(block != null ? block.name : "null")}, " +
+                $"Equipped: {(EquippedBuildable != null ? EquippedBuildable.name : "null")}, " +
+                $"Prefab: {(EquippedBuildable != null && EquippedBuildable.Prefab != null ? EquippedBuildable.Prefab.name : "null")}");
 
-    if (block == null)
-    {
-        Debug.LogWarning("[Gate Replace] Failed: block is null.");
-        return false;
-    }
+            if (block == null)
+            {
+                Debug.LogWarning("[Gate Replace] Failed: block is null.");
+                return false;
+            }
 
-    if (EquippedBuildable == null)
-    {
-        Debug.LogWarning("[Gate Replace] Failed: EquippedBuildable is null.");
-        return false;
-    }
+            if (EquippedBuildable == null)
+            {
+                Debug.LogWarning("[Gate Replace] Failed: EquippedBuildable is null.");
+                return false;
+            }
 
-    if (EquippedBuildable.Prefab == null)
-    {
-        Debug.LogWarning("[Gate Replace] Failed: equipped prefab is null.");
-        return false;
-    }
+            if (EquippedBuildable.Prefab == null)
+            {
+                Debug.LogWarning("[Gate Replace] Failed: equipped prefab is null.");
+                return false;
+            }
 
-    Gate gateComponent =
-        EquippedBuildable.Prefab.GetComponent<Gate>();
+            Gate gateComponent =
+                EquippedBuildable.Prefab.GetComponent<Gate>();
 
-    Debug.Log(
-        $"[Gate Replace] Gate component on prefab root: " +
-        $"{(gateComponent != null ? gateComponent.GetType().Name : "none")}");
+            Debug.Log(
+                $"[Gate Replace] Gate component on prefab root: " +
+                $"{(gateComponent != null ? gateComponent.GetType().Name : "none")}");
 
-    if (gateComponent == null)
-    {
-        Debug.LogWarning(
-            $"[Gate Replace] Failed: prefab {EquippedBuildable.Prefab.name} " +
-            $"does not have Gate on the root object.");
+            if (gateComponent == null)
+            {
+                Debug.LogWarning(
+                    $"[Gate Replace] Failed: prefab {EquippedBuildable.Prefab.name} " +
+                    $"does not have Gate on the root object.");
 
-        return false;
-    }
+                return false;
+            }
 
-    Debug.Log(
-        $"[Gate Replace] Block HasBuildable: {block.HasBuildable}, " +
-        $"CurrentBuildable: {(block.CurrentBuildable != null ? block.CurrentBuildable.name : "null")}, " +
-        $"Current type: {(block.CurrentBuildable != null ? block.CurrentBuildable.GetType().Name : "null")}");
+            Debug.Log(
+                $"[Gate Replace] Block HasBuildable: {block.HasBuildable}, " +
+                $"CurrentBuildable: {(block.CurrentBuildable != null ? block.CurrentBuildable.name : "null")}, " +
+                $"Current type: {(block.CurrentBuildable != null ? block.CurrentBuildable.GetType().Name : "null")}");
 
-    if (block.CurrentBuildable is not FencePost2D existingFence)
-    {
-        Debug.LogWarning(
-            "[Gate Replace] Failed: CurrentBuildable is not FencePost2D.");
+            if (block.CurrentBuildable is not FencePost2D existingFence)
+            {
+                Debug.LogWarning(
+                    "[Gate Replace] Failed: CurrentBuildable is not FencePost2D.");
 
-        return false;
-    }
+                return false;
+            }
 
-    Debug.Log(
-        $"[Gate Replace] Existing fence found: {existingFence.name}, " +
-        $"Type: {existingFence.GetType().Name}, " +
-        $"IsGate: {existingFence.IsGate}");
+            Debug.Log(
+                $"[Gate Replace] Existing fence found: {existingFence.name}, " +
+                $"Type: {existingFence.GetType().Name}, " +
+                $"IsGate: {existingFence.IsGate}");
 
-    if (existingFence.IsGate)
-    {
-        Debug.LogWarning(
-            "[Gate Replace] Failed: existing object is already a gate.");
+            if (existingFence.IsGate)
+            {
+                Debug.LogWarning(
+                    "[Gate Replace] Failed: existing object is already a gate.");
 
-        return false;
-    }
+                return false;
+            }
 
-    fenceToReplace = existingFence;
+            fenceToReplace = existingFence;
 
-    Debug.Log(
-        $"[Gate Replace] Success: {existingFence.name} can be replaced " +
-        $"with {EquippedBuildable.Prefab.name}.");
+            Debug.Log(
+                $"[Gate Replace] Success: {existingFence.name} can be replaced " +
+                $"with {EquippedBuildable.Prefab.name}.");
 
-    return true;
-}
+            return true;
+        }
 
         private void RefreshNeighborFencePosts(GrowBlock block)
         {
@@ -887,6 +946,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             if (!controlsEnabled)
                 return;
+            
+            Debug.Log("Trying to interact");
 
             IInteractable closestInteractable = GetClosestInteractable();
 
@@ -904,18 +965,15 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             IInteractable closestInteractable = GetClosestInteractable();
 
             if (closestInteractable == null)
-            {
                 return;
-            }
+
+            controllerToolTargeting = false;
 
             if (closestInteractable is not IContinuousInteractable continuousInteractable)
-            {
                 return;
-            }
 
             continuousInteractable.ContinuousInteract(this);
         }
-
         private IInteractable GetClosestInteractable()
         {
             Collider[] hits = Physics.OverlapSphere(
