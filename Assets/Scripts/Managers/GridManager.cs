@@ -11,8 +11,6 @@ using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.EventBus;
 
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -43,6 +41,8 @@ namespace ShiftedSignal.Garden.Managers
         [SerializeField] private bool logGridRestore = true;
         [SerializeField] private bool logBuildableRestore = false;
         [SerializeField] private bool allowGridHighlighting = true;
+        [SerializeField] private bool unlockAllGrowBlocksOnStart = false;
+        [SerializeField] private bool forceGridHidden = false;
 
         [Header("Runtime")]
         [SerializeField] private int RowsPerFrame = 4;
@@ -59,6 +59,10 @@ namespace ShiftedSignal.Garden.Managers
         private void Start()
         {
             RequestGridRestore();
+            if (forceGridHidden)
+            {
+                HideGrid();
+            }
         }
 
         private void OnEnable()
@@ -191,6 +195,12 @@ namespace ShiftedSignal.Garden.Managers
 
         public void SetCommanderGridMode(bool commanderMode)
         {
+            if (forceGridHidden)
+            {
+                HideGrid();
+                return;
+            }
+
             SetGridHighlighting(!commanderMode);
 
             if (commanderMode)
@@ -485,6 +495,36 @@ namespace ShiftedSignal.Garden.Managers
                 $"RestoreFailures={restoreFailures} | " +
                 $"RefreshedFences={refreshedFences}",
                 this);
+            
+            if (unlockAllGrowBlocksOnStart)
+            {
+                UnlockAllGrowBlocks();
+            }
+
+            if (forceGridHidden)
+            {
+                HideGrid();
+            }
+        }
+
+        private void UnlockAllGrowBlocks()
+        {
+            foreach (BlockRow row in BlockRows)
+            {
+                if (row == null)
+                    continue;
+
+                foreach (GrowBlock block in row.Blocks)
+                {
+                    if (block == null || block.PreventUse)
+                        continue;
+
+                    block.IsActive = true;
+                    block.SetSoilSprite(false);
+                    block.UpdateSelectionBoxColor();
+                    block.UpdateGridInfo();
+                }
+            }
         }
 
         private void RestoreBlockState(GrowBlock block, BlockInfo storedBlock)

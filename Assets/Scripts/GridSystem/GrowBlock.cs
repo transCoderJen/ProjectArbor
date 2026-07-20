@@ -334,6 +334,8 @@ namespace ShiftedSignal.Garden.GridSystem
             GrowthProgress = 0f;
             CurrentPlantHealth = 0;
 
+            SR.enabled = true;
+
             SetSoilSprite();
 
             if (SR != null && SR.material != null)
