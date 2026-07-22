@@ -27,13 +27,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2822045323679761344}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.18301266, y: 0.6830127, z: -0.18301266, w: 0.6830127}
+  m_LocalPosition: {x: 0, y: -3.48, z: 2.01}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2824538537102796328}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: -30}
 --- !u!212 &8893068694625286258
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: b9b0584fc72ff214d80eead91ff7e641, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 03f56c5cfc3521f49963de61f50fd456, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -154,7 +154,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7183955855498715984}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -163,7 +163,7 @@ Transform:
   - {fileID: 8420341733412381748}
   - {fileID: 6118114581948913893}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
 --- !u!114 &430320613771864577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -184,7 +184,9 @@ MonoBehaviour:
   UnitSO: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
   IsActive: 0
   progressBarWorld: {fileID: 1488197252633515271}
-  buildingState: 2
+  progress:
+    <Progress>k__BackingField: 0
+    <State>k__BackingField: 1
   buildInteractionDistance: 8
   HasTimedEffects: 0
   HasConstantEffects: 0
@@ -199,11 +201,11 @@ MonoBehaviour:
   RunOnDayStarted: 0
   RunOnTimeChanged: 0
   RunOnNightStarted: 0
-  <CurrentQueueStartTime>k__BackingField: 0
-  <BuildingUnit>k__BackingField: {fileID: 11400000, guid: 2f91c0a468d81a8438b6ee15c1f76354, type: 2}
   maxBuilders: 3
   leftRightFence: {fileID: 7629881641326541474}
   northSouthFence: {fileID: 2822045323679761344}
+  establishedLeftRight: 0
+  establishedNorthSouth: 0
   showLeftRightWhenAlone: 1
   debugFence: 0
 --- !u!212 &1278284631709516739
@@ -625,6 +627,10 @@ PrefabInstance:
     - target: {fileID: 2765057136124393747, guid: 598efedd8fad773489a6e0d8b093ab95, type: 3}
       propertyPath: m_Name
       value: ProgressBarWorld
+      objectReference: {fileID: 0}
+    - target: {fileID: 2765057136124393747, guid: 598efedd8fad773489a6e0d8b093ab95, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

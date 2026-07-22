@@ -13,6 +13,7 @@ using ShiftedSignal.Garden.Units;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEditor;
 
 
 namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
@@ -93,6 +94,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public void HandleCommanderUpdate()
         {
             if (Player.Instance.IsPlacingBuilding) return; 
+            
             HandleRightClick();
             HandleDragSelect();
         }
@@ -225,6 +227,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleLeftClick()
         {
+            if (Helpers.IsOverUI())
+                return;
+
             Ray cameraRay = Helpers.Camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
             if (activeAction == null 

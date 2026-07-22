@@ -184,6 +184,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public bool IsControllerToolTargeting =>
             UsingController && controllerToolTargeting;
 
+        private bool ignoreNextPlacementRelease;
+
         #region Unity Lifecycle
 
         protected override void Awake()
@@ -225,17 +227,17 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             StateMachine.Initialize(IdleState);
 
-            foreach (PlayerInput playerInput in PlayerInput.all)
-            {
-                Debug.Log(
-                    $"[PlayerInput] " +
-                    $"Object={playerInput.gameObject.name}, " +
-                    $"Scene={playerInput.gameObject.scene.name}, " +
-                    $"Index={playerInput.playerIndex}, " +
-                    $"Scheme={playerInput.currentControlScheme}, " +
-                    $"Enabled={playerInput.enabled}",
-                    playerInput.gameObject);
-            }
+            // foreach (PlayerInput playerInput in PlayerInput.all)
+            // {
+            //     Debug.Log(
+            //         $"[PlayerInput] " +
+            //         $"Object={playerInput.gameObject.name}, " +
+            //         $"Scene={playerInput.gameObject.scene.name}, " +
+            //         $"Index={playerInput.playerIndex}, " +
+            //         $"Scheme={playerInput.currentControlScheme}, " +
+            //         $"Enabled={playerInput.enabled}",
+            //         playerInput.gameObject);
+            // }
 
             
         }
@@ -415,9 +417,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void OnControlsChanged(PlayerInput input)
         {
-            Debug.Log(
-                $"Controls changed. Scheme='{input.currentControlScheme}', " +
-                $"Devices={string.Join(", ", input.devices)}");
+            // Debug.Log(
+            //     $"Controls changed. Scheme='{input.currentControlScheme}', " +
+            //     $"Devices={string.Join(", ", input.devices)}");
 
             UsingController = input.currentControlScheme == "Gamepad";
         }
@@ -630,6 +632,14 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             if (Mouse.current == null)
                 return;
+            
+            if (ignoreNextPlacementRelease)
+            {
+                if (Mouse.current.leftButton.wasReleasedThisFrame)
+                    ignoreNextPlacementRelease = false;
+
+                return;
+            }
 
             if (!Mouse.current.leftButton.wasReleasedThisFrame)
                 return;
@@ -671,24 +681,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private bool TryBuildOnBlock(GrowBlock block)
         {
-            Debug.Log(
-                $"[Try Build] Attempt started on block: " +
-                $"{(block != null ? block.name : "null")}");
-
             if (!CanBuildOnBlock(block))
-            {
-                Debug.LogWarning("[Try Build] Aborted: CanBuildOnBlock returned false.");
                 return false;
-            }
 
             bool replacingFenceWithGate =
                 IsGateReplacingFence(
                     block,
                     out FencePost2D fenceToReplace);
-
-            Debug.Log(
-                $"[Try Build] Replacement result: {replacingFenceWithGate}, " +
-                $"Fence: {(fenceToReplace != null ? fenceToReplace.name : "null")}");
 
             GameObject builtObject = Instantiate(
                 EquippedBuildable.Prefab,
@@ -698,78 +697,41 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
                     currentBuildYRotation,
                     0f));
 
-            Debug.Log(
-                $"[Try Build] Instantiated: " +
-                $"{(builtObject != null ? builtObject.name : "null")}");
-
             if (!builtObject.TryGetComponent(out BaseBuilding buildable))
             {
-                Debug.LogError(
-                    $"[Try Build] Failed: instantiated prefab " +
-                    $"{builtObject.name} has no BaseBuilding on the root.");
-
                 Destroy(builtObject);
                 return false;
             }
-
-            buildable.PlaceAsConstructionSite();
-
-            Debug.Log(
-                $"[Try Build] Construction site created for {buildable.name}.");
 
             block.ResetCrop();
 
             if (replacingFenceWithGate && fenceToReplace != null)
             {
-                Debug.Log(
-                    $"[Try Build] Replacing {fenceToReplace.name} " +
-                    $"with {buildable.name}.");
-
                 fenceToReplace.ReplaceWith(buildable);
-
-                Debug.Log(
-                    $"[Try Build] Replacement call complete. " +
-                    $"Block now contains: " +
-                    $"{(block.CurrentBuildable != null ? block.CurrentBuildable.name : "null")}");
             }
             else
             {
-                Debug.Log("[Try Build] Performing normal placement.");
-
                 buildable.SetOccupiedBlock(block);
                 block.SetBuildable(buildable);
 
                 if (buildable is FencePost2D fence)
                 {
-                    Debug.Log(
-                        $"[Try Build] Refreshing fence connections for {fence.name}.");
-
                     fence.RefreshConnections(block);
                     FencePost2D.RefreshNeighbors(block);
                 }
             }
 
+            buildable.PlaceAsConstructionSite();
+
             EquippedBuildable.SpendCost();
 
-            Debug.Log("[Try Build] Build attempt completed successfully.");
             return true;
         }
 
         private bool CanBuildOnBlock(GrowBlock block)
         {
-            Debug.Log(
-                $"[Build Check] Checking block: {(block != null ? block.name : "null")}");
-
             if (block == null)
-            {
-                Debug.LogWarning("[Build Check] Failed: block is null.");
                 return false;
-            }
-
-            Debug.Log(
-                $"[Build Check] IsActive: {block.IsActive}, " +
-                $"HasBuildable: {block.HasBuildable}, " +
-                $"CurrentBuildable: {(block.CurrentBuildable != null ? block.CurrentBuildable.name : "null")}");
 
             /*
             * Normally occupied blocks are inactive because SetBuildable()
@@ -777,66 +739,27 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             * before rejecting the block for being inactive.
             */
             bool replacingFenceWithGate =
-                IsGateReplacingFence(block, out FencePost2D fenceToReplace);
-
-            Debug.Log(
-                $"[Build Check] Replacing fence with gate: {replacingFenceWithGate}, " +
-                $"Fence to replace: {(fenceToReplace != null ? fenceToReplace.name : "null")}");
+                IsGateReplacingFence(block, out FencePost2D _);
 
             if (!block.IsActive && !replacingFenceWithGate)
-            {
-                Debug.LogWarning(
-                    "[Build Check] Failed: block is inactive and this is not a valid replacement.");
-
                 return false;
-            }
 
-            if (EquippedBuildable == null)
-            {
-                Debug.LogWarning("[Build Check] Failed: EquippedBuildable is null.");
+            if (EquippedBuildable == null ||
+                EquippedBuildable.Prefab == null)
                 return false;
-            }
-
-            if (EquippedBuildable.Prefab == null)
-            {
-                Debug.LogWarning("[Build Check] Failed: equipped prefab is null.");
-                return false;
-            }
 
             if (block.HasBuildable && !replacingFenceWithGate)
-            {
-                Debug.LogWarning(
-                    "[Build Check] Failed: block is occupied and replacement is not valid.");
-
                 return false;
-            }
 
             if (!EquippedBuildable.CanAfford())
+                return false;
+
+            if (EquippedBuildable.Prefab.TryGetComponent(out FencePost2D fence) &&
+                !fence.CanPlaceFence(block))
             {
-                Debug.LogWarning("[Build Check] Failed: cannot afford buildable.");
                 return false;
             }
 
-            if (EquippedBuildable.Prefab.TryGetComponent(
-                    out FencePost2D fence))
-            {
-                bool canPlaceFence = fence.CanPlaceFence(block);
-
-                Debug.Log(
-                    $"[Build Check] Fence placement result: {canPlaceFence}, " +
-                    $"Prefab component: {fence.GetType().Name}, " +
-                    $"IsGate: {fence.IsGate}");
-
-                if (!canPlaceFence)
-                {
-                    Debug.LogWarning(
-                        "[Build Check] Failed: FencePost2D.CanPlaceFence returned false.");
-
-                    return false;
-                }
-            }
-
-            Debug.Log("[Build Check] Success: block can be built on.");
             return true;
         }
 
@@ -844,78 +767,25 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         {
             fenceToReplace = null;
 
-            Debug.Log(
-                $"[Gate Replace] Checking replacement. " +
-                $"Block: {(block != null ? block.name : "null")}, " +
-                $"Equipped: {(EquippedBuildable != null ? EquippedBuildable.name : "null")}, " +
-                $"Prefab: {(EquippedBuildable != null && EquippedBuildable.Prefab != null ? EquippedBuildable.Prefab.name : "null")}");
-
             if (block == null)
+                return false;
+
+            if (EquippedBuildable == null ||
+                EquippedBuildable.Prefab == null)
             {
-                Debug.LogWarning("[Gate Replace] Failed: block is null.");
                 return false;
             }
 
-            if (EquippedBuildable == null)
-            {
-                Debug.LogWarning("[Gate Replace] Failed: EquippedBuildable is null.");
+            if (EquippedBuildable.Prefab.GetComponent<Gate>() == null)
                 return false;
-            }
-
-            if (EquippedBuildable.Prefab == null)
-            {
-                Debug.LogWarning("[Gate Replace] Failed: equipped prefab is null.");
-                return false;
-            }
-
-            Gate gateComponent =
-                EquippedBuildable.Prefab.GetComponent<Gate>();
-
-            Debug.Log(
-                $"[Gate Replace] Gate component on prefab root: " +
-                $"{(gateComponent != null ? gateComponent.GetType().Name : "none")}");
-
-            if (gateComponent == null)
-            {
-                Debug.LogWarning(
-                    $"[Gate Replace] Failed: prefab {EquippedBuildable.Prefab.name} " +
-                    $"does not have Gate on the root object.");
-
-                return false;
-            }
-
-            Debug.Log(
-                $"[Gate Replace] Block HasBuildable: {block.HasBuildable}, " +
-                $"CurrentBuildable: {(block.CurrentBuildable != null ? block.CurrentBuildable.name : "null")}, " +
-                $"Current type: {(block.CurrentBuildable != null ? block.CurrentBuildable.GetType().Name : "null")}");
 
             if (block.CurrentBuildable is not FencePost2D existingFence)
-            {
-                Debug.LogWarning(
-                    "[Gate Replace] Failed: CurrentBuildable is not FencePost2D.");
-
                 return false;
-            }
-
-            Debug.Log(
-                $"[Gate Replace] Existing fence found: {existingFence.name}, " +
-                $"Type: {existingFence.GetType().Name}, " +
-                $"IsGate: {existingFence.IsGate}");
 
             if (existingFence.IsGate)
-            {
-                Debug.LogWarning(
-                    "[Gate Replace] Failed: existing object is already a gate.");
-
                 return false;
-            }
 
             fenceToReplace = existingFence;
-
-            Debug.Log(
-                $"[Gate Replace] Success: {existingFence.name} can be replaced " +
-                $"with {EquippedBuildable.Prefab.name}.");
-
             return true;
         }
 
@@ -947,7 +817,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (!controlsEnabled)
                 return;
             
-            Debug.Log("Trying to interact");
+            // Debug.Log("Trying to interact");
 
             IInteractable closestInteractable = GetClosestInteractable();
 
@@ -1058,6 +928,8 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             EquippedBuildable = building;
             commandDragPlacementEnabled = allowDragPlacement;
             buildingPlacementActive = true;
+
+            ignoreNextPlacementRelease = true;
         }
         
         private void CreateGhost()

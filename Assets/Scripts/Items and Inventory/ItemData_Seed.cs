@@ -44,13 +44,14 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         public float PlantedStageMinutes = 60f;
         public float Growing1StageMinutes = 90f;
         public float Growing2StageMinutes = 120f;
+        public float growthAmount = 10f;
+        [field: SerializeField] public float FertilizerGrowthMultiplier { get; private set; } = 1.2f;
 
         [Header("Water")]
         public bool RequiresWater = true;
         public int WaterUnitsPerApplication = 1;
 
         [Header("Fertilizer")]
-        public bool RequiresFertilizer;
         public int FertilizerUnitsPerApplication = 1;
 
         [Header("Dry Damage")]

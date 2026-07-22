@@ -56,6 +56,7 @@ namespace ShiftedSignal.Garden.GridSystem
         public SpriteRenderer CropSprite;
 
         [SerializeField] private SpriteRenderer SelectionBox;
+        [SerializeField] private GameObject waterIndicator;
 
         public Sprite GridIndicator;
         public Sprite BlockActiveSprite;
@@ -111,10 +112,7 @@ namespace ShiftedSignal.Garden.GridSystem
             !IsWatered;
 
         public bool NeedsFertilizer =>
-            HasCrop &&
-            IsGrowing &&
-            !IsDead &&
-            Seed.RequiresFertilizer &&
+            CanReceiveFarmCare &&
             !IsFertilized;
 
         public bool NeedsHarvest =>
@@ -438,10 +436,10 @@ namespace ShiftedSignal.Garden.GridSystem
             if (Seed.RequiresWater && !IsWatered)
                 return;
 
-            if (Seed.RequiresFertilizer && !IsFertilized)
-                return;
+            // if (Seed.RequiresFertilizer && !IsFertilized)
+            //     return;
 
-            GrowthProgress += 10f;
+            GrowthProgress += Seed.growthAmount * (IsFertilized ? Seed.FertilizerGrowthMultiplier : 1f);
 
             if (GrowthProgress < Seed.GetStageDuration(CurrentStage))
                 return;
@@ -468,8 +466,8 @@ namespace ShiftedSignal.Garden.GridSystem
             if (!IsWatered)
                 return;
 
-            if (Seed.RequiresFertilizer && !IsFertilized)
-                return;
+            // if (Seed.RequiresFertilizer && !IsFertilized)
+            //     return;
 
             if (CurrentStage == GrowthStage.Planted ||
                 CurrentStage == GrowthStage.Growing1 ||
@@ -572,6 +570,13 @@ namespace ShiftedSignal.Garden.GridSystem
         #endregion
 
         #region Visuals
+        private void UpdateWaterIndicator()
+        {
+            if (waterIndicator == null)
+                return;
+
+            waterIndicator.SetActive(NeedsWater);
+        }
 
         public void SetSoilSprite(bool saveInfo = true)
         {
@@ -632,6 +637,7 @@ namespace ShiftedSignal.Garden.GridSystem
         {
             SetSoilSprite(false);
             UpdateCropSprite(false);
+            UpdateWaterIndicator();
 
             if (saveInfo)
                 UpdateGridInfo();
