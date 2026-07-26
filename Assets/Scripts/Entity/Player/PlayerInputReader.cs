@@ -11,6 +11,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public event Action InteractPressed;
         public event Action InteractReleased;
         public event Action AttackPressed;
+        public event Action AttackReleased;
         public event Action CancelPressed;
 
         public Vector2 MoveInput { get; private set; }
@@ -19,9 +20,16 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         public bool InteractHeld { get; private set; }
 
         public bool AttackHeld =>
-            PlayerInput != null &&
-            PlayerInput.actions != null &&
-            PlayerInput.actions["Attack"].IsPressed();
+            attackAction != null &&
+            attackAction.IsPressed();
+
+        public bool AttackPressedThisFrame =>
+            attackAction != null &&
+            attackAction.WasPressedThisFrame();
+
+        public bool AttackReleasedThisFrame =>
+            attackAction != null &&
+            attackAction.WasReleasedThisFrame();
 
         public PlayerInput PlayerInput { get; private set; }
 
@@ -79,6 +87,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (attackHeld && !previousAttackHeld)
                 AttackPressed?.Invoke();
 
+            if (!attackHeld && previousAttackHeld)
+                AttackReleased?.Invoke();
+
             previousAttackHeld = attackHeld;
         }
 
@@ -95,7 +106,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void OnAttack(InputValue value)
         {
-            // UpdateHeldInputs handles the initial press.
+            // UpdateHeldInputs handles press, held, and release.
         }
 
         public void OnCancel(InputValue value)

@@ -185,6 +185,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             UsingController && controllerToolTargeting;
 
         private bool ignoreNextPlacementRelease;
+        private bool waitingForNextPlacementPress;
 
         #region Unity Lifecycle
 
@@ -582,13 +583,13 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleBuildDrag()
         {
-            bool managementDragActive = InManagementState;
+            if (!buildingPlacementActive)
+            {
+                ResetBuildDrag();
+                return;
+            }
 
-            bool commandPlacementActive =
-                InCommanderMode &&
-                buildingPlacementActive;
-
-            if (!managementDragActive && !commandPlacementActive)
+            if (!InManagementState && !InCommanderMode)
             {
                 ResetBuildDrag();
                 return;
@@ -597,12 +598,17 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (inputReader == null)
                 return;
 
-            if (commandPlacementActive && !commandDragPlacementEnabled)
+            if (!commandDragPlacementEnabled)
             {
                 HandleSingleCommandPlacement();
                 return;
             }
 
+            HandleDragPlacement();
+        }
+
+        private void HandleDragPlacement()
+        {
             if (!inputReader.AttackHeld)
             {
                 ResetBuildDrag();
@@ -617,31 +623,33 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             if (dragVisitedBlocks.Contains(block))
                 return;
 
-            if (commandPlacementActive)
-            {
-                TryPlaceSelectedBuilding(block);
-                return;
-            }
-
-            // Old dedicated management building mode.
-            if (TryBuildOnBlock(block))
-                dragVisitedBlocks.Add(block);
+            TryPlaceSelectedBuilding(block);
         }
 
         private void HandleSingleCommandPlacement()
         {
-            if (Mouse.current == null)
+            if (inputReader == null)
                 return;
-            
+
+            // Ignore the release from the UI click that selected the command.
             if (ignoreNextPlacementRelease)
             {
-                if (Mouse.current.leftButton.wasReleasedThisFrame)
+                if (inputReader.AttackReleasedThisFrame)
                     ignoreNextPlacementRelease = false;
 
                 return;
             }
 
-            if (!Mouse.current.leftButton.wasReleasedThisFrame)
+            // After placing one building, wait for the input to be released.
+            if (waitingForNextPlacementPress)
+            {
+                if (inputReader.AttackReleasedThisFrame)
+                    waitingForNextPlacementPress = false;
+
+                return;
+            }
+
+            if (!inputReader.AttackPressedThisFrame)
                 return;
 
             GrowBlock block = GetBlock();
@@ -674,7 +682,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             dragVisitedBlocks.Add(targetBlock);
 
             if (!commandDragPlacementEnabled)
-                CancelBuildingPlacement();
+            {
+                waitingForNextPlacementPress = true;
+            }
 
             return true;
         }
@@ -916,6 +926,20 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
         #endregion
 
         #region Ghost
+
+        public void BeginBuildingPlacement(BuildingSO building, bool allowDragPlacement)
+        {
+            if (building == null || building.Prefab == null)
+                return;
+
+            if (StateMachine.CurrentState != ManagementState &&
+                StateMachine.CurrentState != CommanderState)
+            {
+                StateMachine.ChangeState(ManagementState);
+            }
+
+            ShowBuildingGhost(building, allowDragPlacement);
+        }
 
         public void ShowBuildingGhost(BuildingSO building, bool allowDragPlacement)
         {

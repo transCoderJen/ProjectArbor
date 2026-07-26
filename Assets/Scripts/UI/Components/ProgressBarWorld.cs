@@ -176,7 +176,6 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         public void SetProgress(float progress)
         {
-            Debug.Log("Setting progress");
             if (maskParentRectTransform == null)
                 return;
 

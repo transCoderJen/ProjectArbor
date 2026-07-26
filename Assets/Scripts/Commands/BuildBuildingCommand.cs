@@ -27,7 +27,29 @@ namespace ShiftedSignal.Garden.Commands
             if (commandable is not IBuildingBuilder)
                 return;
 
-            Player.Instance.ShowBuildingGhost(Building, AllowDragPlacement);
+            ActivatePlacement();
+        }
+
+        public void ActivatePlacement()
+        {
+            Debug.Log(
+                $"Activating placement: Building={Building}, " +
+                $"Prefab={(Building != null ? Building.Prefab : null)}, " +
+                $"Player={Player.Instance}");
+
+            if (Building == null || Building.Prefab == null)
+            {
+                Debug.LogWarning("Build command has no valid Building or Prefab.");
+                return;
+            }
+
+            if (Player.Instance == null)
+            {
+                Debug.LogWarning("Player.Instance is null.");
+                return;
+            }
+
+            Player.Instance.BeginBuildingPlacement(Building, AllowDragPlacement);
         }
 
         public override void Handle(CommandContext context)
@@ -44,5 +66,7 @@ namespace ShiftedSignal.Garden.Commands
         }
 
         public override bool IsLocked(CommandContext context) => !Building.CanAfford() || !Building.TechTree.IsUnlocked(Building);
+
+        
     }
 }

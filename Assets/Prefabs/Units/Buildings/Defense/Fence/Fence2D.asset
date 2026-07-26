@@ -28,4 +28,4 @@ MonoBehaviour:
   GhostMaterial: {fileID: 2100000, guid: 9a06868852c85d84a91448567eb67735, type: 2}
   PlacementMode: 0
   RequiresActiveGrowBlock: 1
-  XRotation: 0
+  XRotation: 30
