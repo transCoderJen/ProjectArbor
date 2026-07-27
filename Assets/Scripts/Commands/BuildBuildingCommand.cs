@@ -32,14 +32,11 @@ namespace ShiftedSignal.Garden.Commands
 
         public void ActivatePlacement()
         {
-            Debug.Log(
-                $"Activating placement: Building={Building}, " +
-                $"Prefab={(Building != null ? Building.Prefab : null)}, " +
-                $"Player={Player.Instance}");
-
             if (Building == null || Building.Prefab == null)
             {
-                Debug.LogWarning("Build command has no valid Building or Prefab.");
+                Debug.LogWarning(
+                    "Build command has no valid Building or Prefab.");
+
                 return;
             }
 
@@ -49,7 +46,13 @@ namespace ShiftedSignal.Garden.Commands
                 return;
             }
 
-            Player.Instance.BeginBuildingPlacement(Building, AllowDragPlacement);
+            Player.Instance.BeginBuildingPlacement(
+                Building,
+                AllowDragPlacement);
+
+            Debug.Log(
+                $"After BeginBuildingPlacement: " +
+                $"IsPlacingBuilding={Player.Instance.IsPlacingBuilding}");
         }
 
         public override void Handle(CommandContext context)

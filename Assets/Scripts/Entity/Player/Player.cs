@@ -929,6 +929,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         public void BeginBuildingPlacement(BuildingSO building, bool allowDragPlacement)
         {
+
             if (building == null || building.Prefab == null)
                 return;
 

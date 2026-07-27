@@ -29,29 +29,40 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         private void Awake()
         {
-            rectTransform = GetComponent<RectTransform>();
+            Initialize();
+        }
+
+        private void OnEnable()
+        {
+            Initialize();
+            AssignStaggerLevel();
+
+            if (!ActiveBars.Contains(this))
+                ActiveBars.Add(this);
+        }
+
+        private void Initialize()
+        {
+            if (rectTransform == null)
+                rectTransform = GetComponent<RectTransform>();
 
             if (mask == null)
             {
-                Debug.LogError($"Progress bar {name} is missing a mask! This progress bar will not work!");
+                Debug.LogError(
+                    $"Progress bar {name} is missing a mask!",
+                    this);
+
                 return;
             }
 
-            maskParentRectTransform = mask.parent.GetComponent<RectTransform>();
+            if (maskParentRectTransform == null)
+                maskParentRectTransform =
+                    mask.parent.GetComponent<RectTransform>();
 
             if (target == null)
                 target = transform.parent;
 
             CacheTargetRenderers();
-            SetProgress(0f);
-        }
-
-        private void OnEnable()
-        {
-            AssignStaggerLevel();
-
-            if (!ActiveBars.Contains(this))
-                ActiveBars.Add(this);
         }
 
         private void OnDisable()
@@ -69,9 +80,26 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         private void CacheTargetRenderers()
         {
             if (target == null)
-                return;
+            {
+                targetRenderers = null;
 
-            targetRenderers = target.GetComponentsInChildren<Renderer>();
+                Debug.LogWarning(
+                    $"Progress bar {name} has no target.",
+                    this);
+
+                return;
+            }
+
+            targetRenderers =
+                target.GetComponentsInChildren<Renderer>(true);
+
+            if (targetRenderers.Length == 0)
+            {
+                Debug.LogWarning(
+                    $"Progress bar {name} found no renderers under target " +
+                    $"{target.name}. It will use the target position instead.",
+                    this);
+            }
         }
 
         private void FaceCamera()
@@ -81,6 +109,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
             transform.forward = Helpers.Camera.transform.forward;
         }
+
 
         private void UpdateWorldPosition()
         {
@@ -158,20 +187,39 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         private Bounds GetTargetBounds()
         {
+            if (target == null)
+                return new Bounds(transform.position, Vector3.one);
+
             if (targetRenderers == null || targetRenderers.Length == 0)
                 return new Bounds(target.position, Vector3.one);
 
-            Bounds bounds = targetRenderers[0].bounds;
+            bool foundRenderer = false;
+            Bounds combinedBounds = default;
 
-            for (int i = 1; i < targetRenderers.Length; i++)
+            foreach (Renderer targetRenderer in targetRenderers)
             {
-                if (targetRenderers[i] == null)
+                if (targetRenderer == null)
                     continue;
 
-                bounds.Encapsulate(targetRenderers[i].bounds);
+                if (targetRenderer.transform.IsChildOf(transform))
+                    continue;
+
+                Bounds rendererBounds = targetRenderer.bounds;
+
+                if (!foundRenderer)
+                {
+                    combinedBounds = rendererBounds;
+                    foundRenderer = true;
+                }
+                else
+                {
+                    combinedBounds.Encapsulate(rendererBounds);
+                }
             }
 
-            return bounds;
+            return foundRenderer
+                ? combinedBounds
+                : new Bounds(target.position, Vector3.one);
         }
 
         public void SetProgress(float progress)
@@ -193,5 +241,6 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             target = newTarget;
             CacheTargetRenderers();
         }
+
     }
 }

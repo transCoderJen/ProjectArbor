@@ -2,74 +2,47 @@ using Ink.Runtime;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Units;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
     /// <summary>
-    /// Provides external Ink functions for interacting with the quest system.
-    ///
-    /// Quest Flow:
-    /// ReceiveQuest
-    ///     - Makes the player aware of a quest.
-    ///     - Raises QuestReceivedEvent.
-    ///     - Typically used to show a "New Quest" notification.
-    ///
-    /// StartQuest
-    ///     - Starts an already received quest.
-    ///     - Raises StartQuestEvent.
-    ///     - Typically used to move the quest into IN_PROGRESS state.
-    ///
-    /// ReceiveQuestAndStart
-    ///     - Convenience function that performs both actions.
-    ///     - This is the most common function used by NPC dialogue.
-    ///
-    /// AdvanceQuest
-    ///     - Advances the quest to the next step.
-    ///
-    /// FinishQuest
-    ///     - Marks the quest as completed.
+    /// Provides external Ink functions used by dialogue.
     /// </summary>
     public class InkExternalFunctions
     {
         private Worker commandTarget;
-        
+
         /// <summary>
         /// Registers all external functions used by Ink.
         /// </summary>
         public void Bind(Story story)
         {
-            // Receive a quest without starting it.
             story.BindExternalFunction(
                 "ReceiveQuest",
                 (string questId) => ReceiveQuest(questId));
 
-            // Start a previously received quest.
             story.BindExternalFunction(
                 "StartQuest",
                 (string questId) => StartQuest(questId));
 
-            // Receive and immediately start a quest.
             story.BindExternalFunction(
                 "ReceiveQuestAndStart",
                 (string questId) => ReceiveQuestAndStart(questId));
 
-            // Legacy alias for older Ink files.
-            // Can be removed once all stories use ReceiveQuestAndStart.
             story.BindExternalFunction(
                 "AcceptQuest",
                 (string questId) => ReceiveQuestAndStart(questId));
 
-            // Advance a quest to its next step.
             story.BindExternalFunction(
                 "AdvanceQuest",
                 (string questId) => AdvanceQuest(questId));
 
-            // Finish a quest.
             story.BindExternalFunction(
                 "FinishQuest",
                 (string questId) => FinishQuest(questId));
-            
+
             story.BindExternalFunction(
                 "command_farm",
                 CommandFarm);
@@ -78,12 +51,17 @@ namespace ShiftedSignal.Garden.Dialogue
                 "command_gather",
                 CommandGather);
 
+            story.BindExternalFunction(
+                "command_open_construction",
+                CommandOpenConstruction);
             
+            story.BindExternalFunction(
+                "command_begin_selected_building",
+                CommandBeginSelectedBuilding);
         }
 
         /// <summary>
         /// Unregisters all external functions.
-        /// Should be called when the story is being cleaned up.
         /// </summary>
         public void Unbind(Story story)
         {
@@ -95,53 +73,52 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("FinishQuest");
             story.UnbindExternalFunction("command_farm");
             story.UnbindExternalFunction("command_gather");
+            story.UnbindExternalFunction("command_open_construction");
+            story.UnbindExternalFunction("command_begin_selected_building");
         }
 
-        /// <summary>
-        /// Makes the player aware of a quest.
-        /// This does not start the quest.
-        /// </summary>
         private void ReceiveQuest(string questId)
         {
             Bus<QuestReceivedEvent>.Raise(
                 new QuestReceivedEvent(questId));
         }
 
-        /// <summary>
-        /// Convenience function used by most NPC dialogue.
-        /// Receives the quest and immediately starts it.
-        /// </summary>
         private void ReceiveQuestAndStart(string questId)
         {
             ReceiveQuest(questId);
             StartQuest(questId);
         }
 
-        /// <summary>
-        /// Starts a quest that has already been received.
-        /// </summary>
         private void StartQuest(string questId)
         {
             Bus<StartQuestEvent>.Raise(
                 new StartQuestEvent(questId));
         }
 
-        /// <summary>
-        /// Advances the quest to its next step.
-        /// </summary>
         private void AdvanceQuest(string questId)
         {
             Bus<AdvanceQuestEvent>.Raise(
                 new AdvanceQuestEvent(questId));
         }
 
-        /// <summary>
-        /// Completes the quest.
-        /// </summary>
         private void FinishQuest(string questId)
         {
             Bus<FinishQuestEvent>.Raise(
                 new FinishQuestEvent(questId));
+        }
+
+        private void CommandOpenConstruction()
+        {
+            if (DialogueManager.Instance == null)
+            {
+                Debug.LogWarning(
+                    "[InkExternalFunctions] Cannot open construction menu: " +
+                    "DialogueManager.Instance is null.");
+
+                return;
+            }
+
+            DialogueManager.Instance.WaitForConstructionMenu();
         }
 
         public void SetCommandTarget(Worker worker)
@@ -149,19 +126,21 @@ namespace ShiftedSignal.Garden.Dialogue
             commandTarget = worker;
         }
 
+        public void SetCommandTargetToNull()
+        {
+            commandTarget = null;
+        }
+
         private void CommandFarm()
         {
             if (commandTarget == null)
             {
                 Debug.LogWarning(
-                    "[DialogueManager] Cannot issue Farm command: no Worker target.");
+                    "[InkExternalFunctions] Cannot issue Farm command: " +
+                    "no Worker target.");
 
                 return;
             }
-
-            Debug.Log(
-                $"[DialogueManager] Issuing Farm command to {commandTarget.name}.",
-                commandTarget);
 
             commandTarget.Farm();
         }
@@ -171,21 +150,19 @@ namespace ShiftedSignal.Garden.Dialogue
             if (commandTarget == null)
             {
                 Debug.LogWarning(
-                    "[DialogueManager] Cannot issue Gather command: no Worker target.");
+                    "[InkExternalFunctions] Cannot issue Gather command: " +
+                    "no Worker target.");
 
                 return;
             }
 
-            Debug.Log(
-                $"[DialogueManager] Issuing Gather command to {commandTarget.name}.",
-                commandTarget);
-
             commandTarget.Gather();
         }
 
-        public void SetCommandTargetToNull()
+        private void CommandBeginSelectedBuilding()
         {
-            commandTarget = null;
+            Debug.Log("Ink called command_begin_selected_building");
+            UI.Instance.constructionMenu.BeginSelectedBuildingPlacement();
         }
     }
 }

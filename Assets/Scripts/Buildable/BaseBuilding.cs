@@ -151,7 +151,10 @@ namespace ShiftedSignal.Garden.Buildable
             CacheSolidCollidersIfNeeded();
 
             if (progressBarWorld != null)
+            {
+                progressBarWorld.SetTarget(transform);
                 progressBarWorld.gameObject.SetActive(false);
+            }
         }
 
         override protected void Start()

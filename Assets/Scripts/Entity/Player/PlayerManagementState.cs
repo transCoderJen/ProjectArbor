@@ -1,3 +1,5 @@
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Managers;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,25 +27,34 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
             Player.StopMovement();
             Player.InManagementState = true;
+            Debug.Log("In Management state");
         }
 
         public override void Update()
         {
             base.Update();
 
-            if (Keyboard.current != null &&
-                Keyboard.current.gKey.wasPressedThisFrame)
+            if (Keyboard.current == null)
             {
-                TryExitManagementMode();
+                
                 return;
             }
 
-            if (Keyboard.current != null &&
-                Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (Keyboard.current.escapeKey.wasPressedThisFrame)
             {
-                TryExitManagementMode();
-                return;
+                HandleEscapePressed();
             }
+        }
+
+        private void HandleEscapePressed()
+        {
+
+            Player.CancelBuildingPlacement();
+
+            Bus<ReturnToConstructionMenuEvent>.Raise(
+                new ReturnToConstructionMenuEvent());
+
+            TryExitManagementMode();
         }
 
         public override void FixedUpdate()

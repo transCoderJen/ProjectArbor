@@ -97,3 +97,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+Assets/Scripts/UI/Components/ProgressBarWorld.cs
+AnalyzeBadScene.py
+FindParticleSystemNames.py
+ParticleSystemNames.txt
+WorldScene_6GB_Analysis.txt
+WorldScene_Good_Analysis.txt

@@ -54,6 +54,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             Bus<DialogueFinishedEvent>.OnEvent += DialogueFinished;
             Bus<DisplayDialogueEvent>.OnEvent += DisplayDialogue;
             Bus<DialogueSubmitEvent>.OnEvent += HandleSubmit;
+            Bus<SetDialogueVisibilityEvent>.OnEvent += HandleDialogueVisibility;
 
             DialogueTypeWriter.onTextShowed.AddListener(HandleTextFinished);
             NoteTypeWriter.onTextShowed.AddListener(HandleTextFinished);
@@ -65,6 +66,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             Bus<DialogueFinishedEvent>.OnEvent -= DialogueFinished;
             Bus<DisplayDialogueEvent>.OnEvent -= DisplayDialogue;
             Bus<DialogueSubmitEvent>.OnEvent -= HandleSubmit;
+            Bus<SetDialogueVisibilityEvent>.OnEvent -= HandleDialogueVisibility;
 
             DialogueTypeWriter.onTextShowed.RemoveListener(HandleTextFinished);
             NoteTypeWriter.onTextShowed.RemoveListener(HandleTextFinished);
@@ -130,8 +132,6 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 DialogueTypeWriter.ShowText(currentDialogueLine);
                 currentTypeWriter = DialogueTypeWriter;
             }
-
-            currentTypeWriter.ShowText(currentDialogueLine);
 
             if (evt.DialogueChoices.Count > ChoiceButtons.Length)
                 Debug.LogError("More dialogue choices than buttons available");
@@ -258,6 +258,31 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
                 choiceButtonIndex--;
             }
+        }
+
+        private void HandleDialogueVisibility(SetDialogueVisibilityEvent evt)
+        {
+            if (!evt.IsVisible)
+            {
+                DialogueContentParent.SetActive(false);
+                NoteContentParent.SetActive(false);
+
+                canSubmitDialogue = false;
+                return;
+            }
+
+            if (currentDisplayEvent.IsNote)
+            {
+                DialogueContentParent.SetActive(false);
+                NoteContentParent.SetActive(true);
+            }
+            else
+            {
+                DialogueContentParent.SetActive(true);
+                NoteContentParent.SetActive(false);
+            }
+
+            LockSubmitBriefly();
         }
     }
 }

@@ -24,6 +24,9 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
     public class UI : Singleton<UI>
     {
 
+        [Header("Shopping menue's")]
+        public ConstructionMenuUI constructionMenu;
+
         [Header("End Screen")]
         [SerializeField] private UI_FadeScreen fadeScreen;
         [SerializeField] private GameObject endScreen;
