@@ -2,6 +2,7 @@ using Ink.Runtime;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Units;
+using ShiftedSignal.Garden.UserInterface.Containers;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
@@ -109,15 +110,6 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private void CommandOpenConstruction()
         {
-            if (DialogueManager.Instance == null)
-            {
-                Debug.LogWarning(
-                    "[InkExternalFunctions] Cannot open construction menu: " +
-                    "DialogueManager.Instance is null.");
-
-                return;
-            }
-
             DialogueManager.Instance.WaitForConstructionMenu();
         }
 
@@ -161,8 +153,25 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private void CommandBeginSelectedBuilding()
         {
-            Debug.Log("Ink called command_begin_selected_building");
-            UI.Instance.constructionMenu.BeginSelectedBuildingPlacement();
+            ConstructionMenuUI menu =
+                UI.Instance.constructionMenu;
+
+            Debug.Log(
+                "[InkExternalFunctions] command_begin_selected_building called\n" +
+                $"  menu: {(menu != null ? menu.name : "<null>")}\n" +
+                $"  menu instance ID: {(menu != null ? menu.GetInstanceID() : 0)}\n" +
+                $"  frame: {Time.frameCount}");
+
+            if (menu == null)
+            {
+                Debug.LogError(
+                    "[InkExternalFunctions] Cannot begin placement: " +
+                    "UI construction menu is null.");
+
+                return;
+            }
+
+            menu.BeginSelectedBuildingPlacement();
         }
     }
 }

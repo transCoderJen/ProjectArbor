@@ -174,9 +174,21 @@ namespace ShiftedSignal.Garden.Dialogue
         private void HandleConstructionMenuClosed(
             ConstructionMenuClosedEvent evt)
         {
+            Debug.Log(
+                "[DialogueManager] HandleConstructionMenuClosed\n" +
+                $"  dialoguePlaying: {dialoguePlaying}\n" +
+                $"  waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+                $"  selectedBuilding: {(evt.SelectedBuilding != null ? evt.SelectedBuilding.ItemID : "<null>")}\n" +
+                $"  currentKnot: {story.state.currentPathString}\n" +
+                $"  frame: {Time.frameCount}");
+
             if (!dialoguePlaying ||
                 !waitingForConstructionMenu)
             {
+                Debug.Log(
+                    "[DialogueManager] Ignoring ConstructionMenuClosedEvent " +
+                    "(dialogue is not waiting for the construction menu).");
+
                 return;
             }
 
@@ -187,8 +199,15 @@ namespace ShiftedSignal.Garden.Dialogue
                     ? evt.SelectedBuilding.ItemID
                     : string.Empty;
 
+            Debug.Log(
+                $"[DialogueManager] Setting Ink variable " +
+                $"selected_building = '{selectedBuildingId}'");
+
             story.variablesState["selected_building"] =
                 selectedBuildingId;
+
+            Debug.Log(
+                "[DialogueManager] Showing dialogue UI and scheduling resume next frame.");
 
             Bus<SetDialogueVisibilityEvent>.Raise(
                 new SetDialogueVisibilityEvent(true));
@@ -288,86 +307,165 @@ namespace ShiftedSignal.Garden.Dialogue
 
             Bus<OpenConstructionMenuEvent>.Raise(
                 new OpenConstructionMenuEvent());
-}
+        }
 
         private void ContinueOrExitStory()
+{
+    Debug.Log(
+        "[DialogueManager] ContinueOrExitStory ENTER\n" +
+        $"  dialoguePlaying: {dialoguePlaying}\n" +
+        $"  waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+        $"  story null: {story == null}\n" +
+        $"  currentChoiceIndex: {currentChoiceIndex}\n" +
+        $"  currentChoices: {(story != null ? story.currentChoices.Count : -1)}\n" +
+        $"  canContinue: {(story != null && story.canContinue)}\n" +
+        $"  currentPath: {(story != null ? story.state.currentPathString : "<null>")}\n" +
+        $"  selected_building: {(story != null ? story.variablesState["selected_building"] : "<null>")}\n" +
+        $"  frame: {Time.frameCount}");
+
+    if (!dialoguePlaying ||
+        waitingForConstructionMenu ||
+        story == null)
+    {
+        Debug.LogWarning(
+            "[DialogueManager] ContinueOrExitStory stopped by guard.");
+
+        return;
+    }
+
+    if (story.currentChoices.Count > 0 &&
+        currentChoiceIndex != -1)
+    {
+        Debug.Log(
+            $"[DialogueManager] Choosing choice index {currentChoiceIndex}.");
+
+        story.ChooseChoiceIndex(
+            currentChoiceIndex);
+
+        currentChoiceIndex = -1;
+
+        Debug.Log(
+            "[DialogueManager] Choice selected\n" +
+            $"  canContinue: {story.canContinue}\n" +
+            $"  currentChoices: {story.currentChoices.Count}\n" +
+            $"  currentPath: {story.state.currentPathString}\n" +
+            $"  selected_building: {story.variablesState["selected_building"]}");
+    }
+
+    if (story.canContinue)
+    {
+        Debug.Log(
+            "[DialogueManager] Calling story.Continue().");
+
+        string dialogueLine =
+            story.Continue();
+
+        Debug.Log(
+            "[DialogueManager] story.Continue() completed\n" +
+            $"  dialogueLine: '{dialogueLine}'\n" +
+            $"  waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+            $"  canContinue: {story.canContinue}\n" +
+            $"  currentChoices: {story.currentChoices.Count}\n" +
+            $"  currentPath: {story.state.currentPathString}\n" +
+            $"  selected_building: {story.variablesState["selected_building"]}");
+
+        /*
+         * An external Ink function can set
+         * waitingForConstructionMenu during
+         * story.Continue().
+         */
+        if (waitingForConstructionMenu)
         {
-            if (!dialoguePlaying ||
-                waitingForConstructionMenu ||
-                story == null)
+            Debug.Log(
+                "[DialogueManager] Returning because Ink opened the construction menu.");
+
+            return;
+        }
+
+        while (IsLineBlank(dialogueLine) &&
+               story.canContinue)
+        {
+            Debug.Log(
+                "[DialogueManager] Blank line found. Continuing Ink again.");
+
+            dialogueLine =
+                story.Continue();
+
+            Debug.Log(
+                "[DialogueManager] Blank-line Continue completed\n" +
+                $"  dialogueLine: '{dialogueLine}'\n" +
+                $"  waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+                $"  canContinue: {story.canContinue}\n" +
+                $"  currentChoices: {story.currentChoices.Count}\n" +
+                $"  currentPath: {story.state.currentPathString}");
+
+            if (waitingForConstructionMenu)
             {
-                return;
-            }
-
-            if (story.currentChoices.Count > 0 &&
-                currentChoiceIndex != -1)
-            {
-                story.ChooseChoiceIndex(
-                    currentChoiceIndex);
-
-                currentChoiceIndex = -1;
-            }
-
-            if (story.canContinue)
-            {
-                string dialogueLine =
-                    story.Continue();
-
-                /*
-                 * An external Ink function can set
-                 * waitingForConstructionMenu during
-                 * story.Continue().
-                 */
-                if (waitingForConstructionMenu)
-                    return;
-
-                while (IsLineBlank(dialogueLine) &&
-                       story.canContinue)
-                {
-                    dialogueLine =
-                        story.Continue();
-
-                    if (waitingForConstructionMenu)
-                        return;
-                }
-
-                if (IsLineBlank(dialogueLine) &&
-                    !story.canContinue)
-                {
-                    if (story.currentChoices.Count > 0)
-                    {
-                        DisplayCurrentChoicesOnly();
-                        return;
-                    }
-
-                    StartCoroutine(
-                        ExitDialogue());
-
-                    return;
-                }
-
-                string speakerId =
-                    GetSpeakerId();
-
-                Bus<DisplayDialogueEvent>.Raise(
-                    new DisplayDialogueEvent(
-                        CheckIfNote(),
-                        speakerId,
-                        dialogueLine,
-                        story.currentChoices));
+                Debug.Log(
+                    "[DialogueManager] Returning because Ink opened the construction menu during blank-line processing.");
 
                 return;
             }
+        }
+
+        if (IsLineBlank(dialogueLine) &&
+            !story.canContinue)
+        {
+            Debug.LogWarning(
+                "[DialogueManager] Ink returned a blank line and cannot continue.");
 
             if (story.currentChoices.Count > 0)
             {
+                Debug.Log(
+                    "[DialogueManager] Displaying remaining choices.");
+
                 DisplayCurrentChoicesOnly();
                 return;
             }
 
+            Debug.LogWarning(
+                "[DialogueManager] No choices remain. Starting ExitDialogue.");
+
             StartCoroutine(
                 ExitDialogue());
+
+            return;
         }
+
+        string speakerId =
+            GetSpeakerId();
+
+        Debug.Log(
+            "[DialogueManager] Raising DisplayDialogueEvent\n" +
+            $"  speakerId: '{speakerId}'\n" +
+            $"  dialogueLine: '{dialogueLine}'\n" +
+            $"  choices: {story.currentChoices.Count}");
+
+        Bus<DisplayDialogueEvent>.Raise(
+            new DisplayDialogueEvent(
+                CheckIfNote(),
+                speakerId,
+                dialogueLine,
+                story.currentChoices));
+
+        return;
+    }
+
+    if (story.currentChoices.Count > 0)
+    {
+        Debug.Log(
+            "[DialogueManager] Ink cannot continue, but choices exist. Displaying choices.");
+
+        DisplayCurrentChoicesOnly();
+        return;
+    }
+
+    Debug.LogWarning(
+        "[DialogueManager] Ink cannot continue and has no choices. Starting ExitDialogue.");
+
+    StartCoroutine(
+        ExitDialogue());
+}
 
         private void DisplayCurrentChoicesOnly()
         {
@@ -381,18 +479,35 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private IEnumerator ResumeDialogueNextFrame()
         {
-            /*
-             * Prevent the button press used to close
-             * the construction menu from also
-             * advancing the resumed dialogue.
-             */
+            Debug.Log(
+                $"[DialogueManager] ResumeDialogueNextFrame() START\n" +
+                $"frame: {Time.frameCount}\n" +
+                $"dialoguePlaying: {dialoguePlaying}\n" +
+                $"waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+                $"selected_building: '{story.variablesState["selected_building"]}'");
+
             yield return null;
+
+            Debug.Log(
+                $"[DialogueManager] ResumeDialogueNextFrame() AFTER YIELD\n" +
+                $"frame: {Time.frameCount}\n" +
+                $"dialoguePlaying: {dialoguePlaying}\n" +
+                $"waitingForConstructionMenu: {waitingForConstructionMenu}\n" +
+                $"story.canContinue: {story.canContinue}\n" +
+                $"currentPath: {story.state.currentPathString}\n" +
+                $"selected_building: '{story.variablesState["selected_building"]}'");
 
             if (!dialoguePlaying ||
                 waitingForConstructionMenu)
             {
+                Debug.LogWarning(
+                    "[DialogueManager] Resume aborted before ContinueOrExitStory.");
+
                 yield break;
             }
+
+            Debug.Log(
+                "[DialogueManager] Calling ContinueOrExitStory.");
 
             ContinueOrExitStory();
         }

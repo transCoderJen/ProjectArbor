@@ -2,7 +2,7 @@ using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
-using ShiftedSignal.Garden.UserInterface.Containers;
+using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
 public class ConstructionBench : MonoBehaviour, IInteractable
@@ -18,8 +18,8 @@ public class ConstructionBench : MonoBehaviour, IInteractable
 
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [Header("UI")]
-    [SerializeField] private ConstructionMenuUI constructionMenu;
+    // [Header("UI")]
+    // [SerializeField] private ConstructionMenuUI constructionMenu;
 
     private MaterialPropertyBlock propertyBlock;
     private bool dialogueActive;
@@ -70,15 +70,14 @@ public class ConstructionBench : MonoBehaviour, IInteractable
 
     public void Interact(Player player)
     {
-        // Blocks interaction while the foreman conversation,
-        // construction menu, or placement flow is active.
         if (dialogueActive)
             return;
 
-        if (constructionMenu == null)
+        if (UI.Instance == null ||
+            UI.Instance.constructionMenu == null)
         {
             Debug.LogWarning(
-                $"{name} has no ConstructionMenuUI assigned.",
+                $"{name} could not find the ConstructionMenuUI.",
                 this);
 
             return;
@@ -93,19 +92,19 @@ public class ConstructionBench : MonoBehaviour, IInteractable
     private void HandleOpenConstructionMenu(
         OpenConstructionMenuEvent evt)
     {
-        if (!dialogueActive || constructionMenu == null)
+        if (!dialogueActive)
             return;
 
-        constructionMenu.Open();
+        UI.Instance.constructionMenu.Open();
     }
 
     private void HandleReturnToConstructionMenu(
         ReturnToConstructionMenuEvent evt)
     {
-        if (!dialogueActive || constructionMenu == null)
+        if (!dialogueActive)
             return;
 
-        constructionMenu.ReturnFromPlacement();
+        UI.Instance.constructionMenu.ReturnFromPlacement();
     }
 
     private void HandleDialogueFinished(

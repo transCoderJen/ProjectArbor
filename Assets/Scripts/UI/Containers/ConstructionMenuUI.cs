@@ -43,6 +43,8 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             if (menuRoot == null)
                 return;
 
+            // Every opening starts a completely new selection session.
+            selectedCommand = null;
             selectedBuilding = null;
             IsPlacingBuilding = false;
 
@@ -62,15 +64,14 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 return;
 
             IsPlacingBuilding = false;
+            selectedCommand = null;
+            selectedBuilding = null;
 
             HideMenu();
             SetPlacementHint(false);
 
-            BuildingSO result = selectedBuilding;
-            selectedBuilding = null;
-
             Bus<ConstructionMenuClosedEvent>.Raise(
-                new ConstructionMenuClosedEvent(result));
+                new ConstructionMenuClosedEvent(null));
         }
 
         /// <summary>
@@ -123,6 +124,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         {
             return () =>
             {
+                Debug.Log("Command is " + command);
                 if (command == null)
                     return;
 
@@ -139,8 +141,11 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         public void BeginSelectedBuildingPlacement()
         {
             Debug.Log(
-                $"BeginSelectedBuildingPlacement called. " +
-                $"Selected command: {selectedCommand}");
+        "[ConstructionMenuUI] BeginSelectedBuildingPlacement\n" +
+        $"  selectedCommand: {(selectedCommand != null ? selectedCommand.name : "<null>")}\n" +
+        $"  selectedBuilding: {(selectedBuilding != null ? selectedBuilding.ItemID : "<null>")}\n" +
+        $"  menu instance ID: {GetInstanceID()}\n" +
+        $"  frame: {Time.frameCount}");
 
             if (selectedCommand == null)
             {
@@ -149,9 +154,16 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 return;
             }
 
+            BuildBuildingCommand commandToActivate = selectedCommand;
+
+            // Clear the pending selection before activation so it cannot
+            // accidentally be reused later.
+            selectedCommand = null;
+            selectedBuilding = null;
+
             IsPlacingBuilding = true;
 
-            selectedCommand.ActivatePlacement();
+            commandToActivate.ActivatePlacement();
 
             SetPlacementHint(true);
         }

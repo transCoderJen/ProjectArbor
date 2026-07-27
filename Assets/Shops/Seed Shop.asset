@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23ce9f4eb6d7504479990ce60a8de7ef, type: 3}
+  m_Name: Seed Shop
+  m_EditorClassIdentifier: 
+  <DisplayName>k__BackingField: Seed Shop
+  <Items>k__BackingField:
+  - <Item>k__BackingField: {fileID: 11400000, guid: a0d050d4ce8294949ba3b01b335bf96f, type: 2}
+    <Price>k__BackingField: 5
+  - <Item>k__BackingField: {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
+    <Price>k__BackingField: 5
