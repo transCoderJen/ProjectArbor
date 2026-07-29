@@ -15,16 +15,23 @@ namespace ShiftedSignal.Garden.Shops
         public string DisplayName { get; private set; }
 
         [field: SerializeField]
-        public List<ShopItemEntry> Items { get; private set; } = new();
+        public List<ShopEntry> Items { get; private set; } = new();
     }
 
-    [Serializable]
-    public class ShopItemEntry
+        [Serializable]
+    public class ShopEntry
     {
-        [field: SerializeField]
-        public ItemData Item { get; private set; }
+        public ItemData Item;
 
-        [field: SerializeField, Min(0)]
-        public int Price { get; private set; } = 1;
+        [Min(0)]
+        public int Price;
+
+        [Header("Dialogue")]
+        [Tooltip("Ink knot used after successfully buying this item.")]
+        public string PurchaseDialogueKnot;
+
+        public bool IsValid =>
+            Item != null &&
+            Price >= 0;
     }
 }

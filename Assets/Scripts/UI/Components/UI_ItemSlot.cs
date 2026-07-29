@@ -9,14 +9,21 @@ using ShiftedSignal.Garden.UserInterface.Managers;
 
 namespace ShiftedSignal.Garden.UserInterface.Components
 {
-    public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
+    public class UI_ItemSlot :
+        MonoBehaviour,
+        IPointerDownHandler,
+        IPointerEnterHandler,
+        IPointerExitHandler
     {
         [SerializeField] protected Image itemImage;
         [SerializeField] protected TextMeshProUGUI itemText;
 
         public InventoryItem item;
 
-        private readonly float hoverCooldown = 0.75f;
+        protected virtual bool UsesTooltip => true;
+
+        private const float HoverCooldown = 0.75f;
+
         private int lastClickFrame = -1;
 
         private float hoverTimer;
@@ -25,28 +32,40 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         private void Update()
         {
-            if (!isHovering || tooltipShown)
+            if (!UsesTooltip ||
+                !isHovering ||
+                tooltipShown)
+            {
                 return;
+            }
 
             hoverTimer += Time.unscaledDeltaTime;
 
-            if (hoverTimer >= hoverCooldown)
+            if (hoverTimer >= HoverCooldown)
                 ShowTooltip();
         }
 
-        public void UpdateSlot(InventoryItem newItem)
+        public virtual void UpdateSlot(
+            InventoryItem newItem)
         {
             item = newItem;
 
-            if (itemImage == null || itemText == null)
+            if (itemImage == null ||
+                itemText == null)
+            {
                 return;
+            }
 
-            itemImage.color = Color.white;
-
-            if (item != null && item.data != null)
+            if (item != null &&
+                item.data != null)
             {
                 itemImage.sprite = item.data.Icon;
-                itemText.text = item.stackSize > 1 ? item.stackSize.ToString() : "";
+                itemImage.color = Color.white;
+
+                itemText.text =
+                    item.stackSize > 1
+                        ? item.stackSize.ToString()
+                        : string.Empty;
             }
             else
             {
@@ -54,9 +73,12 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             }
         }
 
-        public void CleanUpSlot()
+        public virtual void CleanUpSlot()
         {
             item = null;
+
+            ResetHoverState();
+            HideTooltip();
 
             if (itemImage != null)
             {
@@ -65,22 +87,28 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             }
 
             if (itemText != null)
-                itemText.text = "";
+                itemText.text = string.Empty;
         }
 
-        public virtual void OnPointerDown(PointerEventData eventData)
+        public virtual void OnPointerDown(
+            PointerEventData eventData)
         {
             if (Time.frameCount == lastClickFrame)
                 return;
 
             lastClickFrame = Time.frameCount;
 
-            if (item == null || item.data == null)
+            if (item == null ||
+                item.data == null)
+            {
                 return;
+            }
 
             if (Input.GetKey(KeyCode.LeftControl))
             {
-                Inventory.Instance.RemoveItem(item.data);
+                Inventory.Instance.RemoveItem(
+                    item.data);
+
                 HideTooltip();
                 return;
             }
@@ -88,66 +116,98 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             if (item.data.ItemType == ItemType.Seed)
             {
                 HandleSeedClick(eventData);
+
                 HideTooltip();
                 return;
             }
 
-            // No equipment behavior anymore.
-            // Materials and other inventory items only display tooltip / stack count.
+            // Materials and other inventory items
+            // currently have no click behavior.
             HideTooltip();
         }
 
-        private void HandleSeedClick(PointerEventData eventData)
+        public virtual void OnPointerEnter(
+            PointerEventData eventData)
         {
-            if (eventData == null)
-                return;
-
-            if (eventData.button == PointerEventData.InputButton.Left)
+            if (!UsesTooltip ||
+                item == null ||
+                item.data == null)
             {
-                Bus<SeedEquipEvent>.Raise(
-                    new SeedEquipEvent(item.data));
-            }
-            else if (eventData.button == PointerEventData.InputButton.Right)
-            {
-                Bus<AssignSeedToQuickSelectEvent>.Raise(
-                    new AssignSeedToQuickSelectEvent(item.data));
-            }
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            if (item == null || item.data == null)
                 return;
+            }
 
             isHovering = true;
             tooltipShown = false;
             hoverTimer = 0f;
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public virtual void OnPointerExit(
+            PointerEventData eventData)
+        {
+            ResetHoverState();
+            HideTooltip();
+        }
+
+        protected virtual void ShowTooltip()
+        {
+            if (!UsesTooltip ||
+                item == null ||
+                item.data == null)
+            {
+                return;
+            }
+
+            tooltipShown = true;
+
+            if (UI.Instance == null ||
+                UI.Instance.ItemToolTip == null)
+            {
+                return;
+            }
+
+            UI.Instance.ItemToolTip.ShowToolTip(
+                item.data);
+        }
+
+        protected virtual void HideTooltip()
+        {
+            if (UI.Instance == null ||
+                UI.Instance.ItemToolTip == null)
+            {
+                return;
+            }
+
+            UI.Instance.ItemToolTip.HideToolTip();
+        }
+
+        protected void ResetHoverState()
         {
             isHovering = false;
             tooltipShown = false;
             hoverTimer = 0f;
-
-            HideTooltip();
         }
 
-        private void ShowTooltip()
+        private void HandleSeedClick(
+            PointerEventData eventData)
         {
-            if (item == null || item.data == null)
+            if (eventData == null)
                 return;
 
-            tooltipShown = true;
-
-            if (UI.Instance != null && UI.Instance.ItemToolTip != null)
-                UI.Instance.ItemToolTip.ShowToolTip(item.data);
-        }
-
-        private void HideTooltip()
-        {
-            if (UI.Instance != null && UI.Instance.ItemToolTip != null)
-                UI.Instance.ItemToolTip.HideToolTip();
+            if (eventData.button ==
+                PointerEventData.InputButton.Left)
+            {
+                Bus<SeedEquipEvent>.Raise(
+                    new SeedEquipEvent(
+                        item.data));
+            }
+            else if (
+                eventData.button ==
+                PointerEventData.InputButton.Right)
+            {
+                Bus<AssignSeedToQuickSelectEvent>.Raise(
+                    new AssignSeedToQuickSelectEvent(
+                        item.data));
+            }
         }
     }
 }

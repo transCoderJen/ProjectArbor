@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: LettuceSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: LettuceSeed
-  Description: 
+  ItemName: Lettuce Seed
+  Description: A seed packet containing 10 seeds of lettuce
   Icon: {fileID: 5508725064705088119, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: a0d050d4ce8294949ba3b01b335bf96f
   DropChance: 0
@@ -33,9 +33,10 @@ MonoBehaviour:
   PlantedStageMinutes: 60
   Growing1StageMinutes: 90
   Growing2StageMinutes: 120
+  growthAmount: 10
+  <FertilizerGrowthMultiplier>k__BackingField: 1.2
   RequiresWater: 1
   WaterUnitsPerApplication: 1
-  RequiresFertilizer: 1
   FertilizerUnitsPerApplication: 1
   DryTolerance: 120
   DryDamageAmount: 1

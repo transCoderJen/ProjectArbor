@@ -26,6 +26,7 @@ namespace ShiftedSignal.Garden.UserInterface.Managers
 
         [Header("Shopping menue's")]
         public ConstructionMenuUI constructionMenu;
+        public ShopMenuUI shopMenu;
 
         [Header("End Screen")]
         [SerializeField] private UI_FadeScreen fadeScreen;

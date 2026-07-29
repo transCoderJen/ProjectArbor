@@ -3,8 +3,10 @@ using System.Text;
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
+using ShiftedSignal.Garden.ItemsAndInventory;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace ShiftedSignal.Garden.UserInterface.Components
 {
@@ -21,10 +23,21 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         [SerializeField] private TechTreeSO techTree;
 
         private readonly StringBuilder stringBuilder = new();
+        private Transform originalParent;
+        private int originalSiblingIndex;
+        private Transform tooltipParent;
 
         private void Awake()
         {
             RectTransform = GetComponent<RectTransform>();
+
+            originalParent = transform.parent;
+            originalSiblingIndex = transform.GetSiblingIndex();
+        }
+
+        public void SetParent(Transform parent)
+        {
+            tooltipParent = parent;
         }
 
         public void SetText(BaseCommand command)
@@ -57,6 +70,30 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             }
 
             text.text = stringBuilder.ToString().TrimEnd();
+
+            ResizeTooltip();
+        }
+
+        public void SetText(ItemData item)
+        {
+            if (item == null)
+            {
+                text.text = string.Empty;
+                return;
+            }
+
+            stringBuilder.Clear();
+
+            if (!string.IsNullOrWhiteSpace(item.Description))
+            {
+                stringBuilder.Append(item.Description);
+            }
+            else
+            {
+                stringBuilder.Append(item.ItemName);
+            }
+
+            text.text = stringBuilder.ToString();
 
             ResizeTooltip();
         }
@@ -158,12 +195,27 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         public void Show()
         {
+            if (tooltipParent != null)
+            {
+                transform.SetParent(tooltipParent, true);
+                transform.SetAsLastSibling();
+            }
+
             gameObject.SetActive(true);
         }
 
         public void Hide()
         {
             gameObject.SetActive(false);
+
+            if (originalParent != null)
+            {
+                transform.SetParent(originalParent, true);
+                transform.SetSiblingIndex(originalSiblingIndex);
+            }
         }
+
+
+        
     }
 }
