@@ -16,6 +16,14 @@ namespace ShiftedSignal.Garden.Shops
 
         [field: SerializeField]
         public List<ShopEntry> Items { get; private set; } = new();
+        
+        [Header("Dialogue")]
+        public string ShopDialogueKnot;
+        [Tooltip("Ink knot used after closing shop")]
+        public string ExitShopKnot;
+        [Tooltip("Ink knot used when player cannot afford item")]
+        
+        public string InsufficientFundsKnot => ShopDialogueKnot + "InsufficientFunds";
     }
 
         [Serializable]

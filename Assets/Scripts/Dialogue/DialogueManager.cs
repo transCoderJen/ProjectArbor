@@ -31,6 +31,8 @@ namespace ShiftedSignal.Garden.Dialogue
 
         private InkExternalFunctions inkExternalFunctions;
         private InkDialogueVariables inkDialogueVariables;
+        private bool keepPlayerMovementDisabledOnExit;
+        private Coroutine exitDialogueCoroutine;
 
         protected override void Awake()
         {
@@ -78,6 +80,9 @@ namespace ShiftedSignal.Garden.Dialogue
 
             Bus<ConstructionMenuClosedEvent>.OnEvent +=
                 HandleConstructionMenuClosed;
+            
+            Bus<PlayOrReplaceDialogueEvent>.OnEvent +=
+                HandlePlayOrReplaceDialogue;
 
             FindInputReader();
             SubscribeToInput();
@@ -102,6 +107,9 @@ namespace ShiftedSignal.Garden.Dialogue
 
             Bus<ConstructionMenuClosedEvent>.OnEvent -=
                 HandleConstructionMenuClosed;
+            
+            Bus<PlayOrReplaceDialogueEvent>.OnEvent -=
+                HandlePlayOrReplaceDialogue;
 
             UnsubscribeFromInput();
         }
@@ -174,6 +182,13 @@ namespace ShiftedSignal.Garden.Dialogue
 
         #region Event Handlers
 
+        private void HandlePlayOrReplaceDialogue(
+            PlayOrReplaceDialogueEvent evt)
+        {
+            PlayOrReplaceDialogueKnot(
+                evt.KnotName);
+        }
+
         private void HandleConstructionMenuClosed(
             ConstructionMenuClosedEvent evt)
         {
@@ -240,8 +255,71 @@ namespace ShiftedSignal.Garden.Dialogue
 
         #region Dialogue
 
-        private void EnterDialogueHandler(
-            EnterDialogueEvent evt)
+        private void PlayOrReplaceDialogueKnot(string knotName)
+        {
+            if (story == null ||
+                string.IsNullOrWhiteSpace(knotName))
+            {
+                Debug.LogWarning(
+                    "[DialogueManager] Cannot play dialogue knot: " +
+                    "the story or knot name is invalid.",
+                    this);
+
+                return;
+            }
+
+            /*
+            * The previous knot may have already scheduled its
+            * ExitDialogue coroutine for the next frame.
+            */
+            CancelPendingDialogueExit();
+
+            bool startingNewDialogue =
+                !dialoguePlaying;
+
+            if (startingNewDialogue)
+            {
+                dialoguePlaying = true;
+
+                Bus<DialogueStartedEvent>.Raise(
+                    new DialogueStartedEvent());
+
+                Bus<EnablePlayerMovementEvent>.Raise(
+                    new EnablePlayerMovementEvent(false));
+
+                inkDialogueVariables
+                    .SyncVariablesAndStartListening(story);
+            }
+
+            /*
+            * A replacement knot should determine its own exit behavior.
+            * FionaClose does not call the movement-lock external function,
+            * so its normal END will restore player movement.
+            */
+            keepPlayerMovementDisabledOnExit = false;
+            waitingForConstructionMenu = false;
+
+            currentChoiceIndex = -1;
+            currentSpeakerId = "default";
+
+            try
+            {
+                story.ChoosePathString(knotName);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogError(
+                    $"[DialogueManager] Could not open Ink knot " +
+                    $"'{knotName}'.\n{exception}",
+                    this);
+
+                return;
+            }
+
+            ContinueOrExitStory();
+        }
+
+        private void EnterDialogueHandler(EnterDialogueEvent evt)
         {
             if (dialoguePlaying ||
                 story == null)
@@ -251,6 +329,8 @@ namespace ShiftedSignal.Garden.Dialogue
 
             dialoguePlaying = true;
             waitingForConstructionMenu = false;
+            keepPlayerMovementDisabledOnExit = false;
+
             currentChoiceIndex = -1;
             currentSpeakerId = "default";
 
@@ -277,6 +357,11 @@ namespace ShiftedSignal.Garden.Dialogue
                 .SyncVariablesAndStartListening(story);
 
             ContinueOrExitStory();
+        }
+
+        public void ExitWithoutEnablingPlayerMovement()
+        {
+            keepPlayerMovementDisabledOnExit = true;
         }
 
         public void WaitForConstructionMenu()
@@ -347,8 +432,7 @@ namespace ShiftedSignal.Garden.Dialogue
                         return;
                     }
 
-                    StartCoroutine(
-                        ExitDialogue());
+                    BeginExitDialogue();
 
                     return;
                 }
@@ -378,8 +462,7 @@ namespace ShiftedSignal.Garden.Dialogue
             Debug.LogWarning(
                 "[DialogueManager] Ink cannot continue and has no choices. Starting ExitDialogue.");
 
-            StartCoroutine(
-                ExitDialogue());
+            BeginExitDialogue();
         }
 
         private void DisplayCurrentChoicesOnly()
@@ -409,11 +492,18 @@ namespace ShiftedSignal.Garden.Dialogue
         {
             yield return null;
 
+            exitDialogueCoroutine = null;
+
             if (waitingForConstructionMenu)
                 yield break;
 
+            bool shouldEnablePlayerMovement =
+                !keepPlayerMovementDisabledOnExit;
+
             dialoguePlaying = false;
             waitingForConstructionMenu = false;
+            keepPlayerMovementDisabledOnExit = false;
+
             currentChoiceIndex = -1;
             currentSpeakerId = "default";
 
@@ -423,16 +513,22 @@ namespace ShiftedSignal.Garden.Dialogue
             Bus<DialogueFinishedEvent>.Raise(
                 new DialogueFinishedEvent());
 
-            Bus<EnablePlayerMovementEvent>.Raise(
-                new EnablePlayerMovementEvent(true));
+            if (shouldEnablePlayerMovement)
+            {
+                Bus<EnablePlayerMovementEvent>.Raise(
+                    new EnablePlayerMovementEvent(true));
+            }
 
-            inkDialogueVariables.StopListening(story);
+            inkDialogueVariables.StopListening(
+                story);
 
-            inkExternalFunctions.SetCommandTargetToNull();
+            inkExternalFunctions
+                .SetCommandTargetToNull();
 
             story.ResetState();
 
-            inkExternalFunctions.ClearActiveShop();
+            inkExternalFunctions
+                .ClearActiveShop();
         }
 
         #endregion
@@ -505,6 +601,23 @@ namespace ShiftedSignal.Garden.Dialogue
         public void OpenShopAndWait(ShopSO activeShop)
         {
             UI.Instance.shopMenu.Open(activeShop);
+        }
+
+        private void BeginExitDialogue()
+        {
+            CancelPendingDialogueExit();
+
+            exitDialogueCoroutine =
+                StartCoroutine(ExitDialogue());
+        }
+
+        private void CancelPendingDialogueExit()
+        {
+            if (exitDialogueCoroutine == null)
+                return;
+
+            StopCoroutine(exitDialogueCoroutine);
+            exitDialogueCoroutine = null;
         }
 
         #endregion

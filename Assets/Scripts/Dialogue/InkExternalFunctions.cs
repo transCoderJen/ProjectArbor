@@ -65,7 +65,11 @@ namespace ShiftedSignal.Garden.Dialogue
             story.BindExternalFunction(
                 "open_shop",
                 OpenShop);
-        }
+            
+            story.BindExternalFunction(
+                "exit_dialogue_keep_movement_locked",
+                ExitDialogueKeepMovementLocked);
+            }
 
         /// <summary>
         /// Unregisters all external functions.
@@ -83,6 +87,7 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("command_open_construction");
             story.UnbindExternalFunction("command_begin_selected_building");
             story.UnbindExternalFunction("open_shop");
+            story.UnbindExternalFunction("exit_dialogue_keep_movement_locked");
         }
 
         private void ReceiveQuest(string questId)
@@ -202,8 +207,12 @@ namespace ShiftedSignal.Garden.Dialogue
             }
 
             DialogueManager.Instance.OpenShopAndWait(activeShop);
+        }
 
-            
+        private void ExitDialogueKeepMovementLocked()
+        {
+            DialogueManager.Instance
+                .ExitWithoutEnablingPlayerMovement();
         }
     }
 }

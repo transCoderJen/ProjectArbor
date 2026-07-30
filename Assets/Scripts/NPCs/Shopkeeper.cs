@@ -16,7 +16,6 @@ namespace ShiftedSignal.Garden.NPCs
 
         [Header("Shop")]
         [SerializeField] private ShopSO shop;
-        [SerializeField] private string shopDialogueKnot;
 
         [Header("Highlight")]
         [ColorUsage(false, true)]
@@ -58,9 +57,7 @@ namespace ShiftedSignal.Garden.NPCs
             DialogueManager.Instance.SetActiveShop(shop);
             
             Bus<EnterDialogueEvent>.Raise(
-                new EnterDialogueEvent(shopDialogueKnot));
-            
-            
+                new EnterDialogueEvent(shop.ShopDialogueKnot));
         }
         
         private void SetOutlineColor(Color color)

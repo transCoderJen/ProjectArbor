@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using Ink.Parsed;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Shops;
 using ShiftedSignal.Garden.UserInterface.Components;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,9 +12,6 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 {
     public class ShopMenuUI : MonoBehaviour
     {
-        private const string InsufficientFundsKnot =
-            "shop_insufficient_funds";
-
         [Header("Menu")]
         [SerializeField] private GameObject menuRoot;
         [SerializeField] private Button closeButton;
@@ -90,7 +85,24 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             ClearSlots();
 
+            string exitShopKnot =
+                currentShop != null
+                    ? currentShop.ExitShopKnot
+                    : string.Empty;
+
             currentShop = null;
+
+            if (string.IsNullOrWhiteSpace(exitShopKnot))
+            {
+                Debug.LogWarning(
+                    "[ShopMenuUI] The shop has no exit dialogue knot.",
+                    this);
+
+                return;
+            }
+
+            Bus<PlayOrReplaceDialogueEvent>.Raise(
+                new PlayOrReplaceDialogueEvent(exitShopKnot));
         }
 
         private void ResizeScrollView(int slotCount)
@@ -193,8 +205,10 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             else
             {
                 TriggerDialogue(
-                    InsufficientFundsKnot);
+                    currentShop.InsufficientFundsKnot);
             }
+
+            
         }
 
         private bool TryPurchase(ShopEntry entry)
@@ -214,8 +228,8 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             if (string.IsNullOrWhiteSpace(knotName))
                 return;
 
-            Bus<EnterDialogueEvent>.Raise(
-                new EnterDialogueEvent(knotName));
+            Bus<PlayOrReplaceDialogueEvent>.Raise(
+                new PlayOrReplaceDialogueEvent(knotName));
         }
     }
 }

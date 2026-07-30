@@ -11,6 +11,7 @@ EXTERNAL command_open_construction()
 EXTERNAL command_begin_selected_building()
 
 EXTERNAL open_shop()
+EXTERNAL exit_dialogue_keep_movement_locked()
 
 // quest ids (questId + "Id" for variable name)
 VAR CollectCoinsQuestID = "CollectCoinsQuest"
@@ -23,9 +24,9 @@ INCLUDE CoinsQuest\collect_coins_start_npc.ink
 INCLUDE CoinsQuest\collect_coins_finish_npc.ink
 INCLUDE Grandpas_Farm\Luna.ink
 INCLUDE Worker.ink
-INCLUDE Foreman.ink
-INCLUDE Shopkeepers.ink
-INCLUDE PurchaseResponses.ink
+INCLUDE Shops\Foreman.ink
+INCLUDE Shops\Fiona\Shopkeepers.ink
+
 
 
 
