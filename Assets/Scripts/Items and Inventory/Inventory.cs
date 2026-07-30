@@ -431,6 +431,25 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             return count >= amount;
         }
 
+        public int GetItemAmount(ItemData item)
+        {
+            if (item == null)
+                return 0;
+
+            int count = 0;
+
+            if (inventoryDictionary.TryGetValue(item, out InventoryItem inventoryItem))
+                count += inventoryItem.stackSize;
+
+            if (stashDictionary.TryGetValue(item, out InventoryItem stashItem))
+                count += stashItem.stackSize;
+
+            if (seedBankDictionary.TryGetValue(item, out InventoryItem seedItem))
+                count += seedItem.stackSize;
+
+            return count;
+        }
+
         public void RemoveItem(ItemData item, bool updateUI = true)
         {
             InitializeCollections();

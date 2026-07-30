@@ -32,7 +32,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         public bool IsPlacingBuilding { get; private set; }
 
-        private void Awake()
+        void Start()
         {
             HideMenu();
             SetPlacementHint(false);

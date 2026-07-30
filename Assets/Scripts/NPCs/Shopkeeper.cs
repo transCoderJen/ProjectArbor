@@ -1,4 +1,7 @@
+using ShiftedSignal.Garden.Dialogue;
 using ShiftedSignal.Garden.EntitySpace.PlayerSpace;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Shops;
 using ShiftedSignal.Garden.UserInterface.Managers;
@@ -13,6 +16,7 @@ namespace ShiftedSignal.Garden.NPCs
 
         [Header("Shop")]
         [SerializeField] private ShopSO shop;
+        [SerializeField] private string shopDialogueKnot;
 
         [Header("Highlight")]
         [ColorUsage(false, true)]
@@ -51,33 +55,14 @@ namespace ShiftedSignal.Garden.NPCs
 
         public void Interact(Player player)
         {
-            OpenShop();
+            DialogueManager.Instance.SetActiveShop(shop);
+            
+            Bus<EnterDialogueEvent>.Raise(
+                new EnterDialogueEvent(shopDialogueKnot));
+            
+            
         }
-
-        private void OpenShop()
-        {
-            if (shop == null)
-            {
-                Debug.LogWarning(
-                    $"{name} does not have a ShopSO assigned.",
-                    this);
-
-                return;
-            }
-
-            if (UI.Instance == null ||
-                UI.Instance.shopMenu == null)
-            {
-                Debug.LogWarning(
-                    $"{name} could not find the ShopMenuUI.",
-                    this);
-
-                return;
-            }
-
-            UI.Instance.shopMenu.Open(shop);
-        }
-
+        
         private void SetOutlineColor(Color color)
         {
             if (spriteRenderer == null)

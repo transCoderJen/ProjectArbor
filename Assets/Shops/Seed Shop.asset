@@ -15,8 +15,8 @@ MonoBehaviour:
   <DisplayName>k__BackingField: Seed Shop
   <Items>k__BackingField:
   - Item: {fileID: 11400000, guid: a0d050d4ce8294949ba3b01b335bf96f, type: 2}
-    Price: 1
-    PurchaseDialogueKnot: 
+    Price: 100
+    PurchaseDialogueKnot: Lettuce
   - Item: {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
     Price: 1
-    PurchaseDialogueKnot: 
+    PurchaseDialogueKnot: Pumpkin

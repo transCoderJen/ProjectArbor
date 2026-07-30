@@ -1,5 +1,6 @@
 
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using ShiftedSignal.Garden.Commands;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using Unity.VisualScripting;
@@ -20,7 +21,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         private void Awake()
         {
-            button = GetComponent<Button>();
+            button = GetComponentInChildren<Button>(true);
             rectTransform = GetComponent<RectTransform>();
             tooltip = GetComponentInChildren<Tooltip>(true);
 
@@ -43,6 +44,7 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         public void Disable()
         {
             SetIcon(null);
+            if (button == null) return;
             button.interactable = false;
             button.onClick.RemoveAllListeners();
             if (tooltip != null)

@@ -1,5 +1,5 @@
 === worker_commands ===
-# speaker:worker
+# speaker: worker
 
 What would you like me to do?
 

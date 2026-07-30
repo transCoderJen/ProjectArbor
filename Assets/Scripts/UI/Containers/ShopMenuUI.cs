@@ -1,6 +1,12 @@
 using System.Collections.Generic;
+using Ink.Parsed;
+using ShiftedSignal.Garden.EventBus;
+using ShiftedSignal.Garden.Events;
+using ShiftedSignal.Garden.ItemsAndInventory;
+using ShiftedSignal.Garden.Managers;
 using ShiftedSignal.Garden.Shops;
 using ShiftedSignal.Garden.UserInterface.Components;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +20,13 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         [Header("Menu")]
         [SerializeField] private GameObject menuRoot;
         [SerializeField] private Button closeButton;
+
+        [Header("Scroll View")]
+        [SerializeField] private RectTransform scrollViewRect;
+        [SerializeField] private RectTransform contentRect;
+        [SerializeField] private VerticalLayoutGroup slotLayoutGroup;
+        [SerializeField] private float slotHeight = 80f;
+        [SerializeField] private int maximumVisibleSlots = 5;
 
         [Header("Slots")]
         [SerializeField] private Transform slotContainer;
@@ -80,6 +93,32 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             currentShop = null;
         }
 
+        private void ResizeScrollView(int slotCount)
+        {
+            int visibleSlotCount = Mathf.Clamp(
+                slotCount,
+                1,
+                maximumVisibleSlots);
+
+            float spacing = slotLayoutGroup != null
+                ? slotLayoutGroup.spacing
+                : 0f;
+
+            float verticalPadding = slotLayoutGroup != null
+                ? slotLayoutGroup.padding.top +
+                slotLayoutGroup.padding.bottom
+                : 0f;
+
+            float height =
+                slotHeight * visibleSlotCount +
+                spacing * Mathf.Max(0, visibleSlotCount - 1) +
+                verticalPadding;
+
+            scrollViewRect.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Vertical,
+                height);
+        }
+
         private void RefreshSlots()
         {
             ClearSlots();
@@ -102,13 +141,20 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                     shopSlotPrefab,
                     slotContainer);
 
+                int ownedAmount =
+                    Inventory.Instance.GetItemAmount(entry.Item);
+
                 slot.Setup(
                     entry,
+                    ownedAmount,
                     HandlePurchaseRequested,
                     tooltip);
 
                 shopSlots.Add(slot);
             }
+
+            ResizeScrollView(shopSlots.Count);
+            scrollViewRect.GetComponent<ScrollRect>().vertical = shopSlots.Count >= 5;
         }
 
         private void ClearSlots()
@@ -136,6 +182,8 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
             bool purchaseSucceeded =
                 TryPurchase(entry);
+            
+            RefreshSlots();
 
             if (purchaseSucceeded)
             {
@@ -149,20 +197,25 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             }
         }
 
-        private bool TryPurchase(
-            ShopEntry entry)
+        private bool TryPurchase(ShopEntry entry)
         {
-            // Replace with your currency and inventory logic.
+            if (entry.Price <= PlayerManager.Instance.Currency)
+            {
+                Inventory.Instance.AddItem(entry.Item);
+                Bus<CurrencyUpdatedEvent>.Raise(new CurrencyUpdatedEvent(-entry.Price));
+                return true;
+            }
+
             return false;
         }
 
-        private void TriggerDialogue(
-            string knotName)
+        private void TriggerDialogue(string knotName)
         {
             if (string.IsNullOrWhiteSpace(knotName))
                 return;
 
-            // Connect to your dialogue system.
+            Bus<EnterDialogueEvent>.Raise(
+                new EnterDialogueEvent(knotName));
         }
     }
 }

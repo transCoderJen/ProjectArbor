@@ -5,6 +5,7 @@ using ShiftedSignal.Garden.Units;
 using ShiftedSignal.Garden.UserInterface.Containers;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
+using ShiftedSignal.Garden.Shops;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
@@ -14,6 +15,7 @@ namespace ShiftedSignal.Garden.Dialogue
     public class InkExternalFunctions
     {
         private Worker commandTarget;
+        private ShopSO activeShop;
 
         /// <summary>
         /// Registers all external functions used by Ink.
@@ -59,6 +61,10 @@ namespace ShiftedSignal.Garden.Dialogue
             story.BindExternalFunction(
                 "command_begin_selected_building",
                 CommandBeginSelectedBuilding);
+            
+            story.BindExternalFunction(
+                "open_shop",
+                OpenShop);
         }
 
         /// <summary>
@@ -76,6 +82,7 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("command_gather");
             story.UnbindExternalFunction("command_open_construction");
             story.UnbindExternalFunction("command_begin_selected_building");
+            story.UnbindExternalFunction("open_shop");
         }
 
         private void ReceiveQuest(string questId)
@@ -172,6 +179,31 @@ namespace ShiftedSignal.Garden.Dialogue
             }
 
             menu.BeginSelectedBuildingPlacement();
+        }
+
+        public void SetActiveShop(ShopSO shop)
+        {
+            activeShop = shop;
+        }
+
+        public void ClearActiveShop()
+        {
+            activeShop = null;
+        }
+
+        private void OpenShop()
+        {
+            if (activeShop == null)
+            {
+                Debug.LogWarning(
+                    "Dialogue attempted to open a shop, but no active shop was assigned.");
+
+                return;
+            }
+
+            DialogueManager.Instance.OpenShopAndWait(activeShop);
+
+            
         }
     }
 }

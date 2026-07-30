@@ -8,15 +8,13 @@ using UnityEngine.UI;
 namespace ShiftedSignal.Garden.UserInterface.Components
 {
     [RequireComponent(typeof(Button))]
-    public class UI_ShopSlot :
-        MonoBehaviour,
-        IPointerEnterHandler,
-        IPointerExitHandler
+    public class UI_ShopSlot :MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         [Header("Display")]
         [SerializeField] private Image icon;
         [SerializeField] private TextMeshProUGUI itemNameText;
         [SerializeField] private TextMeshProUGUI priceText;
+        [SerializeField] private TextMeshProUGUI ownedAmountText;
 
         [Header("Components")]
         [SerializeField] private Button button;
@@ -36,13 +34,11 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         private void OnDisable()
         {
             CancelInvoke(nameof(ShowTooltip));
-
-            if (tooltip != null)
-                tooltip.Hide();
         }
 
         public void Setup(
             ShopEntry newEntry,
+            int ownedAmount,
             Action<ShopEntry> onPurchase,
             Tooltip sharedTooltip)
         {
@@ -70,8 +66,16 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             if (priceText != null)
                 priceText.text = $"${entry.Price}";
 
+            SetOwnedAmount(ownedAmount);
+
             button.interactable = true;
             button.onClick.AddListener(HandleClicked);
+        }
+
+        public void SetOwnedAmount(int amount)
+        {
+            if (ownedAmountText != null)
+                ownedAmountText.text = $"Owned: {amount}";
         }
 
         public void Disable()
@@ -92,6 +96,9 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
             if (priceText != null)
                 priceText.text = string.Empty;
+            
+            if (ownedAmountText != null)
+                ownedAmountText.text = string.Empty;
 
             CancelInvoke(nameof(ShowTooltip));
         }
