@@ -20,6 +20,5 @@ MonoBehaviour:
   - Item: {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
     Price: 1
     PurchaseDialogueKnot: FionaPumpkin
-  ShopDialogueKnot: 
+  ShopDialogueKnot: Fiona
   ExitShopKnot: FionaClose
-  InsufficientFundsKnot: 

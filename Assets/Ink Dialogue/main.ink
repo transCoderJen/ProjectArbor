@@ -10,7 +10,8 @@ EXTERNAL command_gather()
 EXTERNAL command_open_construction()
 EXTERNAL command_begin_selected_building()
 
-EXTERNAL open_shop()
+EXTERNAL open_buy_shop()
+EXTERNAL open_sell_shop()
 EXTERNAL exit_dialogue_keep_movement_locked()
 
 // quest ids (questId + "Id" for variable name)
@@ -26,7 +27,3 @@ INCLUDE Grandpas_Farm\Luna.ink
 INCLUDE Worker.ink
 INCLUDE Shops\Foreman.ink
 INCLUDE Shops\Fiona\Shopkeepers.ink
-
-
-
-

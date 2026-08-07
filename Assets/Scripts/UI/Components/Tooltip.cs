@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Text;
 using ShiftedSignal.Garden.Commands;
+using ShiftedSignal.Garden.ItemsAndInventory;
 using ShiftedSignal.Garden.TechTree;
 using ShiftedSignal.Garden.Units;
-using ShiftedSignal.Garden.ItemsAndInventory;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace ShiftedSignal.Garden.UserInterface.Components
 {
@@ -23,82 +22,125 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         [SerializeField] private TechTreeSO techTree;
 
         private readonly StringBuilder stringBuilder = new();
-        private Transform originalParent;
-        private int originalSiblingIndex;
-        private Transform tooltipParent;
 
         private void Awake()
         {
-            RectTransform = GetComponent<RectTransform>();
+            if (RectTransform == null)
+            {
+                RectTransform =
+                    GetComponent<RectTransform>();
+            }
 
-            originalParent = transform.parent;
-            originalSiblingIndex = transform.GetSiblingIndex();
+            Hide();
         }
 
-        public void SetParent(Transform parent)
-        {
-            tooltipParent = parent;
-        }
-
-        public void SetText(BaseCommand command)
+        public void SetText(
+            BaseCommand command)
         {
             if (command == null)
             {
-                text.text = string.Empty;
+                ClearText();
                 return;
             }
 
             stringBuilder.Clear();
             stringBuilder.AppendLine(command.name);
 
-            UnlockableSO unlockable = GetUnlockable(command);
+            UnlockableSO unlockable =
+                GetUnlockable(command);
 
             if (unlockable != null &&
                 techTree != null &&
                 !techTree.IsUnlocked(unlockable))
             {
-                AddUnlockRequirementsText(unlockable);
+                AddUnlockRequirementsText(
+                    unlockable);
             }
             else
             {
-                SupplyCostSO supplyCost = GetSupplyCost(command);
+                SupplyCostSO supplyCost =
+                    GetSupplyCost(command);
 
                 if (supplyCost != null)
                 {
-                    AddSupplyCostText(supplyCost);
+                    AddSupplyCostText(
+                        supplyCost);
                 }
             }
 
-            text.text = stringBuilder.ToString().TrimEnd();
-
-            ResizeTooltip();
+            ApplyText();
         }
 
-        public void SetText(ItemData item)
+        /// <summary>
+        /// Displays the item's description.
+        /// Used by inventory and shop tooltips.
+        /// </summary>
+        public void SetText(
+            ItemData item)
         {
             if (item == null)
             {
-                text.text = string.Empty;
+                ClearText();
                 return;
             }
 
             stringBuilder.Clear();
 
-            if (!string.IsNullOrWhiteSpace(item.Description))
+            if (!string.IsNullOrWhiteSpace(
+                    item.Description))
             {
-                stringBuilder.Append(item.Description);
+                stringBuilder.Append(
+                    item.Description);
             }
             else
             {
-                stringBuilder.Append(item.ItemName);
+                stringBuilder.Append(
+                    item.ItemName);
             }
 
-            text.text = stringBuilder.ToString();
-
-            ResizeTooltip();
+            ApplyText();
         }
 
-        private static UnlockableSO GetUnlockable(BaseCommand command)
+        /// <summary>
+        /// Displays the item's description and its
+        /// per-item selling price.
+        /// </summary>
+        public void SetText(
+            ItemData item,
+            int sellPrice)
+        {
+            if (item == null)
+            {
+                ClearText();
+                return;
+            }
+
+            stringBuilder.Clear();
+
+            if (!string.IsNullOrWhiteSpace(
+                    item.Description))
+            {
+                stringBuilder.AppendLine(
+                    item.Description);
+
+                stringBuilder.AppendLine();
+            }
+            else
+            {
+                stringBuilder.AppendLine(
+                    item.ItemName);
+
+                stringBuilder.AppendLine();
+            }
+
+            stringBuilder.Append(
+                $"Sell Price: ${Mathf.Max(0, sellPrice)}");
+
+            ApplyText();
+        }
+
+        private static UnlockableSO GetUnlockable(
+            BaseCommand command)
         {
             return command switch
             {
@@ -112,7 +154,8 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             };
         }
 
-        private static SupplyCostSO GetSupplyCost(BaseCommand command)
+        private static SupplyCostSO GetSupplyCost(
+            BaseCommand command)
         {
             return command switch
             {
@@ -129,33 +172,41 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         private void AddUnlockRequirementsText(
             UnlockableSO unlockable)
         {
-            stringBuilder.AppendLine("Requires:");
+            stringBuilder.AppendLine(
+                "Requires:");
 
             IEnumerable<UnlockableSO> unmetDependencies =
-                techTree.GetUnmetDependencies(unlockable);
+                techTree.GetUnmetDependencies(
+                    unlockable);
 
             bool foundRequirement = false;
 
-            foreach (UnlockableSO dependency in unmetDependencies)
+            foreach (UnlockableSO dependency
+                     in unmetDependencies)
             {
                 if (dependency == null)
                     continue;
 
-                stringBuilder.AppendLine($"• {dependency.Name}");
+                stringBuilder.AppendLine(
+                    $"• {dependency.Name}");
+
                 foundRequirement = true;
             }
 
             if (!foundRequirement)
             {
-                stringBuilder.AppendLine("• Unknown requirement");
+                stringBuilder.AppendLine(
+                    "• Unknown requirement");
             }
         }
 
-        private void AddSupplyCostText(SupplyCostSO supplyCost)
+        private void AddSupplyCostText(
+            SupplyCostSO supplyCost)
         {
             if (supplyCost.Cost > 0)
             {
-                stringBuilder.AppendLine($"Gold: {supplyCost.Cost}");
+                stringBuilder.AppendLine(
+                    $"Gold: {supplyCost.Cost}");
             }
 
             RequiredSupply[] requiredSupplies =
@@ -164,7 +215,9 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             if (requiredSupplies == null)
                 return;
 
-            for (int i = 0; i < requiredSupplies.Length; i++)
+            for (int i = 0;
+                 i < requiredSupplies.Length;
+                 i++)
             {
                 RequiredSupply requiredSupply =
                     requiredSupplies[i];
@@ -181,41 +234,62 @@ namespace ShiftedSignal.Garden.UserInterface.Components
             }
         }
 
+        private void ApplyText()
+        {
+            if (text == null)
+                return;
+
+            text.text =
+                stringBuilder
+                    .ToString()
+                    .TrimEnd();
+
+            ResizeTooltip();
+        }
+
+        private void ClearText()
+        {
+            stringBuilder.Clear();
+
+            if (text != null)
+            {
+                text.text =
+                    string.Empty;
+            }
+        }
+
         private void ResizeTooltip()
         {
-            Vector2 preferredSize = text.GetPreferredValues();
+            if (text == null ||
+                RectTransform == null)
+            {
+                return;
+            }
+
+            Vector2 preferredSize =
+                text.GetPreferredValues();
 
             const float horizontalPadding = 50f;
             const float verticalPadding = 30f;
 
-            RectTransform.sizeDelta = new Vector2(
-                preferredSize.x + horizontalPadding,
-                preferredSize.y + verticalPadding);
+            RectTransform.sizeDelta =
+                new Vector2(
+                    preferredSize.x +
+                    horizontalPadding,
+
+                    preferredSize.y +
+                    verticalPadding);
         }
 
         public void Show()
         {
-            if (tooltipParent != null)
-            {
-                transform.SetParent(tooltipParent, true);
-                transform.SetAsLastSibling();
-            }
-
             gameObject.SetActive(true);
+            transform.SetAsLastSibling();
         }
 
         public void Hide()
         {
             gameObject.SetActive(false);
-
-            if (originalParent != null)
-            {
-                transform.SetParent(originalParent, true);
-                transform.SetSiblingIndex(originalSiblingIndex);
-            }
         }
-
-
-        
     }
 }

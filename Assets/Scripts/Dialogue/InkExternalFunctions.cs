@@ -63,8 +63,12 @@ namespace ShiftedSignal.Garden.Dialogue
                 CommandBeginSelectedBuilding);
             
             story.BindExternalFunction(
-                "open_shop",
-                OpenShop);
+                "open_buy_shop",
+                OpenBuyShop);
+
+            story.BindExternalFunction(
+                "open_sell_shop",
+                OpenSellShop);
             
             story.BindExternalFunction(
                 "exit_dialogue_keep_movement_locked",
@@ -86,7 +90,8 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("command_gather");
             story.UnbindExternalFunction("command_open_construction");
             story.UnbindExternalFunction("command_begin_selected_building");
-            story.UnbindExternalFunction("open_shop");
+            story.UnbindExternalFunction("open_buy_shop");
+            story.UnbindExternalFunction("open_sell_shop");
             story.UnbindExternalFunction("exit_dialogue_keep_movement_locked");
         }
 
@@ -196,17 +201,40 @@ namespace ShiftedSignal.Garden.Dialogue
             activeShop = null;
         }
 
-        private void OpenShop()
+        private void OpenBuyShop()
+        {
+            OpenShop(ShopMode.Buy);
+        }
+
+        private void OpenSellShop()
+        {
+            OpenShop(ShopMode.Sell);
+        }
+
+        private void OpenShop(
+            ShopMode mode)
         {
             if (activeShop == null)
             {
                 Debug.LogWarning(
-                    "Dialogue attempted to open a shop, but no active shop was assigned.");
+                    "[InkExternalFunctions] Cannot open shop: " +
+                    "no active ShopSO was assigned.");
 
                 return;
             }
 
-            DialogueManager.Instance.OpenShopAndWait(activeShop);
+            if (DialogueManager.Instance == null)
+            {
+                Debug.LogWarning(
+                    "[InkExternalFunctions] Cannot open shop: " +
+                    "DialogueManager.Instance is null.");
+
+                return;
+            }
+
+            DialogueManager.Instance.OpenShopAndWait(
+                activeShop,
+                mode);
         }
 
         private void ExitDialogueKeepMovementLocked()

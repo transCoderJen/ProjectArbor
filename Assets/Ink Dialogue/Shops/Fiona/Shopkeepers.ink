@@ -14,7 +14,7 @@
     - Everything's laid out for you. Take your time.
     - Browse as long as you'd like. I'm sure you'll find something useful.
     }
-    ~ open_shop()
+    ~ open_buy_shop()
     ~ exit_dialogue_keep_movement_locked()
     -> END
 
@@ -24,7 +24,9 @@
     - Sorry, I'm only selling seeds at the moment.
     - Maybe another day. Right now I'm just here to stock your fields.
     }
-    -> Fiona
+    ~ open_sell_shop()
+    ~ exit_dialogue_keep_movement_locked()
+    -> END
 
 + [Leave]
     {shuffle:

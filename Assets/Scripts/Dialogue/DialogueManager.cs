@@ -598,9 +598,30 @@ namespace ShiftedSignal.Garden.Dialogue
                     .Equals("/n");
         }
 
-        public void OpenShopAndWait(ShopSO activeShop)
+        public void OpenShopAndWait(ShopSO activeShop, ShopMode mode)
         {
-            UI.Instance.shopMenu.Open(activeShop);
+            if (activeShop == null)
+            {
+                Debug.LogWarning(
+                    "[DialogueManager] Cannot open a null ShopSO.",
+                    this);
+
+                return;
+            }
+
+            if (UI.Instance == null ||
+                UI.Instance.shopMenu == null)
+            {
+                Debug.LogWarning(
+                    "[DialogueManager] Cannot find ShopMenuUI.",
+                    this);
+
+                return;
+            }
+
+            UI.Instance.shopMenu.Open(
+                activeShop,
+                mode);
         }
 
         private void BeginExitDialogue()
