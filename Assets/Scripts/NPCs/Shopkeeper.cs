@@ -4,22 +4,25 @@ using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Shops;
-using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 
 namespace ShiftedSignal.Garden.NPCs
 {
-    public class Shopkeeper : MonoBehaviour, IInteractable
+    public class Shopkeeper :
+        MonoBehaviour,
+        IInteractable
     {
         private static readonly int OuterOutlineColorId =
-            Shader.PropertyToID("_OuterOutlineColor");
+            Shader.PropertyToID(
+                "_OuterOutlineColor");
 
         [Header("Shop")]
         [SerializeField] private ShopSO shop;
 
         [Header("Highlight")]
         [ColorUsage(false, true)]
-        [SerializeField] private Color highlightColor = Color.white;
+        [SerializeField] private Color highlightColor =
+            Color.white;
 
         [SerializeField] private SpriteRenderer spriteRenderer;
 
@@ -31,20 +34,25 @@ namespace ShiftedSignal.Garden.NPCs
         {
             if (spriteRenderer == null)
             {
-                spriteRenderer = GetComponent<SpriteRenderer>();
+                spriteRenderer =
+                    GetComponent<SpriteRenderer>();
             }
 
-            propertyBlock = new MaterialPropertyBlock();
+            propertyBlock =
+                new MaterialPropertyBlock();
 
-            SetOutlineColor(Color.black);
+            SetOutlineColor(
+                Color.black);
         }
 
         private void OnDisable()
         {
-            SetOutlineColor(Color.black);
+            SetOutlineColor(
+                Color.black);
         }
 
-        public void Highlight(bool highlight)
+        public void Highlight(
+            bool highlight)
         {
             SetOutlineColor(
                 highlight
@@ -52,26 +60,60 @@ namespace ShiftedSignal.Garden.NPCs
                     : Color.black);
         }
 
-        public void Interact(Player player)
+        public void Interact(
+            Player player)
         {
-            DialogueManager.Instance.SetActiveShop(shop);
-            
+            if (shop == null)
+            {
+                Debug.LogWarning(
+                    $"{name} does not have a ShopSO assigned.",
+                    this);
+
+                return;
+            }
+
+            if (DialogueManager.Instance == null)
+            {
+                Debug.LogWarning(
+                    $"{name} could not find DialogueManager.",
+                    this);
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                    shop.DialogueKnotPrefix))
+            {
+                Debug.LogWarning(
+                    $"{shop.name} does not have a dialogue knot prefix assigned.",
+                    shop);
+
+                return;
+            }
+
+            DialogueManager.Instance
+                .SetActiveShop(shop);
+
             Bus<EnterDialogueEvent>.Raise(
-                new EnterDialogueEvent(shop.ShopDialogueKnot));
+                new EnterDialogueEvent(
+                    shop.DialogueKnotPrefix));
         }
-        
-        private void SetOutlineColor(Color color)
+
+        private void SetOutlineColor(
+            Color color)
         {
             if (spriteRenderer == null)
                 return;
 
-            spriteRenderer.GetPropertyBlock(propertyBlock);
+            spriteRenderer.GetPropertyBlock(
+                propertyBlock);
 
             propertyBlock.SetColor(
                 OuterOutlineColorId,
                 color);
 
-            spriteRenderer.SetPropertyBlock(propertyBlock);
+            spriteRenderer.SetPropertyBlock(
+                propertyBlock);
         }
     }
 }

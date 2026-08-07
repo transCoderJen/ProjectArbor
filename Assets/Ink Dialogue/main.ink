@@ -13,6 +13,7 @@ EXTERNAL command_begin_selected_building()
 EXTERNAL open_buy_shop()
 EXTERNAL open_sell_shop()
 EXTERNAL exit_dialogue_keep_movement_locked()
+EXTERNAL has_sellable_items()
 
 // quest ids (questId + "Id" for variable name)
 VAR CollectCoinsQuestID = "CollectCoinsQuest"

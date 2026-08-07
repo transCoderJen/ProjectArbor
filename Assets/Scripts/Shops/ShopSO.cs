@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.ItemsAndInventory;
 using UnityEngine;
@@ -14,32 +13,18 @@ namespace ShiftedSignal.Garden.Shops
         [field: SerializeField]
         public string DisplayName { get; private set; }
 
+        [Header("Items")]
         [field: SerializeField]
-        public List<ShopEntry> Items { get; private set; } = new();
-        
-        [Header("Dialogue")]
-        public string ShopDialogueKnot;
-        [Tooltip("Ink knot used after closing shop")]
-        public string ExitShopKnot;
-        [Tooltip("Ink knot used when player cannot afford item")]
-        
-        public string InsufficientFundsKnot => ShopDialogueKnot + "InsufficientFunds";
-    }
-
-        [Serializable]
-    public class ShopEntry
-    {
-        public ItemData Item;
-
-        [Min(0)]
-        public int Price;
+        public List<ItemData> Items { get; private set; } = new();
 
         [Header("Dialogue")]
-        [Tooltip("Ink knot used after successfully buying this item.")]
-        public string PurchaseDialogueKnot;
+        [field: SerializeField]
+        public string DialogueKnotPrefix { get; private set; }
 
-        public bool IsValid =>
-            Item != null &&
-            Price >= 0;
+        public string ExitShopKnot =>
+            DialogueKnotPrefix + "Close";
+
+        public string InsufficientFundsKnot =>
+            DialogueKnotPrefix + "InsufficientFunds";
     }
 }

@@ -14,11 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <DisplayName>k__BackingField: Fiona's Seed Shop
   <Items>k__BackingField:
-  - Item: {fileID: 11400000, guid: a0d050d4ce8294949ba3b01b335bf96f, type: 2}
-    Price: 100
-    PurchaseDialogueKnot: FionaLettuce
-  - Item: {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
-    Price: 1
-    PurchaseDialogueKnot: FionaPumpkin
-  ShopDialogueKnot: Fiona
-  ExitShopKnot: FionaClose
+  - {fileID: 11400000, guid: a0d050d4ce8294949ba3b01b335bf96f, type: 2}
+  - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
+  <DialogueKnotPrefix>k__BackingField: Fiona

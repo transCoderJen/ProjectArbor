@@ -17,6 +17,9 @@ MonoBehaviour:
   Description: A seed packet containing 10 seeds of lettuce
   Icon: {fileID: 5508725064705088119, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: a0d050d4ce8294949ba3b01b335bf96f
+  <BaseValue>k__BackingField: 5
+  <BuyDialogueKnot>k__BackingField: Lettuce
+  <SellDialogueKnot>k__BackingField: SellLettuce
   DropChance: 0
   CropType: 0
   CropPlantedSprite: {fileID: 3057675692530835814, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}

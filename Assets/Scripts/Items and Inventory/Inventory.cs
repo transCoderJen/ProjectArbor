@@ -67,6 +67,14 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         [Header("Debug")]
         [SerializeField] private bool loadAsNewGame;
 
+        public List<InventoryItem> GetStashList() => stash;
+        public List<InventoryItem> GetInventoryList() => inventory;
+        public List<InventoryItem> GetSeedBankList() => seedBank;
+
+        public UI_ItemSlot[] GetUI_StashSlots() => stashItemSlot;
+        public UI_ItemSlot[] GetUI_InventorySlots() => inventoryItemSlot;
+        public UI_ItemSlot[] GetUI_SeedBankSlots() => seedBankItemSlot;
+
         protected override void Awake()
         {
             base.Awake();
@@ -553,13 +561,13 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             return true;
         }
 
-        public List<InventoryItem> GetStashList() => stash;
-        public List<InventoryItem> GetInventoryList() => inventory;
-        public List<InventoryItem> GetSeedBankList() => seedBank;
-
-        public UI_ItemSlot[] GetUI_StashSlots() => stashItemSlot;
-        public UI_ItemSlot[] GetUI_InventorySlots() => inventoryItemSlot;
-        public UI_ItemSlot[] GetUI_SeedBankSlots() => seedBankItemSlot;
+        public bool HasAnySellableItems()
+        {
+            //TODO Add any future filtering for non sellable items
+            return inventory.Count > 0 ||
+                stash.Count > 0 ||
+                seedBank.Count > 0;
+        }
 
         public void LoadData(GameData data)
         {

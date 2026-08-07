@@ -1,5 +1,5 @@
 using System;
-using ShiftedSignal.Garden.Shops;
+using ShiftedSignal.Garden.ItemsAndInventory;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,7 +8,10 @@ using UnityEngine.UI;
 namespace ShiftedSignal.Garden.UserInterface.Components
 {
     [RequireComponent(typeof(Button))]
-    public class UI_ShopSlot :MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+    public class UI_ShopSlot :
+        MonoBehaviour,
+        IPointerEnterHandler,
+        IPointerExitHandler
     {
         [Header("Display")]
         [SerializeField] private Image icon;
@@ -19,11 +22,11 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         [Header("Components")]
         [SerializeField] private Button button;
 
-        private ShopEntry entry;
-        private Action<ShopEntry> purchaseCallback;
+        private ItemData item;
+        private Action<ItemData> purchaseCallback;
         private Tooltip tooltip;
 
-        public ShopEntry Entry => entry;
+        public ItemData Item => item;
 
         private void Awake()
         {
@@ -37,51 +40,63 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         }
 
         public void Setup(
-            ShopEntry newEntry,
+            ItemData newItem,
             int ownedAmount,
-            Action<ShopEntry> onPurchase,
+            Action<ItemData> onPurchase,
             Tooltip sharedTooltip)
         {
-            entry = newEntry;
+            item = newItem;
             purchaseCallback = onPurchase;
             tooltip = sharedTooltip;
 
             if (button == null)
                 button = GetComponent<Button>();
 
-            button.onClick.RemoveAllListeners();
+            if (button != null)
+                button.onClick.RemoveAllListeners();
 
-            if (entry == null ||
-                entry.Item == null)
+            if (item == null)
             {
                 Disable();
                 return;
             }
 
-            SetIcon(entry.Item.Icon);
+            SetIcon(item.Icon);
 
             if (itemNameText != null)
-                itemNameText.text = entry.Item.ItemName;
+                itemNameText.text = item.ItemName;
 
             if (priceText != null)
-                priceText.text = $"${entry.Price}";
+                priceText.text = $"${item.BaseValue}";
 
-            SetOwnedAmount(ownedAmount);
+            SetOwnedAmount(
+                ownedAmount);
 
-            button.interactable = true;
-            button.onClick.AddListener(HandleClicked);
+            if (button != null)
+            {
+                button.interactable = true;
+
+                button.onClick.AddListener(
+                    HandleClicked);
+            }
         }
 
-        public void SetOwnedAmount(int amount)
+        public void SetOwnedAmount(
+            int amount)
         {
             if (ownedAmountText != null)
-                ownedAmountText.text = $"Owned: {amount}";
+            {
+                ownedAmountText.text =
+                    $"Owned: {Mathf.Max(0, amount)}";
+            }
         }
 
         public void Disable()
         {
-            entry = null;
+            item = null;
             purchaseCallback = null;
+
+            CancelInvoke(nameof(ShowTooltip));
 
             if (button != null)
             {
@@ -96,26 +111,24 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
             if (priceText != null)
                 priceText.text = string.Empty;
-            
+
             if (ownedAmountText != null)
                 ownedAmountText.text = string.Empty;
-
-            CancelInvoke(nameof(ShowTooltip));
         }
 
         public void OnPointerEnter(
             PointerEventData eventData)
         {
             if (tooltip == null ||
-                entry == null ||
-                entry.Item == null ||
+                item == null ||
                 button == null ||
                 !button.interactable)
             {
                 return;
             }
 
-            CancelInvoke(nameof(ShowTooltip));
+            CancelInvoke(
+                nameof(ShowTooltip));
 
             Invoke(
                 nameof(ShowTooltip),
@@ -125,7 +138,8 @@ namespace ShiftedSignal.Garden.UserInterface.Components
         public void OnPointerExit(
             PointerEventData eventData)
         {
-            CancelInvoke(nameof(ShowTooltip));
+            CancelInvoke(
+                nameof(ShowTooltip));
 
             if (tooltip != null)
                 tooltip.Hide();
@@ -133,30 +147,29 @@ namespace ShiftedSignal.Garden.UserInterface.Components
 
         private void HandleClicked()
         {
-            if (entry == null ||
-                entry.Item == null)
-            {
+            if (item == null)
                 return;
-            }
 
-            CancelInvoke(nameof(ShowTooltip));
+            CancelInvoke(
+                nameof(ShowTooltip));
 
             if (tooltip != null)
                 tooltip.Hide();
 
-            purchaseCallback?.Invoke(entry);
+            purchaseCallback?.Invoke(
+                item);
         }
 
         private void ShowTooltip()
         {
             if (tooltip == null ||
-                entry == null ||
-                entry.Item == null)
+                item == null)
             {
                 return;
             }
 
-            tooltip.SetText(entry.Item);
+            tooltip.SetText(
+                item);
 
             tooltip.RectTransform.position =
                 (Vector2)Input.mousePosition +

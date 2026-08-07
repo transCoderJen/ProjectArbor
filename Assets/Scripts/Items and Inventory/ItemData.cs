@@ -23,13 +23,23 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         [TextArea(3, 10)]
         public string Description;
         public Sprite Icon;
+        public string ItemID;
+
+
+        [Header("Shop")]
         [field: SerializeField, Min(0)]
         public int BaseValue { get; private set; }
+
+        [field: SerializeField]
+        public string BuyDialogueKnot { get; private set; }
+
+        [field: SerializeField]
+        public string SellDialogueKnot { get; private set; }
+        public int BuyPrice => BaseValue;
         public int SellPrice =>
             Mathf.Max(
                 1,
                 Mathf.FloorToInt(BaseValue * 0.5f));
-        public string ItemID;
 
         [Range(0, 100)]
         public float DropChance;

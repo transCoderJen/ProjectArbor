@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
@@ -39,8 +38,11 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         [Header("Tooltip")]
         [SerializeField] private Tooltip tooltip;
 
-        private readonly List<UI_ShopSlot> buySlots = new();
-        private readonly List<UI_SellSlot> sellSlots = new();
+        private readonly List<UI_ShopSlot> buySlots =
+            new();
+
+        private readonly List<UI_SellSlot> sellSlots =
+            new();
 
         private ShopSO currentShop;
         private ShopMode currentMode;
@@ -179,14 +181,11 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 return;
             }
 
-            foreach (ShopEntry entry in
-                     currentShop.Items)
+            foreach (ItemData item
+                     in currentShop.Items)
             {
-                if (entry == null ||
-                    !entry.IsValid)
-                {
+                if (item == null)
                     continue;
-                }
 
                 UI_ShopSlot slot =
                     Instantiate(
@@ -195,12 +194,12 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
                 int ownedAmount =
                     Inventory.Instance != null
-                        ? Inventory.Instance.GetItemAmount(
-                            entry.Item)
+                        ? Inventory.Instance
+                            .GetItemAmount(item)
                         : 0;
 
                 slot.Setup(
-                    entry,
+                    item,
                     ownedAmount,
                     HandlePurchaseRequested,
                     tooltip);
@@ -225,52 +224,60 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         }
 
         private void HandlePurchaseRequested(
-            ShopEntry entry)
+            ItemData item)
         {
-            if (entry == null ||
-                entry.Item == null)
-            {
+            if (item == null)
                 return;
-            }
 
             bool purchaseSucceeded =
-                TryPurchase(entry);
+                TryPurchase(item);
 
             RefreshBuySlots();
 
             if (purchaseSucceeded)
             {
-                TriggerDialogue(
-                    entry.PurchaseDialogueKnot);
+                TriggerItemDialogue(
+                    item.BuyDialogueKnot);
             }
             else if (currentShop != null)
             {
                 TriggerDialogue(
-                    currentShop.InsufficientFundsKnot);
+                    currentShop
+                        .InsufficientFundsKnot);
             }
         }
 
         private bool TryPurchase(
-            ShopEntry entry)
+            ItemData item)
         {
-            if (PlayerManager.Instance == null ||
+            if (item == null ||
+                PlayerManager.Instance == null ||
                 Inventory.Instance == null)
             {
                 return false;
             }
 
-            if (entry.Price >
+            int buyPrice =
+                item.BaseValue;
+
+            if (buyPrice >
                 PlayerManager.Instance.Currency)
             {
                 return false;
             }
 
             Inventory.Instance.AddItem(
-                entry.Item);
+                item);
+
+            if (item is ItemData_Seed seed)
+            {
+                Bus<AssignSeedToQuickSelectEvent>.Raise(
+                    new AssignSeedToQuickSelectEvent(seed));
+            }
 
             Bus<CurrencyUpdatedEvent>.Raise(
                 new CurrencyUpdatedEvent(
-                    -entry.Price));
+                    -buyPrice));
 
             return true;
         }
@@ -311,21 +318,6 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 .SetSizeWithCurrentAnchors(
                     RectTransform.Axis.Vertical,
                     height);
-
-            ScrollRect scrollRect =
-                buyScrollViewRect
-                    .GetComponent<ScrollRect>();
-
-            if (scrollRect != null)
-            {
-                scrollRect.vertical =
-                    slotCount >
-                    maximumVisibleBuySlots;
-
-                scrollRect.StopMovement();
-                scrollRect.verticalNormalizedPosition =
-                    1f;
-            }
         }
 
         #endregion
@@ -354,14 +346,6 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             PopulateSellSlots(
                 Inventory.Instance
                     .GetSeedBankList());
-
-
-
-            Debug.Log(
-                $"[ShopMenuUI] Created {sellSlots.Count} sell slots. " +
-                $"Sell container child count: " +
-                $"{(sellSlotContainer != null ? sellSlotContainer.childCount : -1)}",
-                this);
 
             UpdateSellScrollView(
                 sellSlots.Count);
@@ -409,190 +393,179 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             sellSlots.Clear();
         }
 
-        private void HandleSellRequested(
-            InventoryItem inventoryItem)
+        private void HandleSellRequested(InventoryItem inventoryItem)
         {
             if (inventoryItem == null ||
-                inventoryItem.data == null)
+                inventoryItem.data == null ||
+                Inventory.Instance == null)
             {
                 return;
             }
 
+            ItemData item =
+                inventoryItem.data;
+
+            if (inventoryItem.stackSize <= 0)
+                return;
+
+            int sellPrice =
+                item.SellPrice;
+
             /*
-             * Placeholder:
-             * This will open the sell-quantity panel.
-             */
-            Debug.Log(
-                $"Selected {inventoryItem.data.ItemName} " +
-                $"for selling. " +
-                $"Owned: {inventoryItem.stackSize}. " +
-                $"Sell price each: " +
-                $"${inventoryItem.data.SellPrice}.",
-                this);
+            * Remove one item from the player's inventory.
+            */
+            Inventory.Instance.RemoveItem(
+                item);
+
+            /*
+            * Give the player the sale value.
+            */
+            Bus<CurrencyUpdatedEvent>.Raise(
+                new CurrencyUpdatedEvent(
+                    sellPrice));
+
+            /*
+            * Rebuild the sell slots from the updated
+            * inventory. If that was the last item in
+            * the stack, its slot disappears.
+            */
+            RefreshSellSlots();
+
+            /*
+            * Resolve the merchant-specific dialogue:
+            *
+            * Fiona + SellLettuce
+            * =
+            * FionaSellLettuce
+            */
+            TriggerItemDialogue(
+                item.SellDialogueKnot);
         }
 
         private void UpdateSellScrollView(
-    int slotCount)
-{
-    Debug.Log(
-        $"[ShopMenuUI] UpdateSellScrollView called\n" +
-        $"slotCount: {slotCount}\n" +
-        $"sellScrollViewRect: " +
-        $"{(sellScrollViewRect != null ? sellScrollViewRect.name : "NULL")}\n" +
-        $"sellGridLayoutGroup: " +
-        $"{(sellGridLayoutGroup != null ? sellGridLayoutGroup.name : "NULL")}",
-        this);
+            int slotCount)
+        {
+            if (sellScrollViewRect == null ||
+                sellGridLayoutGroup == null)
+            {
+                return;
+            }
 
-    if (sellScrollViewRect == null ||
-        sellGridLayoutGroup == null)
-    {
-        Debug.LogError(
-            "[ShopMenuUI] Cannot resize sell Scroll View because " +
-            "one or more references are missing.",
-            this);
+            int columnCount =
+                GetSellColumnCount();
 
-        return;
-    }
+            int totalRows =
+                Mathf.CeilToInt(
+                    slotCount /
+                    (float)columnCount);
 
-    int columnCount =
-        GetSellColumnCount();
+            int visibleRows =
+                Mathf.Clamp(
+                    totalRows,
+                    1,
+                    maximumVisibleSellRows);
 
-    int totalRows =
-        Mathf.CeilToInt(
-            slotCount /
-            (float)columnCount);
+            float cellHeight =
+                sellGridLayoutGroup
+                    .cellSize.y;
 
-    int visibleRows =
-        Mathf.Clamp(
-            totalRows,
-            1,
-            maximumVisibleSellRows);
+            float verticalSpacing =
+                sellGridLayoutGroup
+                    .spacing.y;
 
-    float cellHeight =
-        sellGridLayoutGroup.cellSize.y;
+            float verticalPadding =
+                sellGridLayoutGroup
+                    .padding.top +
+                sellGridLayoutGroup
+                    .padding.bottom;
 
-    float verticalSpacing =
-        sellGridLayoutGroup.spacing.y;
+            float height =
+                cellHeight * visibleRows +
+                verticalSpacing *
+                Mathf.Max(
+                    0,
+                    visibleRows - 1) +
+                verticalPadding;
 
-    float verticalPadding =
-        sellGridLayoutGroup.padding.top +
-        sellGridLayoutGroup.padding.bottom;
+            /*
+             * Only resize the Scroll View.
+             * Anchors, pivot, scrolling, etc.
+             * remain controlled by the Inspector.
+             */
+            sellScrollViewRect
+                .SetSizeWithCurrentAnchors(
+                    RectTransform.Axis.Vertical,
+                    height);
+        }
 
-    float calculatedHeight =
-        cellHeight * visibleRows +
-        verticalSpacing *
-        Mathf.Max(
-            0,
-            visibleRows - 1) +
-        verticalPadding;
+        private int GetSellColumnCount()
+        {
+            if (sellGridLayoutGroup == null)
+                return 1;
 
-    Debug.Log(
-        $"[ShopMenuUI] Sell Scroll View calculation\n" +
-        $"columnCount: {columnCount}\n" +
-        $"totalRows: {totalRows}\n" +
-        $"visibleRows: {visibleRows}\n" +
-        $"maximumVisibleSellRows: {maximumVisibleSellRows}\n" +
-        $"cellSize: {sellGridLayoutGroup.cellSize}\n" +
-        $"spacing: {sellGridLayoutGroup.spacing}\n" +
-        $"verticalPadding: {verticalPadding}\n" +
-        $"calculatedHeight: {calculatedHeight}\n" +
-        $"height before resize: {sellScrollViewRect.rect.height}",
-        this);
+            if (sellGridLayoutGroup.constraint ==
+                GridLayoutGroup.Constraint
+                    .FixedColumnCount)
+            {
+                return Mathf.Max(
+                    1,
+                    sellGridLayoutGroup
+                        .constraintCount);
+            }
 
-    sellScrollViewRect.SetSizeWithCurrentAnchors(
-        RectTransform.Axis.Vertical,
-        calculatedHeight);
+            RectTransform gridRect =
+                sellGridLayoutGroup
+                    .GetComponent<RectTransform>();
 
-    Debug.Log(
-        $"[ShopMenuUI] Height immediately after resize: " +
-        $"{sellScrollViewRect.rect.height}",
-        this);
+            if (gridRect == null)
+                return 1;
 
-    StartCoroutine(
-        LogSellScrollViewHeightNextFrame());
-}
+            float availableWidth =
+                gridRect.rect.width -
+                sellGridLayoutGroup.padding.left -
+                sellGridLayoutGroup.padding.right;
 
-private IEnumerator LogSellScrollViewHeightNextFrame()
-{
-    yield return null;
+            float cellWidth =
+                sellGridLayoutGroup
+                    .cellSize.x;
 
-    if (sellScrollViewRect == null)
-        yield break;
+            float horizontalSpacing =
+                sellGridLayoutGroup
+                    .spacing.x;
 
-    Debug.Log(
-        $"[ShopMenuUI] Sell Scroll View height next frame: " +
-        $"{sellScrollViewRect.rect.height}",
-        this);
-}
+            if (cellWidth <= 0f)
+                return 1;
 
-       private int GetSellColumnCount()
-{
-    if (sellGridLayoutGroup == null)
-    {
-        Debug.LogWarning(
-            "[ShopMenuUI] Sell Grid Layout Group is null.",
-            this);
-
-        return 1;
-    }
-
-    Debug.Log(
-        $"[ShopMenuUI] Grid constraint: " +
-        $"{sellGridLayoutGroup.constraint}, " +
-        $"constraint count: " +
-        $"{sellGridLayoutGroup.constraintCount}",
-        this);
-
-    if (sellGridLayoutGroup.constraint ==
-        GridLayoutGroup.Constraint.FixedColumnCount)
-    {
-        return Mathf.Max(
-            1,
-            sellGridLayoutGroup.constraintCount);
-    }
-
-    RectTransform gridRect =
-        sellGridLayoutGroup
-            .GetComponent<RectTransform>();
-
-    if (gridRect == null)
-        return 1;
-
-    float availableWidth =
-        gridRect.rect.width -
-        sellGridLayoutGroup.padding.left -
-        sellGridLayoutGroup.padding.right;
-
-    float cellWidth =
-        sellGridLayoutGroup.cellSize.x;
-
-    float horizontalSpacing =
-        sellGridLayoutGroup.spacing.x;
-
-    int calculatedColumns =
-        Mathf.Max(
-            1,
-            Mathf.FloorToInt(
-                (availableWidth +
-                 horizontalSpacing) /
-                (cellWidth +
-                 horizontalSpacing)));
-
-    Debug.Log(
-        $"[ShopMenuUI] Dynamic column calculation\n" +
-        $"availableWidth: {availableWidth}\n" +
-        $"cellWidth: {cellWidth}\n" +
-        $"horizontalSpacing: {horizontalSpacing}\n" +
-        $"calculatedColumns: {calculatedColumns}",
-        this);
-
-    return calculatedColumns;
-}
+            return Mathf.Max(
+                1,
+                Mathf.FloorToInt(
+                    (availableWidth +
+                     horizontalSpacing) /
+                    (cellWidth +
+                     horizontalSpacing)));
+        }
 
         #endregion
 
-        private void TriggerDialogue(
-            string knotName)
+        #region Dialogue
+
+        private void TriggerItemDialogue(string itemDialogueKnot)
+        {
+            if (currentShop == null ||
+                string.IsNullOrWhiteSpace(
+                    itemDialogueKnot))
+            {
+                return;
+            }
+
+            string fullKnotName =
+                currentShop.DialogueKnotPrefix +
+                itemDialogueKnot;
+
+            TriggerDialogue(fullKnotName);
+        }
+
+        private void TriggerDialogue(string knotName)
         {
             if (string.IsNullOrWhiteSpace(
                     knotName))
@@ -604,5 +577,7 @@ private IEnumerator LogSellScrollViewHeightNextFrame()
                 new PlayOrReplaceDialogueEvent(
                     knotName));
         }
+
+        #endregion
     }
 }

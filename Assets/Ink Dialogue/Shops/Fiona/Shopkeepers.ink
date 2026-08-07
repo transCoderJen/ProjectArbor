@@ -1,5 +1,6 @@
-=== Fiona
+=== Fiona ===
 # speaker: Fiona
+
 {shuffle:
 - Welcome in. Looking to buy, sell, or just passing through?
 - Good to see you! Need some seeds or just browsing today?
@@ -19,14 +20,24 @@
     -> END
 
 + [Sell]
-    {shuffle:
-    - I'm not buying anything just yet.
-    - Sorry, I'm only selling seeds at the moment.
-    - Maybe another day. Right now I'm just here to stock your fields.
+    { has_sellable_items():
+        {shuffle:
+        - Let's see what you've brought me.
+        - Looking to clear out a few things? Let's have a look.
+        - Sure, show me what you're willing to part with.
+        }
+        ~ open_sell_shop()
+        ~ exit_dialogue_keep_movement_locked()
+        -> END
+
+    - else:
+        {shuffle:
+        - Doesn't look like you've got anything to sell right now.
+        - Your pockets seem a little light. Come back when you've got something for me.
+        - I'd be happy to buy from you, but it doesn't look like you've brought anything along.
+        }
+        -> Fiona
     }
-    ~ open_sell_shop()
-    ~ exit_dialogue_keep_movement_locked()
-    -> END
 
 + [Leave]
     {shuffle:
@@ -35,8 +46,6 @@
     - Good luck with your garden!
     }
     -> END
-
-
 
 === FionaLettuce
 # speaker: Fiona
@@ -154,6 +163,127 @@
 - Onions add a little flavor to everything. Just try not to cry while harvesting them.
 - A good onion can improve almost any meal.
 - Careful when you harvest those—you might shed a tear or two.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+
+=== FionaSellLettuce ===
+# speaker: Fiona
+{shuffle:
+- Fresh lettuce? I'll gladly take that off your hands.
+- These leaves look good. Lettuce always sells quickly around here.
+- Nice harvest. I can find a buyer for this without much trouble.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellCarrot ===
+# speaker: Fiona
+{shuffle:
+- Good carrots. These should move quickly.
+- Nice roots. I'll take them.
+- Carrots like these are always useful to have in stock.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellPotato ===
+# speaker: Fiona
+{shuffle:
+- Potatoes never stay on the shelf for long.
+- A dependable crop. I'll happily buy these from you.
+- Good potatoes. Someone will make good use of them.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellTomato ===
+# speaker: Fiona
+{shuffle:
+- These tomatoes look nicely ripened. I'll take them.
+- Fresh tomatoes always draw attention.
+- Good color on these. They should sell just fine.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellCorn ===
+# speaker: Fiona
+{shuffle:
+- Healthy ears of corn. I'll take them.
+- Corn like this always finds a home.
+- Looks like you had a good harvest. These should sell quickly.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellPumpkin ===
+# speaker: Fiona
+{shuffle:
+- That's a fine pumpkin. Hard to miss a harvest like that.
+- Nice size on this one. I'll take it.
+- Pumpkins always catch people's eye. This should sell well.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellStrawberry ===
+# speaker: Fiona
+{shuffle:
+- Fresh strawberries? Those won't last long here.
+- These look sweet. I'll gladly take them.
+- Berries like these practically sell themselves.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellBlueberry ===
+# speaker: Fiona
+{shuffle:
+- Nice blueberries. Someone will be happy to see these.
+- These berries look good and ripe. I'll take them.
+- Blueberries are always worth making room for.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellCabbage ===
+# speaker: Fiona
+{shuffle:
+- Good solid cabbage. I'll take it.
+- These heads look healthy. They should sell just fine.
+- Cabbage may not be flashy, but people always need it.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellWheat ===
+# speaker: Fiona
+{shuffle:
+- Good grain. There's always someone looking for wheat.
+- I'll take that wheat off your hands.
+- A harvest like this never goes to waste.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellTurnip ===
+# speaker: Fiona
+{shuffle:
+- Nice turnips. Dependable crops make dependable sales.
+- I'll take these. Someone always has a use for turnips.
+- Good harvest. These should move without much trouble.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+=== FionaSellOnion ===
+# speaker: Fiona
+{shuffle:
+- Good onions. I'll take them.
+- These look fresh. Someone will put them to good use.
+- Nice harvest. Just keep them away from my eyes while I count them.
 }
 ~ exit_dialogue_keep_movement_locked()
 -> END

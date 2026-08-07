@@ -6,6 +6,7 @@ using ShiftedSignal.Garden.UserInterface.Containers;
 using ShiftedSignal.Garden.UserInterface.Managers;
 using UnityEngine;
 using ShiftedSignal.Garden.Shops;
+using ShiftedSignal.Garden.ItemsAndInventory;
 
 namespace ShiftedSignal.Garden.Dialogue
 {
@@ -73,6 +74,10 @@ namespace ShiftedSignal.Garden.Dialogue
             story.BindExternalFunction(
                 "exit_dialogue_keep_movement_locked",
                 ExitDialogueKeepMovementLocked);
+            
+            story.BindExternalFunction(
+                "has_sellable_items",
+                () => HasSellableItems());
             }
 
         /// <summary>
@@ -93,6 +98,7 @@ namespace ShiftedSignal.Garden.Dialogue
             story.UnbindExternalFunction("open_buy_shop");
             story.UnbindExternalFunction("open_sell_shop");
             story.UnbindExternalFunction("exit_dialogue_keep_movement_locked");
+            story.UnbindExternalFunction("has_sellable_items");
         }
 
         private void ReceiveQuest(string questId)
@@ -241,6 +247,12 @@ namespace ShiftedSignal.Garden.Dialogue
         {
             DialogueManager.Instance
                 .ExitWithoutEnablingPlayerMovement();
+        }
+
+        private bool HasSellableItems()
+        {
+            return Inventory.Instance != null &&
+                Inventory.Instance.HasAnySellableItems();
         }
     }
 }

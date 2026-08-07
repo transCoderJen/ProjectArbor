@@ -17,6 +17,9 @@ MonoBehaviour:
   Description: 
   Icon: {fileID: 6761164967045977113, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: 7de73ca3e86a4ab40be440eafae9fb58
+  <BaseValue>k__BackingField: 10
+  <BuyDialogueKnot>k__BackingField: Pumpkin
+  <SellDialogueKnot>k__BackingField: SellPumpkin
   DropChance: 0
   CropType: 0
   CropPlantedSprite: {fileID: -1927889906097043966, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
@@ -33,9 +36,10 @@ MonoBehaviour:
   PlantedStageMinutes: 60
   Growing1StageMinutes: 90
   Growing2StageMinutes: 120
+  growthAmount: 10
+  <FertilizerGrowthMultiplier>k__BackingField: 1.2
   RequiresWater: 1
   WaterUnitsPerApplication: 1
-  RequiresFertilizer: 0
   FertilizerUnitsPerApplication: 1
   DryTolerance: 120
   DryDamageAmount: 1
