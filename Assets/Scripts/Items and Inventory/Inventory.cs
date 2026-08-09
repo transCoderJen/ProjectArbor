@@ -344,6 +344,7 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
                     break;
 
                 case ItemType.Material:
+                case ItemType.Produce:
                     AddToStash(item);
                     break;
 
@@ -561,12 +562,32 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
             return true;
         }
 
-        public bool HasAnySellableItems()
+        public bool HasAnySellableItems(IReadOnlyCollection<ItemType> acceptedTypes)
         {
-            //TODO Add any future filtering for non sellable items
-            return inventory.Count > 0 ||
-                stash.Count > 0 ||
-                seedBank.Count > 0;
+            if (acceptedTypes == null ||
+                acceptedTypes.Count == 0)
+            {
+                return false;
+            }
+
+            return inventory.Any(item =>
+                    IsAcceptedSellItem(item, acceptedTypes)) ||
+
+                stash.Any(item =>
+                    IsAcceptedSellItem(item, acceptedTypes)) ||
+
+                seedBank.Any(item =>
+                    IsAcceptedSellItem(item, acceptedTypes));
+        }
+
+        private bool IsAcceptedSellItem(
+            InventoryItem item,
+            IReadOnlyCollection<ItemType> acceptedTypes)
+        {
+            return item?.data != null &&
+                item.stackSize > 0 &&
+                acceptedTypes.Contains(
+                    item.data.ItemType);
         }
 
         public void LoadData(GameData data)

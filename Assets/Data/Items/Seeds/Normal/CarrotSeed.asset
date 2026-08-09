@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2452cc75d15b4b44b66f35bcc420670, type: 3}
-  m_Name: PumpkinSeed
+  m_Name: CarrotSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Pumpklin Seed
-  Description: A seed packet containing 5 seeds of lettuce
-  Icon: {fileID: 8132948862792318974, guid: 688a17423db43294093ccb5c6916461b, type: 3}
-  ItemID: 7de73ca3e86a4ab40be440eafae9fb58
+  ItemName: Carrot Seed
+  Description: A seed packet containing 5 seeds of carot
+  Icon: {fileID: -2693009140137883590, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: af165881b9fcb604ba63e65123966209
   AmountPerPurchase: 5
   <BaseValue>k__BackingField: 10
-  <BuyDialogueKnot>k__BackingField: Pumpkin
+  <BuyDialogueKnot>k__BackingField: Carrot
   <SellDialogueKnot>k__BackingField: 
   DropChance: 0
   CropType: 0
-  CropPlantedSprite: {fileID: -1927889906097043966, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing1Sprite: {fileID: 5004531278555049960, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing2Sprite: {fileID: -5395861003456798081, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropRipeSprite: {fileID: -6800931340347744238, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropPlantedSprite: {fileID: -3521152321408532758, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing1Sprite: {fileID: -385290471789066283, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing2Sprite: {fileID: -4231635334726906192, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropRipeSprite: {fileID: 3390126664149698875, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
   Harvest:
-  - {fileID: 11400000, guid: 8f0b402aac13ea5429d7069063a671a0, type: 2}
+  - {fileID: 11400000, guid: 0b42784f23b840d4ba341987fb4e832c, type: 2}
   Restrictions: []
   MaxPlantHealth: 100
   HarvestBehavior: 0

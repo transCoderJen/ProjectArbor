@@ -9,9 +9,10 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
 {
     public enum ItemType
     {
-    Material,
-    Seed,
-    Equipment
+        Material = 0,
+        Seed = 1,
+        Equipment = 2,
+        Produce = 3
     }
 
     [CreateAssetMenu(fileName = "New Item Data", menuName = "Data/Item")]
@@ -27,6 +28,7 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
 
 
         [Header("Shop")]
+        public int AmountPerPurchase = 1;
         [field: SerializeField, Min(0)]
         public int BaseValue { get; private set; }
 

@@ -16,4 +16,5 @@ MonoBehaviour:
   <Items>k__BackingField:
   - {fileID: 11400000, guid: a0d050d4ce8294949ba3b01b335bf96f, type: 2}
   - {fileID: 11400000, guid: 7de73ca3e86a4ab40be440eafae9fb58, type: 2}
+  <AcceptedSellTypes>k__BackingField: 03000000
   <DialogueKnotPrefix>k__BackingField: Fiona

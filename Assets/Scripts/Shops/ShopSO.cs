@@ -17,9 +17,15 @@ namespace ShiftedSignal.Garden.Shops
         [field: SerializeField]
         public List<ItemData> Items { get; private set; } = new();
 
+        [Header("AcceptedSellTypes")]
+        [field: SerializeField]
+        public List<ItemType> AcceptedSellTypes { get; private set; } = new();
+
         [Header("Dialogue")]
         [field: SerializeField]
         public string DialogueKnotPrefix { get; private set; }
+
+
 
         public string ExitShopKnot =>
             DialogueKnotPrefix + "Close";

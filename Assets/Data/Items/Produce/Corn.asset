@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 475e91f74cf71d24d8056fad286dee88, type: 3}
+  m_Name: Corn
+  m_EditorClassIdentifier: 
+  ItemType: 3
+  ItemName: Corn
+  Description: 
+  Icon: {fileID: -732356172534689064, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: 787922e2740968e40aa90b91300734aa
+  AmountPerPurchase: 1
+  <BaseValue>k__BackingField: 12
+  <BuyDialogueKnot>k__BackingField: 
+  <SellDialogueKnot>k__BackingField: SellCorn
+  DropChance: 0

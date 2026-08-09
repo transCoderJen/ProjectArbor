@@ -10,26 +10,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2452cc75d15b4b44b66f35bcc420670, type: 3}
-  m_Name: PumpkinSeed
+  m_Name: OnionSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Pumpklin Seed
-  Description: A seed packet containing 5 seeds of lettuce
-  Icon: {fileID: 8132948862792318974, guid: 688a17423db43294093ccb5c6916461b, type: 3}
-  ItemID: 7de73ca3e86a4ab40be440eafae9fb58
+  ItemName: Onion Seed
+  Description: A seed packet containing 5 seeds of onion
+  Icon: {fileID: 4533227004153260592, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: eff7dd112da354f4fb4d522d7d955b21
   AmountPerPurchase: 5
-  <BaseValue>k__BackingField: 10
-  <BuyDialogueKnot>k__BackingField: Pumpkin
+  <BaseValue>k__BackingField: 14
+  <BuyDialogueKnot>k__BackingField: Onion
   <SellDialogueKnot>k__BackingField: 
   DropChance: 0
   CropType: 0
-  CropPlantedSprite: {fileID: -1927889906097043966, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing1Sprite: {fileID: 5004531278555049960, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing2Sprite: {fileID: -5395861003456798081, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropRipeSprite: {fileID: -6800931340347744238, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropPlantedSprite: {fileID: -1938840579, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing1Sprite: {fileID: 1224986799, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing2Sprite: {fileID: 649858836, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropRipeSprite: {fileID: 384922523, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
   Harvest:
-  - {fileID: 11400000, guid: 8f0b402aac13ea5429d7069063a671a0, type: 2}
+  - Item: {fileID: 11400000, guid: a14f13e6aa287fa40b6fc60442352b7d, type: 2}
+    Amount: 1
+    HarvestChance: 100
+  - Item: {fileID: 11400000}
+    Amount: 1
+    HarvestChance: 30
   Restrictions: []
   MaxPlantHealth: 100
   HarvestBehavior: 0

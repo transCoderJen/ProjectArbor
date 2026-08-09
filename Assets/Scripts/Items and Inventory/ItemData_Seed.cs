@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ShiftedSignal.Garden.GridSystem;
@@ -17,18 +18,34 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         PlantRemains
     }
 
-    [CreateAssetMenu(fileName = "New Item Data", menuName = "Data/Seed")]
+    [Serializable]
+    public class HarvestEntry
+    {
+        public ItemData Item;
+
+        [Min(1)]
+        public int Amount = 1;
+
+        [Range(0f, 100f)]
+        public float HarvestChance = 100f;
+    }
+
+    [CreateAssetMenu(
+        fileName = "New Item Data",
+        menuName = "Data/Seed")]
     public class ItemData_Seed : ItemData
     {
         public CropType CropType;
-        public Sprite CropPlantedSprite, 
-                        CropGrowing1Sprite, 
-                        CropGrowing2Sprite, 
-                        CropRipeSprite;
+
+        public Sprite CropPlantedSprite,
+            CropGrowing1Sprite,
+            CropGrowing2Sprite,
+            CropRipeSprite;
 
         public GameObject RipePlant;
 
-        public List<ItemData> Harvest = new List<ItemData>();
+        [Header("Harvest")]
+        public List<HarvestEntry> Harvest = new();
 
         public PlacementRestrictionsSO[] Restrictions;
 
@@ -36,16 +53,24 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
         public int MaxPlantHealth = 100;
 
         [Header("Harvest Behavior")]
-        public HarvestBehavior HarvestBehavior = HarvestBehavior.ReplantRequired;
-        [Header("Harvest Behavior")]
-        public GrowBlock.GrowthStage RegrowStage = GrowBlock.GrowthStage.Growing2;
+        public HarvestBehavior HarvestBehavior =
+            HarvestBehavior.ReplantRequired;
+
+        public GrowBlock.GrowthStage RegrowStage =
+            GrowBlock.GrowthStage.Growing2;
 
         [Header("Growth Timing")]
         public float PlantedStageMinutes = 60f;
         public float Growing1StageMinutes = 90f;
         public float Growing2StageMinutes = 120f;
         public float growthAmount = 10f;
-        [field: SerializeField] public float FertilizerGrowthMultiplier { get; private set; } = 1.2f;
+
+        [field: SerializeField]
+        public float FertilizerGrowthMultiplier
+        {
+            get;
+            private set;
+        } = 1.2f;
 
         [Header("Water")]
         public bool RequiresWater = true;
@@ -61,24 +86,61 @@ namespace ShiftedSignal.Garden.ItemsAndInventory
 
         public void AddHarvestToInventory()
         {
-            foreach (ItemData data in Harvest)
+            if (Inventory.Instance == null ||
+                Harvest == null)
             {
-                Inventory.Instance.AddItem(data);
+                return;
+            }
+
+            foreach (HarvestEntry harvestEntry in Harvest)
+            {
+                if (harvestEntry == null ||
+                    harvestEntry.Item == null ||
+                    harvestEntry.Amount <= 0)
+                {
+                    continue;
+                }
+
+                float roll =
+                    UnityEngine.Random.Range(
+                        0f,
+                        100f);
+
+                if (roll > harvestEntry.HarvestChance)
+                    continue;
+
+                Inventory.Instance.AddItem(
+                    harvestEntry.Item,
+                    harvestEntry.Amount);
             }
         }
 
-        public float GetStageDuration(GrowBlock.GrowthStage stage)
+        public float GetStageDuration(
+            GrowBlock.GrowthStage stage)
         {
             return stage switch
             {
-                GrowBlock.GrowthStage.Planted => PlantedStageMinutes,
-                GrowBlock.GrowthStage.Growing1 => Growing1StageMinutes,
-                GrowBlock.GrowthStage.Growing2 => Growing2StageMinutes,
+                GrowBlock.GrowthStage.Planted =>
+                    PlantedStageMinutes,
+
+                GrowBlock.GrowthStage.Growing1 =>
+                    Growing1StageMinutes,
+
+                GrowBlock.GrowthStage.Growing2 =>
+                    Growing2StageMinutes,
+
                 _ => 0f
             };
         }
 
-        public bool AllRestrictionsPass(int GridX, int GridY) =>
-            Restrictions.Length == 0 || Restrictions.All(restriction => restriction.CanPlace(GridX, GridY));
+        public bool AllRestrictionsPass(
+            int GridX,
+            int GridY) =>
+            Restrictions.Length == 0 ||
+            Restrictions.All(
+                restriction =>
+                    restriction.CanPlace(
+                        GridX,
+                        GridY));
     }
 }

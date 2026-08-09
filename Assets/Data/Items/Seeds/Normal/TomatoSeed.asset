@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2452cc75d15b4b44b66f35bcc420670, type: 3}
+  m_Name: TomatoSeed
+  m_EditorClassIdentifier: 
+  ItemType: 1
+  ItemName: Strawberry Seed
+  Description: A seed packet containing 5 strawberry seeds
+  Icon: {fileID: -6338023803479276477, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: fc76bfca5074106488a95ba1dd8f44a9
+  AmountPerPurchase: 5
+  <BaseValue>k__BackingField: 40
+  <BuyDialogueKnot>k__BackingField: Strawberry
+  <SellDialogueKnot>k__BackingField: 
+  DropChance: 0
+  CropType: 0
+  CropPlantedSprite: {fileID: -5568842699155709627, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing1Sprite: {fileID: -2185335503829088403, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing2Sprite: {fileID: 6915438452729039185, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropRipeSprite: {fileID: 6984442412936397737, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  RipePlant: {fileID: 0}
+  Harvest:
+  - Item: {fileID: 11400000, guid: f1e297163b7c2de44a978a13be17c457, type: 2}
+    Amount: 6
+    HarvestChance: 100
+  - Item: {fileID: 11400000}
+    Amount: 5
+    HarvestChance: 13.5
+  Restrictions: []
+  MaxPlantHealth: 100
+  HarvestBehavior: 0
+  RegrowStage: 4
+  PlantedStageMinutes: 60
+  Growing1StageMinutes: 90
+  Growing2StageMinutes: 120
+  growthAmount: 10
+  <FertilizerGrowthMultiplier>k__BackingField: 1.2
+  RequiresWater: 1
+  WaterUnitsPerApplication: 1
+  FertilizerUnitsPerApplication: 1
+  DryTolerance: 120
+  DryDamageAmount: 1
+  DryDamageInterval: 30

@@ -10,26 +10,31 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c2452cc75d15b4b44b66f35bcc420670, type: 3}
-  m_Name: LettuceSeed
+  m_Name: PotatoSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Lettuce Seed
-  Description: A seed packet containing 10 seeds of lettuce
-  Icon: {fileID: 2614870373251885436, guid: 688a17423db43294093ccb5c6916461b, type: 3}
-  ItemID: a0d050d4ce8294949ba3b01b335bf96f
+  ItemName: Seed Potatoes
+  Description: A bag of 10 seed potatoes to plant
+  Icon: {fileID: -956252262595852801, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: c6c7b0f4a6f10c046a6c7706aa1a6576
   AmountPerPurchase: 10
-  <BaseValue>k__BackingField: 5
-  <BuyDialogueKnot>k__BackingField: Lettuce
+  <BaseValue>k__BackingField: 30
+  <BuyDialogueKnot>k__BackingField: Potato
   <SellDialogueKnot>k__BackingField: 
   DropChance: 0
   CropType: 0
-  CropPlantedSprite: {fileID: 3057675692530835814, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing1Sprite: {fileID: -8321886959466736737, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing2Sprite: {fileID: 2069992328310058220, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropRipeSprite: {fileID: -862800679913824809, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropPlantedSprite: {fileID: 968803793874081956, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing1Sprite: {fileID: 968803793874081956, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing2Sprite: {fileID: -5119893442609476536, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropRipeSprite: {fileID: 2393381137972445386, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
   Harvest:
-  - {fileID: 11400000, guid: a346a2e766caf97479da4f6c02c3e567, type: 2}
+  - Item: {fileID: 11400000, guid: 5e9d324d308ef5443b25bd01e6421a14, type: 2}
+    Amount: 1
+    HarvestChance: 100
+  - Item: {fileID: 11400000}
+    Amount: 1
+    HarvestChance: 60
   Restrictions: []
   MaxPlantHealth: 100
   HarvestBehavior: 0

@@ -266,8 +266,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 return false;
             }
 
-            Inventory.Instance.AddItem(
-                item);
+            Inventory.Instance.AddItem(item, item.AmountPerPurchase);
 
             if (item is ItemData_Seed seed)
             {
@@ -357,8 +356,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             if (inventoryItems == null)
                 return;
 
-            foreach (InventoryItem inventoryItem
-                     in inventoryItems)
+            foreach (InventoryItem inventoryItem in inventoryItems)
             {
                 if (inventoryItem == null ||
                     inventoryItem.data == null ||
@@ -383,8 +381,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         private void ClearSellSlots()
         {
-            foreach (UI_SellSlot slot
-                     in sellSlots)
+            foreach (UI_SellSlot slot in sellSlots)
             {
                 if (slot != null)
                     Destroy(slot.gameObject);
@@ -414,15 +411,13 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             /*
             * Remove one item from the player's inventory.
             */
-            Inventory.Instance.RemoveItem(
-                item);
+            Inventory.Instance.RemoveItem(item);
 
             /*
             * Give the player the sale value.
             */
             Bus<CurrencyUpdatedEvent>.Raise(
-                new CurrencyUpdatedEvent(
-                    sellPrice));
+                new CurrencyUpdatedEvent(sellPrice));
 
             /*
             * Rebuild the sell slots from the updated
@@ -442,8 +437,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 item.SellDialogueKnot);
         }
 
-        private void UpdateSellScrollView(
-            int slotCount)
+        private void UpdateSellScrollView(int slotCount)
         {
             if (sellScrollViewRect == null ||
                 sellGridLayoutGroup == null)

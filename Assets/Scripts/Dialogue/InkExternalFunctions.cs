@@ -252,7 +252,7 @@ namespace ShiftedSignal.Garden.Dialogue
         private bool HasSellableItems()
         {
             return Inventory.Instance != null &&
-                Inventory.Instance.HasAnySellableItems();
+                Inventory.Instance.HasAnySellableItems(activeShop.AcceptedSellTypes);
         }
     }
 }

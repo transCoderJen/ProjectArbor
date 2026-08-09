@@ -10,11 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 475e91f74cf71d24d8056fad286dee88, type: 3}
-  m_Name: Berry
+  m_Name: Lettuce
   m_EditorClassIdentifier: 
-  ItemType: 0
-  ItemName: Berry
+  ItemType: 3
+  ItemName: Lettuce
   Description: 
-  Icon: {fileID: 214435581, guid: dd0b075b930c07f4ba33191ac1d7241e, type: 3}
-  ItemID: f1e297163b7c2de44a978a13be17c457
+  Icon: {fileID: 5508725064705088119, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemID: a346a2e766caf97479da4f6c02c3e567
+  AmountPerPurchase: 1
+  <BaseValue>k__BackingField: 10
+  <BuyDialogueKnot>k__BackingField: 
+  <SellDialogueKnot>k__BackingField: SellLettuce
   DropChance: 0
