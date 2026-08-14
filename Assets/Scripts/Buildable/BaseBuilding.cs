@@ -34,7 +34,7 @@ namespace ShiftedSignal.Garden.Buildable
 
         #region Runtime State
 
-        [SerializeField] protected bool IsActive;
+        public bool IsActive { get; protected set; }
 
         public GrowBlock OccupiedBlock { get; private set; }
 

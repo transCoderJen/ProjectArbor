@@ -15,18 +15,18 @@ MonoBehaviour:
   ItemType: 1
   ItemName: Corn Seeds
   Description: A seed packet containing 5 seeds of corn
-  Icon: {fileID: 4533227004153260592, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  Icon: {fileID: 1122774824596591943, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: 3017c23f42e4ec24889e8885606768de
-  AmountPerPurchase: 80
+  AmountPerPurchase: 8
   <BaseValue>k__BackingField: 14
   <BuyDialogueKnot>k__BackingField: Corn
   <SellDialogueKnot>k__BackingField: 
   DropChance: 0
   CropType: 0
   CropPlantedSprite: {fileID: 3275049470109395508, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing1Sprite: {fileID: 3017316628048636319, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropGrowing2Sprite: {fileID: -4350115279957141132, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
-  CropRipeSprite: {fileID: -810785574404401188, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing1Sprite: {fileID: 8482285269433270328, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropGrowing2Sprite: {fileID: -7143087039398124151, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
+  CropRipeSprite: {fileID: 5924623212766854295, guid: b6442a289c143044196d4aeda5e7ba25, type: 3}
   RipePlant: {fileID: 0}
   Harvest:
   - Item: {fileID: 11400000, guid: 787922e2740968e40aa90b91300734aa, type: 2}

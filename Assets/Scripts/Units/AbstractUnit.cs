@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ShiftedSignal.Garden.Behavior;
 using ShiftedSignal.Garden.Buildable;
+using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.EventBus;
 using ShiftedSignal.Garden.Events;
 using ShiftedSignal.Garden.Interfaces;
@@ -55,7 +56,11 @@ namespace ShiftedSignal.Garden.Units
         private float lastAnimX;
         private float lastAnimY;
         private float nextAnimationUpdateTime;
-        
+
+        // private Vector3 pursuitOrigin;
+        // private bool hasPursuitOrigin;
+
+        protected virtual bool AutoAcquireNearbyTargets => false;
 
         protected virtual void Awake()
         {
@@ -70,7 +75,15 @@ namespace ShiftedSignal.Garden.Units
             agent.updateRotation = false;
 
             graphAgent = GetComponent<BehaviorGraphAgent>();
-            graphAgent.SetVariableValue("Command", UnitCommands.Stop);
+
+            if (graphAgent.GetVariable("Command", 
+                out BlackboardVariable<UnitCommands> commandVariable))
+            {
+                graphAgent.SetVariableValue(
+                    "Command",
+                    UnitCommands.Stop);
+            }
+
             graphAgent.SetVariableValue("AttackConfig", UnitSO.AttackConfig);
         }
 
@@ -181,68 +194,130 @@ namespace ShiftedSignal.Garden.Units
             Debug.Log($"{name} sensor ENTER: {damageable}");
 
             bool attackMove = IsAttackMoveActive();
-            Debug.Log($"{name} IsAttackMove: {attackMove}");
 
-            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
+            List<GameObject> nearbyEnemies =
+                SetNearbyEnemiesOnBlackboard();
 
-            Debug.Log($"{name} nearby enemies count: {nearbyEnemies.Count}");
+            // Normal units only automatically acquire targets
+            // while performing an Attack Move.
+            //
+            // Military units automatically acquire nearby threats.
+            if (!attackMove &&
+                !AutoAcquireNearbyTargets)
+            {
+                return;
+            }
 
-            if (!attackMove)
+            if (!graphAgent.GetVariable(
+                    "TargetGameObject",
+                    out BlackboardVariable<GameObject> targetVariable))
+            {
+                Debug.LogWarning(
+                    $"{name} could not find TargetGameObject blackboard variable.");
+
+                return;
+            }
+
+            // Already fighting something.
+            // Don't change targets yet.
+            if (targetVariable.Value != null)
                 return;
 
-            if (graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable))
-            {
-                Debug.Log($"{name} current target: {targetVariable.Value}");
+            GameObject nextTarget =
+                GetNextNonBuildingTarget(nearbyEnemies);
 
-                if (targetVariable.Value == null)
-                {
-                    GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
-                    Debug.Log($"{name} next target: {nextTarget}");
+            if (nextTarget == null)
+                return;
 
-                    if (nextTarget != null)
-                        graphAgent.SetVariableValue("TargetGameObject", nextTarget);
-                }
-            }
-            else
-            {
-                Debug.LogWarning($"{name} could not find TargetGameObject blackboard variable.");
-            }
+            graphAgent.SetVariableValue(
+                "TargetGameObject",
+                nextTarget);
+
+            graphAgent.SetVariableValue(
+                "Command",
+                UnitCommands.Attack);
         }
 
         private void HandleUnitExit(IDamageable damageable)
         {
-            if (!IsAttackMoveActive())
+            bool attackMove =
+                IsAttackMoveActive();
+
+            if (!attackMove &&
+                !AutoAcquireNearbyTargets)
+            {
                 return;
+            }
 
             GameObject exitingTarget = null;
-            Vector3 lastTargetPosition = transform.position;
+            Vector3 lastTargetPosition =
+                transform.position;
 
-            if (damageable is UnityEngine.Object unityObject && unityObject != null)
+            if (damageable is UnityEngine.Object unityObject &&
+                unityObject != null)
             {
-                exitingTarget = damageable.Transform.gameObject;
-                lastTargetPosition = damageable.Transform.position;
+                exitingTarget =
+                    damageable.Transform.gameObject;
+
+                lastTargetPosition =
+                    damageable.Transform.position;
             }
 
-            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
+            List<GameObject> nearbyEnemies =
+                SetNearbyEnemiesOnBlackboard();
 
-            if (!graphAgent.GetVariable("TargetGameObject", out BlackboardVariable<GameObject> targetVariable)
-                || exitingTarget == null
-                || exitingTarget != targetVariable.Value)
+            if (!graphAgent.GetVariable(
+                    "TargetGameObject",
+                    out BlackboardVariable<GameObject> targetVariable))
             {
                 return;
             }
 
-            GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
+            if (exitingTarget == null ||
+                exitingTarget != targetVariable.Value)
+            {
+                return;
+            }
+
+            /*
+            * Military units keep pursuing their current
+            * target even after it leaves the sensor.
+            *
+            * The sensor is used for acquiring targets,
+            * not for determining chase distance.
+            */
+            if (AutoAcquireNearbyTargets)
+            {
+                return;
+            }
+
+            /*
+            * Existing Attack Move behavior.
+            */
+            GameObject nextTarget =
+                GetNextNonBuildingTarget(
+                    nearbyEnemies);
 
             if (nextTarget != null)
             {
-                graphAgent.SetVariableValue("TargetGameObject", nextTarget);
+                graphAgent.SetVariableValue(
+                    "TargetGameObject",
+                    nextTarget);
+
+                graphAgent.SetVariableValue(
+                    "Command",
+                    UnitCommands.Attack);
+
+                return;
             }
-            else
-            {
-                graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
-                graphAgent.SetVariableValue("TargetLocation", lastTargetPosition);
-            }
+
+            graphAgent.SetVariableValue<GameObject>(
+                "TargetGameObject",
+                null);
+
+            graphAgent.SetVariableValue(
+                "TargetLocation",
+                lastTargetPosition);
         }
 
         private GameObject GetNextNonBuildingTarget(List<GameObject> nearbyEnemies)
@@ -384,23 +459,29 @@ namespace ShiftedSignal.Garden.Units
 
 #endregion
 
-#region Attack
+#region Attack/Defend
         public void Attack(IDamageable damageable)
         {
             if (agent != null)
                 agent.isStopped = false;
 
-            graphAgent.SetVariableValue("IsAttackMove", false);
-            graphAgent.SetVariableValue("TargetGameObject", damageable.Transform.gameObject);
-            graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+            graphAgent.SetVariableValue(
+                "IsAttackMove",
+                false);
+
+            graphAgent.SetVariableValue(
+                "TargetGameObject",
+                damageable.Transform.gameObject);
+
+            graphAgent.SetVariableValue(
+                "Command",
+                UnitCommands.Attack);
         }
 
         public void Attack(Vector3 location)
         {
             if (agent != null)
                 agent.isStopped = false;
-
-            Debug.Log($"{name} ATTACK MOVE to {location}");
 
             graphAgent.SetVariableValue("IsAttackMove", true);
             graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
@@ -413,6 +494,40 @@ namespace ShiftedSignal.Garden.Units
             return graphAgent.GetVariable("IsAttackMove", out BlackboardVariable<bool> variable)
                 && variable.Value;
         }
+
+        public override void TakeDamage(DamageData damageData)
+        {
+            base.TakeDamage(damageData);
+
+            if (CurrentHealth <= 0)
+                return;
+
+            SetRetaliationTarget(damageData.Attacker);
+        }
+
+        private void SetRetaliationTarget(Transform attacker)
+        {
+            if (attacker == null)
+                return;
+
+            IDamageable attackerDamageable =
+                attacker.GetComponentInParent<IDamageable>();
+
+            if (attackerDamageable == null)
+                return;
+
+            if (!DamageRules.CanDamage(
+                    Owner,
+                    attackerDamageable.Owner))
+            {
+                return;
+            }
+
+            graphAgent.SetVariableValue(
+                "RetaliationTarget",
+                attackerDamageable.Transform.gameObject);
+        }
+
 #endregion
 
 #region Save / Load

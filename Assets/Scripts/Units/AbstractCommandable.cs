@@ -42,10 +42,17 @@ namespace ShiftedSignal.Garden.Units
         public delegate void HealthUpdatedEvent(AbstractCommandable commandable, int lastHealth, int newHealth);
         public event HealthUpdatedEvent OnHealthUpdated;
 
+        [Header("Override Targeting Point")]
+        [SerializeField] private bool overrideTargetPoint;
+        [SerializeField] private Transform TargetPointOverride;
+        
         public virtual Vector3 TargetPoint
         {
             get
             {
+                if (overrideTargetPoint)
+                    return TargetPointOverride.position;
+                
                 Collider[] colliders = GetComponentsInChildren<Collider>();
 
                 Bounds? combinedBounds = null;

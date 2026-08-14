@@ -7,6 +7,9 @@ using ShiftedSignal.Garden.Shops;
 using ShiftedSignal.Garden.UserInterface.Components;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using System.Linq;
 
 namespace ShiftedSignal.Garden.UserInterface.Containers
 {
@@ -21,12 +24,21 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         [SerializeField] private GameObject sellUI;
 
         [Header("Buy Scroll View")]
+        [SerializeField] private ScrollRect buyScrollRect;
         [SerializeField] private RectTransform buyScrollViewRect;
         [SerializeField] private VerticalLayoutGroup buyLayoutGroup;
+        [SerializeField] private RectTransform buyContentRect;
         [SerializeField] private Transform buySlotContainer;
         [SerializeField] private UI_ShopSlot shopSlotPrefab;
         [SerializeField] private float buySlotHeight = 80f;
         [SerializeField] private int maximumVisibleBuySlots = 5;
+
+        [SerializeField] private float mouseScrollSpeed = 0.15f;
+
+        private readonly List<Button> buySlotButtons = new();
+
+        private int firstVisibleBuyIndex = 0;
+        private GameObject lastSelectedBuyObject;
 
         [Header("Sell Scroll View")]
         [SerializeField] private RectTransform sellScrollViewRect;
@@ -119,7 +131,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             if (isBuying)
             {
                 ClearSellSlots();
-                RefreshBuySlots();
+                RefreshBuySlots(true);
             }
             else
             {
@@ -132,6 +144,12 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
         {
             if (tooltip != null)
                 tooltip.Hide();
+
+            if (buyScrollRect != null)
+            {
+                buyScrollRect.StopMovement();
+                buyScrollRect.verticalNormalizedPosition = 1f;
+            }
 
             ClearBuySlots();
             ClearSellSlots();
@@ -169,9 +187,21 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
         #region Buy
 
-        private void RefreshBuySlots()
+        private void RefreshBuySlots(
+            bool resetPosition = false)
         {
+            int previousSelectedIndex =
+                resetPosition
+                    ? 0
+                    : GetCurrentSelectedBuyIndex();
+
+            int previousFirstVisibleIndex =
+                resetPosition
+                    ? 0
+                    : firstVisibleBuyIndex;
+
             ClearBuySlots();
+
 
             if (currentShop == null ||
                 currentShop.Items == null ||
@@ -181,12 +211,10 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                 return;
             }
 
-            foreach (ItemData item
-                     in currentShop.Items)
+            foreach (ItemData item in currentShop.Items
+                        .Where(item => item != null)
+                        .OrderBy(item => item.BaseValue))
             {
-                if (item == null)
-                    continue;
-
                 UI_ShopSlot slot =
                     Instantiate(
                         shopSlotPrefab,
@@ -194,8 +222,7 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
 
                 int ownedAmount =
                     Inventory.Instance != null
-                        ? Inventory.Instance
-                            .GetItemAmount(item)
+                        ? Inventory.Instance.GetItemAmount(item)
                         : 0;
 
                 slot.Setup(
@@ -205,22 +232,194 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
                     tooltip);
 
                 buySlots.Add(slot);
+
+                Button button =
+                    slot.GetComponent<Button>();
+
+                if (button == null)
+                {
+                    button =
+                        slot.GetComponentInChildren<Button>();
+                }
+
+                if (button != null)
+                {
+                    buySlotButtons.Add(button);
+                }
             }
 
             UpdateBuyScrollView(
                 buySlots.Count);
+
+            ConfigureBuyNavigation();
+
+            Canvas.ForceUpdateCanvases();
+
+            RestoreBuySelection(
+                previousSelectedIndex,
+                previousFirstVisibleIndex);
+        }
+
+        private int GetCurrentSelectedBuyIndex()
+        {
+            if (EventSystem.current == null)
+                return 0;
+
+            GameObject selected =
+                EventSystem.current.currentSelectedGameObject;
+
+            if (selected == null)
+                return 0;
+
+            int selectedIndex =
+                GetSelectedBuyIndex(selected);
+
+            return selectedIndex >= 0
+                ? selectedIndex
+                : 0;
+        }
+
+        private void RestoreBuySelection(
+            int selectedIndex,
+            int firstVisibleIndex)
+        {
+            if (buySlotButtons.Count == 0)
+                return;
+
+            selectedIndex =
+                Mathf.Clamp(
+                    selectedIndex,
+                    0,
+                    buySlotButtons.Count - 1);
+
+            int maximumStartIndex =
+                Mathf.Max(
+                    0,
+                    buySlotButtons.Count -
+                    maximumVisibleBuySlots);
+
+            firstVisibleBuyIndex =
+                Mathf.Clamp(
+                    firstVisibleIndex,
+                    0,
+                    maximumStartIndex);
+
+            Canvas.ForceUpdateCanvases();
+
+            Button button =
+                buySlotButtons[selectedIndex];
+
+            if (button != null &&
+                EventSystem.current != null)
+            {
+                EventSystem.current.SetSelectedGameObject(
+                    button.gameObject);
+
+                lastSelectedBuyObject =
+                    button.gameObject;
+            }
+
+            SnapBuyScrollToIndex(
+                firstVisibleBuyIndex);
+
+            Canvas.ForceUpdateCanvases();
+        }
+
+        public void SnapBuyScrollToNearestItem()
+        {
+            if (buyScrollRect == null ||
+                buySlotButtons.Count <= maximumVisibleBuySlots)
+            {
+                return;
+            }
+
+            int maximumStartIndex =
+                Mathf.Max(
+                    0,
+                    buySlotButtons.Count -
+                    maximumVisibleBuySlots);
+
+            float normalizedFromTop =
+                1f -
+                buyScrollRect.verticalNormalizedPosition;
+
+            int nearestIndex =
+                Mathf.RoundToInt(
+                    normalizedFromTop *
+                    maximumStartIndex);
+
+            firstVisibleBuyIndex =
+                Mathf.Clamp(
+                    nearestIndex,
+                    0,
+                    maximumStartIndex);
+
+            SnapBuyScrollToIndex(
+                firstVisibleBuyIndex);
+        }
+
+        private void ConfigureBuyNavigation()
+        {
+            for (int i = 0; i < buySlotButtons.Count; i++)
+            {
+                Button button = buySlotButtons[i];
+
+                if (button == null)
+                    continue;
+
+                Navigation navigation = button.navigation;
+
+                navigation.mode =
+                    Navigation.Mode.Explicit;
+
+                navigation.selectOnUp =
+                    i > 0
+                        ? buySlotButtons[i - 1]
+                        : null;
+
+                navigation.selectOnDown =
+                    i < buySlotButtons.Count - 1
+                        ? buySlotButtons[i + 1]
+                        : null;
+
+                button.navigation = navigation;
+            }
+        }
+
+        private void SelectFirstBuySlot()
+        {
+            if (buySlotButtons.Count == 0 ||
+                EventSystem.current == null)
+            {
+                return;
+            }
+
+            Button firstButton =
+                buySlotButtons[0];
+
+            if (firstButton == null)
+                return;
+
+            EventSystem.current.SetSelectedGameObject(
+                firstButton.gameObject);
+
+            lastSelectedBuyObject =
+                firstButton.gameObject;
         }
 
         private void ClearBuySlots()
         {
-            foreach (UI_ShopSlot slot
-                     in buySlots)
+            foreach (UI_ShopSlot slot in buySlots)
             {
                 if (slot != null)
                     Destroy(slot.gameObject);
             }
 
             buySlots.Clear();
+            buySlotButtons.Clear();
+
+            firstVisibleBuyIndex = 0;
+            lastSelectedBuyObject = null;
         }
 
         private void HandlePurchaseRequested(
@@ -281,8 +480,186 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             return true;
         }
 
-        private void UpdateBuyScrollView(
-            int slotCount)
+        private void Update()
+        {
+            if (menuRoot == null ||
+                !menuRoot.activeInHierarchy)
+            {
+                return;
+            }
+
+            if (currentMode != ShopMode.Buy ||
+                buyScrollRect == null)
+            {
+                return;
+            }
+
+            HandleBuyMouseScroll();
+            HandleBuySelectionScroll();
+        }
+
+        private void HandleBuySelectionScroll()
+        {
+            if (EventSystem.current == null ||
+                buySlotButtons.Count == 0)
+            {
+                return;
+            }
+
+            GameObject selected =
+                EventSystem.current.currentSelectedGameObject;
+
+            if (selected == null ||
+                selected == lastSelectedBuyObject)
+            {
+                return;
+            }
+
+            int selectedIndex =
+                GetSelectedBuyIndex(selected);
+
+            if (selectedIndex < 0)
+                return;
+
+            lastSelectedBuyObject = selected;
+
+            ScrollToBuyIndex(selectedIndex);
+        }
+
+        private void HandleBuyMouseScroll()
+        {
+            if (Mouse.current == null)
+                return;
+
+            if (buySlotButtons.Count <= maximumVisibleBuySlots)
+                return;
+
+            float scroll =
+                Mouse.current.scroll.ReadValue().y;
+
+            if (Mathf.Approximately(scroll, 0f))
+                return;
+
+            int direction =
+                scroll > 0f
+                    ? -1
+                    : 1;
+
+            int maximumStartIndex =
+                Mathf.Max(
+                    0,
+                    buySlotButtons.Count -
+                    maximumVisibleBuySlots);
+
+            firstVisibleBuyIndex =
+                Mathf.Clamp(
+                    firstVisibleBuyIndex + direction,
+                    0,
+                    maximumStartIndex);
+
+            SnapBuyScrollToIndex(
+                firstVisibleBuyIndex);
+        }
+
+        private void SnapBuyScrollToIndex(
+            int firstIndex)
+        {
+            if (buyScrollRect == null)
+                return;
+
+            int maximumStartIndex =
+                Mathf.Max(
+                    0,
+                    buySlotButtons.Count -
+                    maximumVisibleBuySlots);
+
+            if (maximumStartIndex == 0)
+            {
+                buyScrollRect.verticalNormalizedPosition = 1f;
+                return;
+            }
+
+            firstIndex =
+                Mathf.Clamp(
+                    firstIndex,
+                    0,
+                    maximumStartIndex);
+
+            float normalized =
+                firstIndex /
+                (float)maximumStartIndex;
+
+            buyScrollRect.StopMovement();
+
+            buyScrollRect.verticalNormalizedPosition =
+                1f - normalized;
+        }
+
+        private int GetSelectedBuyIndex(
+            GameObject selected)
+        {
+            for (int i = 0; i < buySlotButtons.Count; i++)
+            {
+                Button button =
+                    buySlotButtons[i];
+
+                if (button == null)
+                    continue;
+
+                if (button.gameObject == selected ||
+                    selected.transform.IsChildOf(
+                        button.transform))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private void ScrollToBuyIndex(
+            int selectedIndex)
+        {
+            if (buyScrollRect == null)
+                return;
+
+            int visibleCount =
+                Mathf.Min(
+                    maximumVisibleBuySlots,
+                    buySlotButtons.Count);
+
+            if (buySlotButtons.Count <= visibleCount)
+            {
+                firstVisibleBuyIndex = 0;
+
+                SnapBuyScrollToIndex(0);
+
+                return;
+            }
+
+            if (selectedIndex < firstVisibleBuyIndex)
+            {
+                firstVisibleBuyIndex =
+                    selectedIndex;
+            }
+            else if (
+                selectedIndex >=
+                firstVisibleBuyIndex + visibleCount)
+            {
+                firstVisibleBuyIndex =
+                    selectedIndex -
+                    visibleCount + 1;
+            }
+            else
+            {
+                return;
+            }
+
+            SnapBuyScrollToIndex(
+                firstVisibleBuyIndex);
+        }
+
+        private void UpdateBuyScrollView(int slotCount)
         {
             if (buyScrollViewRect == null)
                 return;
@@ -301,22 +678,59 @@ namespace ShiftedSignal.Garden.UserInterface.Containers
             float verticalPadding =
                 buyLayoutGroup != null
                     ? buyLayoutGroup.padding.top +
-                      buyLayoutGroup.padding.bottom
+                    buyLayoutGroup.padding.bottom
                     : 0f;
 
-            float height =
-                buySlotHeight *
-                visibleSlotCount +
-                spacing *
-                Mathf.Max(
+            // Size of the visible Scroll View.
+            float visibleHeight =
+                buySlotHeight * visibleSlotCount +
+                spacing * Mathf.Max(
                     0,
                     visibleSlotCount - 1) +
                 verticalPadding;
 
-            buyScrollViewRect
-                .SetSizeWithCurrentAnchors(
+            buyScrollViewRect.SetSizeWithCurrentAnchors(
+                RectTransform.Axis.Vertical,
+                visibleHeight);
+
+            // Size of the actual scrolling Content.
+            if (buyContentRect != null)
+            {
+                float contentHeight =
+                    buySlotHeight * slotCount +
+                    spacing * Mathf.Max(
+                        0,
+                        slotCount - 1) +
+                    verticalPadding;
+
+                buyContentRect.SetSizeWithCurrentAnchors(
                     RectTransform.Axis.Vertical,
-                    height);
+                    contentHeight);
+            }
+
+            if (buyScrollRect != null)
+            {
+                bool shouldScroll =
+                    slotCount >
+                    maximumVisibleBuySlots;
+
+                buyScrollRect.vertical =
+                    shouldScroll;
+
+                if (buyScrollRect.verticalScrollbar != null)
+                {
+                    buyScrollRect
+                        .verticalScrollbar
+                        .gameObject
+                        .SetActive(shouldScroll);
+                }
+
+                if (!shouldScroll)
+                {
+                    buyScrollRect
+                        .verticalNormalizedPosition = 1f;
+                }
+            }
         }
 
         #endregion

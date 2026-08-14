@@ -33,7 +33,7 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
-  m_LockedProperties: _FoamCutoff
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -52,15 +52,15 @@ Material:
     m_Ints: []
     m_Floats:
     - _Depth_Fade: 1
-    - _FoamCutoff: 20
+    - _FoamCutoff: 13.9
     - _FoamDepth: 20
-    - _FoamScale: 10
+    - _FoamScale: 189.67
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _Deep_Color: {r: 0.10377354, g: 0.4150943, b: 0.40632465, a: 0.25490198}
-    - _FoamColor: {r: 1, g: 1, b: 1, a: 0.18431373}
-    - _FoamSpeed: {r: 0.02, g: 0.02, b: 0, a: 0}
-    - _Shallow_Color: {r: 0.44775695, g: 0.735849, b: 0.7251789, a: 0.09803922}
+    - _Deep_Color: {r: 0.3472321, g: 0.4811321, b: 0.47769877, a: 0.21176471}
+    - _FoamColor: {r: 0.16487175, g: 0.5306194, b: 0.6132076, a: 0.7647059}
+    - _FoamSpeed: {r: 0.001, g: 0.001, b: 0, a: 0}
+    - _Shallow_Color: {r: 0.2731399, g: 0.5849056, b: 0.5725449, a: 0.3254902}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

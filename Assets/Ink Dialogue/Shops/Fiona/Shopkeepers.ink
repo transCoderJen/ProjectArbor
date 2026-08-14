@@ -167,6 +167,53 @@
 ~ exit_dialogue_keep_movement_locked()
 -> END
 
+=== FionaEggplant ===
+# speaker: Fiona
+
+{shuffle:
+- Eggplant can be a little particular, but treat it well and you'll have a fine harvest.
+- A good choice. Give those eggplants some care and they'll reward you for it.
+- Eggplant takes a bit of patience, but I think you'll be pleased with the results.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+
+=== FionaSoybean ===
+# speaker: Fiona
+
+{shuffle:
+- Soybeans are a practical choice. There's always a use for a good harvest.
+- A dependable crop. Those soybeans should serve you well.
+- Soybeans may not look like much at first, but they're well worth growing.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+
+=== FionaSellEggplant ===
+# speaker: Fiona
+
+{shuffle:
+- These eggplants turned out nicely. I'll take them.
+- Good color on these. They should sell without much trouble.
+- That's a fine eggplant harvest. I'll gladly take these off your hands.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
+
+=== FionaSellSoybean ===
+# speaker: Fiona
+
+{shuffle:
+- Good soybeans. There's always someone who can put these to use.
+- Nice harvest. I'll happily take those soybeans.
+- These look good. Soybeans are always useful to have in stock.
+}
+~ exit_dialogue_keep_movement_locked()
+-> END
+
 
 === FionaSellLettuce ===
 # speaker: Fiona

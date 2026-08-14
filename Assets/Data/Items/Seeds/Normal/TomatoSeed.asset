@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: TomatoSeed
   m_EditorClassIdentifier: 
   ItemType: 1
-  ItemName: Strawberry Seed
-  Description: A seed packet containing 5 strawberry seeds
-  Icon: {fileID: -6338023803479276477, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  ItemName: Tomato Seed
+  Description: A seed packet containing 5tomato seeds
+  Icon: {fileID: 6395214293025444372, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: fc76bfca5074106488a95ba1dd8f44a9
   AmountPerPurchase: 5
   <BaseValue>k__BackingField: 40
-  <BuyDialogueKnot>k__BackingField: Strawberry
+  <BuyDialogueKnot>k__BackingField: Tomato
   <SellDialogueKnot>k__BackingField: 
   DropChance: 0
   CropType: 0

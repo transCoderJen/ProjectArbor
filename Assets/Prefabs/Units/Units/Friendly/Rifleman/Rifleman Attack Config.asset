@@ -15,7 +15,7 @@ MonoBehaviour:
   <Type>k__BackingField: 1
   <Damage>k__BackingField: 6
   <Range>k__BackingField: 80
-  <Delay>k__BackingField: 1
+  <Delay>k__BackingField: 0.5
   <ScanRange>k__BackingField: 80
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1

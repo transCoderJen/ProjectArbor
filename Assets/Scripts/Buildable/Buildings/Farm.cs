@@ -7,6 +7,13 @@ namespace ShiftedSignal.Garden.Buildable
         [Header("Farm")]
         [SerializeField] private bool triggerGameOverOnDeath = true;
 
+        protected override void Awake()
+        {
+            base.Start();
+
+            IsActive = true;
+        }
+        
         protected override void DestroyBuilding()
         {
             if (triggerGameOverOnDeath)

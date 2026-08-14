@@ -269,7 +269,7 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
 
         private void HandleInteractPressed()
         {
-            if (!controlsEnabled)
+            if (!controlsEnabled || IsPlacingBuilding)
                 return;
 
             IInteractable closestInteractable = GetClosestInteractable();
@@ -954,7 +954,9 @@ namespace ShiftedSignal.Garden.EntitySpace.PlayerSpace
             commandDragPlacementEnabled = allowDragPlacement;
             buildingPlacementActive = true;
 
-            ignoreNextPlacementRelease = true;
+            ignoreNextPlacementRelease =
+                inputReader != null &&
+                inputReader.AttackHeld;
         }
         
         private void CreateGhost()

@@ -73,13 +73,6 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
 
     protected override Status OnUpdate()
     {
-        Debug.Log(
-            $"{Agent.Value.name}: " +
-            $"Pending={navMeshAgent.pathPending}, " +
-            $"HasPath={navMeshAgent.hasPath}, " +
-            $"Status={navMeshAgent.pathStatus}, " +
-            $"Remaining={navMeshAgent.remainingDistance}");
-
         if (Agent?.Value == null ||
             Farm?.Value == null ||
             navMeshAgent == null ||

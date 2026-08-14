@@ -15,7 +15,7 @@ MonoBehaviour:
   ItemType: 1
   ItemName: Eggplant Seeds
   Description: A seed packet containing 2 eggplant  seeds
-  Icon: {fileID: -6338023803479276477, guid: 688a17423db43294093ccb5c6916461b, type: 3}
+  Icon: {fileID: -4538752222985096420, guid: 688a17423db43294093ccb5c6916461b, type: 3}
   ItemID: 6d76c3f9e55d1ef4297330c6c22f8c27
   AmountPerPurchase: 5
   <BaseValue>k__BackingField: 45

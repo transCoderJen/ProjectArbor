@@ -9,7 +9,6 @@ using ShiftedSignal.Garden.Interfaces;
 using ShiftedSignal.Garden.Misc;
 using ShiftedSignal.Garden.Combat;
 using ShiftedSignal.Garden.Managers;
-using NUnit.Framework;
 using ShiftedSignal.Garden.Effects;
 
 namespace ShiftedSignal.Garden.Behavior
@@ -22,6 +21,7 @@ namespace ShiftedSignal.Garden.Behavior
         [SerializeReference] public BlackboardVariable<GameObject> Target;
         [SerializeReference] public BlackboardVariable<AttackConfigSO> AttackConfig;
 
+        [SerializeReference] public BlackboardVariable<GameObject> RetaliationTarget;
         private NavMeshAgent navMeshAgent;
         private AbstractUnit unit;
         private Transform selfTransform;
@@ -59,8 +59,15 @@ namespace ShiftedSignal.Garden.Behavior
 
         protected override Status OnUpdate()
         {
-            if (targetDamageable == null || targetDamageable.CurrentHealth <= 0) 
+            if (ShouldYieldToRetaliation())
+                return Status.Failure;
+        
+            if (targetTransform == null ||
+                targetDamageable == null ||
+                targetDamageable.CurrentHealth <= 0)
+            {
                 return Status.Success;
+            }
             
             animator?.SetFloat(AnimationConstants.SPEED, navMeshAgent.velocity.magnitude);
 
@@ -73,12 +80,18 @@ namespace ShiftedSignal.Garden.Behavior
             }
 
             navMeshAgent.isStopped = true;
-            Quaternion lookRotation = Quaternion.LookRotation(
-                (targetTransform.position - selfTransform.position).normalized,
-                Vector3.up
-            );
 
-            unit.SetRotation(lookRotation);
+            Vector3 direction =targetTransform.position -selfTransform.position;
+
+            if (direction.sqrMagnitude > 0.001f)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(
+                    (targetTransform.position - selfTransform.position).normalized,
+                    Vector3.up
+                );
+
+                unit.SetRotation(lookRotation);
+            }
 
             animator?.SetBool(AnimationConstants.ATTACK, true);
 
@@ -167,6 +180,32 @@ namespace ShiftedSignal.Garden.Behavior
                 && Target.Value != null
                 && Target.Value.GetComponentInParent<IDamageable>() != null
                 && AttackConfig.Value != null;
+        }
+
+        private bool ShouldYieldToRetaliation()
+        {
+            if (RetaliationTarget == null ||
+                RetaliationTarget.Value == null)
+            {
+                return false;
+            }
+
+            // We are already attacking the retaliation target,
+            // so there is no reason to interrupt this action.
+            if (Target.Value == RetaliationTarget.Value)
+                return false;
+
+            IDamageable retaliationDamageable =
+                RetaliationTarget.Value
+                    .GetComponentInParent<IDamageable>();
+
+            if (retaliationDamageable == null ||
+                retaliationDamageable.CurrentHealth <= 0)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

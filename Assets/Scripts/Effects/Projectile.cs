@@ -167,36 +167,66 @@ namespace ShiftedSignal.Garden.Effects
         private bool DetectHit(Vector3 moveDirection, ref Vector3 movement)
         {
             if (Physics.Raycast(
-                                rb.position,
-                                moveDirection,
-                                out RaycastHit hit,
-                                movement.magnitude,
-                                HitMask,
-                                QueryTriggerInteraction.Ignore))
+                    rb.position,
+                    moveDirection,
+                    out RaycastHit hit,
+                    movement.magnitude,
+                    HitMask,
+                    QueryTriggerInteraction.Ignore))
             {
-                if (owner != null && hit.collider.transform.IsChildOf(owner.transform))
+                Debug.Log(
+                    $"[PROJECTILE HIT] Hit collider: {hit.collider.name} | " +
+                    $"GameObject: {hit.collider.gameObject.name} | " +
+                    $"Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
+
+                if (owner != null &&
+                    hit.collider.transform.IsChildOf(owner.transform))
                 {
+                    Debug.Log("[PROJECTILE HIT] Ignored because collider belongs to owner.");
+
                     rb.MovePosition(rb.position + movement);
                     return false;
                 }
 
-                IDamageable damageable = hit.collider.GetComponentInParent<IDamageable>();
+                IDamageable damageable =
+                    hit.collider.GetComponentInParent<IDamageable>();
 
-                if (damageable != null && damageable.Owner == damageData.Owner)
+                Debug.Log(
+                    $"[PROJECTILE HIT] IDamageable: " +
+                    $"{(damageable != null ? damageable.Transform.name : "NULL")}");
+
+                if (damageable != null &&
+                    damageable.Owner == damageData.Owner)
                 {
+                    Debug.Log(
+                        $"[PROJECTILE HIT] Ignored because same owner | " +
+                        $"Projectile={damageData.Owner}, Target={damageable.Owner}");
+
                     rb.MovePosition(rb.position + movement);
                     return false;
                 }
 
-                Vector3 impactPoint = damageable != null
-                    ? damageable.TargetPoint
-                    : hit.point;
+                Vector3 impactPoint =
+                    damageable != null
+                        ? damageable.TargetPoint
+                        : hit.point;
 
-                Quaternion hitRotation = AlignWithNormals
-                    ? Quaternion.FromToRotation(Vector3.up, hit.normal)
-                    : Quaternion.identity;
+                Quaternion hitRotation =
+                    AlignWithNormals
+                        ? Quaternion.FromToRotation(
+                            Vector3.up,
+                            hit.normal)
+                        : Quaternion.identity;
 
-                HandleImpact(impactPoint, damageable, hitRotation);
+                Debug.Log(
+                    $"[PROJECTILE HIT] Sending impact | " +
+                    $"Damageable={(damageable != null ? damageable.Transform.name : "NULL")}");
+
+                HandleImpact(
+                    impactPoint,
+                    damageable,
+                    hitRotation);
+
                 return false;
             }
 
@@ -272,6 +302,13 @@ namespace ShiftedSignal.Garden.Effects
             {
                 if (directTarget != null)
                 {
+                    Debug.Log(
+                        $"[PROJECTILE DAMAGE] Calling TakeDamage on " +
+                        $"{directTarget.Transform.name} | " +
+                        $"Damage={damageData.Amount} | " +
+                        $"AttackerOwner={damageData.Owner} | " +
+                        $"TargetOwner={directTarget.Owner}");
+                        
                     directTarget.TakeDamage(damageData);
                 }
 
