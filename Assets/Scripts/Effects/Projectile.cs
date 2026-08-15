@@ -174,16 +174,10 @@ namespace ShiftedSignal.Garden.Effects
                     HitMask,
                     QueryTriggerInteraction.Ignore))
             {
-                Debug.Log(
-                    $"[PROJECTILE HIT] Hit collider: {hit.collider.name} | " +
-                    $"GameObject: {hit.collider.gameObject.name} | " +
-                    $"Layer: {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
 
                 if (owner != null &&
                     hit.collider.transform.IsChildOf(owner.transform))
                 {
-                    Debug.Log("[PROJECTILE HIT] Ignored because collider belongs to owner.");
-
                     rb.MovePosition(rb.position + movement);
                     return false;
                 }
@@ -191,17 +185,10 @@ namespace ShiftedSignal.Garden.Effects
                 IDamageable damageable =
                     hit.collider.GetComponentInParent<IDamageable>();
 
-                Debug.Log(
-                    $"[PROJECTILE HIT] IDamageable: " +
-                    $"{(damageable != null ? damageable.Transform.name : "NULL")}");
 
                 if (damageable != null &&
                     damageable.Owner == damageData.Owner)
                 {
-                    Debug.Log(
-                        $"[PROJECTILE HIT] Ignored because same owner | " +
-                        $"Projectile={damageData.Owner}, Target={damageable.Owner}");
-
                     rb.MovePosition(rb.position + movement);
                     return false;
                 }
@@ -217,10 +204,6 @@ namespace ShiftedSignal.Garden.Effects
                             Vector3.up,
                             hit.normal)
                         : Quaternion.identity;
-
-                Debug.Log(
-                    $"[PROJECTILE HIT] Sending impact | " +
-                    $"Damageable={(damageable != null ? damageable.Transform.name : "NULL")}");
 
                 HandleImpact(
                     impactPoint,
@@ -302,13 +285,6 @@ namespace ShiftedSignal.Garden.Effects
             {
                 if (directTarget != null)
                 {
-                    Debug.Log(
-                        $"[PROJECTILE DAMAGE] Calling TakeDamage on " +
-                        $"{directTarget.Transform.name} | " +
-                        $"Damage={damageData.Amount} | " +
-                        $"AttackerOwner={damageData.Owner} | " +
-                        $"TargetOwner={directTarget.Owner}");
-                        
                     directTarget.TakeDamage(damageData);
                 }
 
@@ -326,7 +302,7 @@ namespace ShiftedSignal.Garden.Effects
                 position,
                 Quaternion.identity,
                 null,
-                .5f);
+                .25f);
 
             int hitCount = Physics.OverlapSphereNonAlloc(
                 position,

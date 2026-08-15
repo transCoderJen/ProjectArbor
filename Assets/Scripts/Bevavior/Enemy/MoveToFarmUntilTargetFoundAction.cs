@@ -29,8 +29,6 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
         if (!HasValidInputs())
             return Status.Failure;
 
-        Debug.Log($"{Agent.Value.name}: MoveToFarm START");
-
         if (HasNearbyEnemy())
             return Status.Failure;
 
@@ -39,20 +37,10 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
         NavMeshPath path = new NavMeshPath();
         bool found = navMeshAgent.CalculatePath(targetPosition, path);
 
-        Debug.Log(
-            $"{Agent.Value.name}: " +
-            $"CalculatePath={found}, " +
-            $"Status={path.status}, " +
-            $"Corners={path.corners.Length}");
-
         if (!found ||
             path.status == NavMeshPathStatus.PathInvalid ||
             path.status == NavMeshPathStatus.PathPartial)
         {
-            Debug.Log(
-                $"{Agent.Value.name}: Farm path unavailable. " +
-                $"Returning Failure for obstacle targeting.");
-
             return Status.Failure;
         }
 
@@ -64,7 +52,6 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
         // Use the path that was already calculated.
         if (!navMeshAgent.SetPath(path))
         {
-            Debug.Log($"{Agent.Value.name}: SetPath failed.");
             return Status.Failure;
         }
 
@@ -78,47 +65,30 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
             navMeshAgent == null ||
             !navMeshAgent.isOnNavMesh)
         {
-            Debug.Log($"{Agent?.Value?.name ?? "Unknown Agent"}: Invalid agent");
             return Status.Failure;
         }
 
         if (HasNearbyEnemy())
-        {
-            Debug.Log($"{Agent.Value.name}: Enemy detected");
             return Status.Failure;
-        }
 
         if (navMeshAgent.pathPending)
-        {
-            Debug.Log($"{Agent.Value.name}: Path pending");
             return Status.Running;
-        }
 
         if (HasReachedDestination())
-        {
-            Debug.Log($"{Agent.Value.name}: Reached farm");
             return Status.Success;
-        }
 
         if (!navMeshAgent.hasPath)
-        {
-            Debug.Log($"{Agent.Value.name}: No path");
             return Status.Failure;
-        }
 
         if (navMeshAgent.pathStatus == NavMeshPathStatus.PathInvalid)
         {
-            Debug.Log($"{Agent.Value.name}: Path INVALID");
             return Status.Failure;
         }
 
         if (navMeshAgent.pathStatus == NavMeshPathStatus.PathPartial)
         {
-            Debug.Log($"{Agent.Value.name}: Path PARTIAL");
             return Status.Failure;
         }
-
-        Debug.Log($"{Agent.Value.name}: Following complete path");
 
         return Status.Running;
     }
@@ -153,10 +123,6 @@ public partial class MoveToFarmUntilTargetFoundAction : Action
             {
                 continue;
             }
-
-            Debug.Log(
-                $"{Agent.Value.name}: movement interrupted by " +
-                $"{nearbyTarget.name}");
 
             return true;
         }

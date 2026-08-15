@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <Type>k__BackingField: 1
   <Damage>k__BackingField: 6
-  <Range>k__BackingField: 20
+  <Range>k__BackingField: 60
   <Delay>k__BackingField: 1
+  <ScanRange>k__BackingField: 80
   <Knockback>k__BackingField: 1
   <IgnoreFriendlyFire>k__BackingField: 1
   <CanDamageBuildables>k__BackingField: 1

@@ -45,7 +45,7 @@ namespace ShiftedSignal.Garden.Units
         [Header("Override Targeting Point")]
         [SerializeField] private bool overrideTargetPoint;
         [SerializeField] private Transform TargetPointOverride;
-        
+
         public virtual Vector3 TargetPoint
         {
             get
@@ -115,12 +115,6 @@ namespace ShiftedSignal.Garden.Units
 
         public virtual void TakeDamage(DamageData damageData)
         {
-            Debug.Log(
-                $"{name} TakeDamage | " +
-                $"AttackerTeam: {damageData.Owner} | " +
-                $"TargetTeam: {Owner} | " +
-                $"RulesPass: {DamageRules.CanDamage(damageData.Owner, Owner)}");
-
             if (!DamageRules.CanDamage(damageData.Owner, Owner))
                 return;
 

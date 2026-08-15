@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 6374949107963215520}
   - component: {fileID: 6593693918666823604}
   - component: {fileID: 4328873357927890284}
-  m_Layer: 9
+  m_Layer: 20
   m_Name: North/South
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -435,13 +435,14 @@ MonoBehaviour:
   <AvailableCommands>k__BackingField: []
   decalProjector: {fileID: 0}
   targetPriority: 0
+  overrideTargetPoint: 0
+  TargetPointOverride: {fileID: 0}
   UnitSO: {fileID: 11400000, guid: 6293880d8eda0df478416bb0a6b86076, type: 2}
-  IsActive: 0
   progressBarWorld: {fileID: 4097662955818165958}
   progress:
     <Progress>k__BackingField: 0
     <State>k__BackingField: 1
-  buildInteractionDistance: 8
+  buildInteractionDistance: 12
   HasTimedEffects: 0
   HasConstantEffects: 0
   TimedEffects: []
@@ -567,7 +568,7 @@ GameObject:
   - component: {fileID: 6040128419642335515}
   - component: {fileID: 4913150328082394060}
   - component: {fileID: 3964590979550281499}
-  m_Layer: 9
+  m_Layer: 20
   m_Name: East/West
   m_TagString: Untagged
   m_Icon: {fileID: 0}

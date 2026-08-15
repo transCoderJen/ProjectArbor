@@ -28,6 +28,7 @@ namespace ShiftedSignal.Garden.Units
         [SerializeField] private DamageableSensor DameagableSensor;
         public virtual Transform ProjectileSpawnPoint => transform;
         public string InstanceID => instanceID;
+        
         public void SetInstanceID(string id)
         {
             instanceID = id;
@@ -46,6 +47,41 @@ namespace ShiftedSignal.Garden.Units
                 return UnitCommands.Stop;
             }
         }
+
+        public bool IsInCombat
+        {
+            get
+            {
+                GameObject target = CurrentTarget;
+
+                if (target == null)
+                    return false;
+
+                IDamageable damageable =
+                    target.GetComponentInParent<IDamageable>();
+
+                return damageable != null &&
+                    damageable.CurrentHealth > 0;
+            }
+        }
+
+        public GameObject CurrentTarget
+        {
+            get
+            {
+                if (graphAgent == null)
+                    return null;
+
+                if (!graphAgent.GetVariable(
+                        "TargetGameObject",
+                        out BlackboardVariable<GameObject> targetVariable))
+                {
+                    return null;
+                }
+
+                return targetVariable.Value;
+            }
+        }   
 
         public float AgentRadius => agent.radius;
         private NavMeshAgent agent;
@@ -191,8 +227,6 @@ namespace ShiftedSignal.Garden.Units
 
         private void HandleUnitEnter(IDamageable damageable)
         {
-            Debug.Log($"{name} sensor ENTER: {damageable}");
-
             bool attackMove = IsAttackMoveActive();
 
             List<GameObject> nearbyEnemies =
@@ -345,28 +379,22 @@ namespace ShiftedSignal.Garden.Units
                 if (target.CurrentHealth <= 0)
                     continue;
 
-                Debug.Log($"{name} checking target: {target}");
-
                 if (target == null)
                 {
-                    Debug.Log("Skipped target: null");
                     continue;
                 }
 
                 if (target is UnityEngine.Object unityObject && unityObject == null)
                 {
-                    Debug.Log("Skipped target: destroyed Unity object");
                     continue;
                 }
 
                 if (target.Owner == Owner)
                 {
-                    Debug.Log($"Skipped target: same team {target.Owner}");
                     continue;
                 }
 
-                GameObject targetObject = target.Transform.gameObject;
-                Debug.Log($"Added enemy target: {targetObject.name}, team: {target.Owner}");
+                GameObject targetObject = target.Transform.gameObject;                
 
                 nearbyEnemies.Add(targetObject);
             }
@@ -483,10 +511,48 @@ namespace ShiftedSignal.Garden.Units
             if (agent != null)
                 agent.isStopped = false;
 
-            graphAgent.SetVariableValue("IsAttackMove", true);
-            graphAgent.SetVariableValue<GameObject>("TargetGameObject", null);
-            graphAgent.SetVariableValue("TargetLocation", location);
-            graphAgent.SetVariableValue("Command", UnitCommands.Attack);
+            Debug.Log(
+                $"[ATTACK MOVE] {name} to {location}");
+
+            graphAgent.SetVariableValue(
+                "IsAttackMove",
+                true);
+
+            graphAgent.SetVariableValue<GameObject>(
+                "TargetGameObject",
+                null);
+
+            graphAgent.SetVariableValue(
+                "TargetLocation",
+                location);
+
+            graphAgent.SetVariableValue(
+                "Command",
+                UnitCommands.Attack);
+
+            if (graphAgent.GetVariable(
+                    "Command",
+                    out BlackboardVariable<UnitCommands> command))
+            {
+                Debug.Log(
+                    $"[ATTACK MOVE] Command={command.Value}");
+            }
+
+            if (graphAgent.GetVariable(
+                    "IsAttackMove",
+                    out BlackboardVariable<bool> attackMove))
+            {
+                Debug.Log(
+                    $"[ATTACK MOVE] IsAttackMove={attackMove.Value}");
+            }
+
+            if (graphAgent.GetVariable(
+                    "TargetLocation",
+                    out BlackboardVariable<Vector3> targetLocation))
+            {
+                Debug.Log(
+                    $"[ATTACK MOVE] TargetLocation={targetLocation.Value}");
+            }
         }
 
         private bool IsAttackMoveActive()
@@ -502,7 +568,59 @@ namespace ShiftedSignal.Garden.Units
             if (CurrentHealth <= 0)
                 return;
 
-            SetRetaliationTarget(damageData.Attacker);
+            if (ShouldKeepCurrentCombatTarget())
+                return;
+
+            SetRetaliationTarget(
+                damageData.Attacker);
+        }
+
+        private bool ShouldKeepCurrentCombatTarget()
+        {
+            if (graphAgent == null)
+                return false;
+
+            if (!graphAgent.GetVariable(
+                    "TargetGameObject",
+                    out BlackboardVariable<GameObject> targetVariable))
+            {
+                return false;
+            }
+
+            GameObject currentTarget =
+                targetVariable.Value;
+
+            if (currentTarget == null)
+                return false;
+
+            IDamageable targetDamageable =
+                currentTarget.GetComponentInParent<IDamageable>();
+
+            if (targetDamageable == null ||
+                targetDamageable.CurrentHealth <= 0)
+            {
+                return false;
+            }
+
+            // Buildings never take priority over retaliation.
+            if (currentTarget.GetComponentInParent<BaseBuilding>() != null)
+            {
+                return false;
+            }
+
+            if (UnitData == null ||
+                UnitData.AttackConfig == null)
+            {
+                return false;
+            }
+
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    targetDamageable.Transform.position);
+
+            return distance <=
+                UnitData.AttackConfig.Range;
         }
 
         private void SetRetaliationTarget(Transform attacker)

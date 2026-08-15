@@ -42,44 +42,23 @@ namespace ShiftedSignal.Garden.Behavior
             NavMeshPath path = new NavMeshPath();
             bool calculated = navMeshAgent.CalculatePath(farmPosition, path);
 
-            Debug.Log(
-                $"{Agent.Value.name}: Blocking-target path calculation: " +
-                $"Calculated={calculated}, " +
-                $"Status={path.status}, " +
-                $"Corners={path.corners.Length}");
-
             if (!calculated ||
                 path.status != NavMeshPathStatus.PathPartial ||
                 path.corners.Length == 0)
             {
-                Debug.Log(
-                    $"{Agent.Value.name}: No partial path available " +
-                    $"for blocking-target search.");
-
                 return Status.Failure;
             }
 
             Vector3 blockedPoint = path.corners[^1];
 
-            Debug.Log(
-                $"{Agent.Value.name}: Searching for blocking structures " +
-                $"around {blockedPoint}");
-
             GameObject blockingTarget = FindBestBlockingTarget(blockedPoint);
 
             if (blockingTarget == null)
             {
-                Debug.Log(
-                    $"{Agent.Value.name}: No blocking structure found.");
-
                 return Status.Failure;
             }
 
             Target.Value = blockingTarget;
-
-            Debug.Log(
-                $"{Agent.Value.name}: Selected blocking target: " +
-                $"{blockingTarget.name}");
 
             return Status.Success;
         }
@@ -127,12 +106,6 @@ namespace ShiftedSignal.Garden.Behavior
                 float distanceSqr =
                     (damageable.TargetPoint - blockedPoint).sqrMagnitude;
 
-                Debug.Log(
-                    $"{Agent.Value.name}: Blocking candidate " +
-                    $"{targetObject.name}, " +
-                    $"Owner={damageable.Owner}, " +
-                    $"Distance={Mathf.Sqrt(distanceSqr):F2}");
-
                 if (distanceSqr >= bestDistanceSqr)
                     continue;
 
@@ -154,7 +127,7 @@ namespace ShiftedSignal.Garden.Behavior
                 return false;
             }
 
-            if (damageable == self)
+            if (component == self)
                 return false;
 
             if (damageable.CurrentHealth <= 0)

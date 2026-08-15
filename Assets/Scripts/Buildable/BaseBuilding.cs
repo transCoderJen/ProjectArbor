@@ -21,7 +21,7 @@ namespace ShiftedSignal.Garden.Buildable
 {
     [RequireComponent(typeof(SpriteRenderer))]
     [RequireComponent(typeof(NavMeshObstacle))]
-    public class BaseBuilding : AbstractCommandable, IInteractable, IContinuousInteractable
+    public class BaseBuilding : AbstractCommandable, IContinuousInteractable
     {
        #region Configuration
 
@@ -621,17 +621,13 @@ namespace ShiftedSignal.Garden.Buildable
 
         public override void TakeDamage(DamageData damageData)
         {
-            Debug.Log(
-                $"{name} building hit | " +
-                $"IsActive: {IsActive} | " +
-                $"AttackerTeam: {damageData.Owner} | " +
-                $"TargetTeam: {Owner} | " +
-                $"CanDamageBuildables: {damageData.CanDamageBuildables}");
-
             if (!IsActive)
                 return;
 
             base.TakeDamage(damageData);
+
+            Bus<BuildingAttackedEvent>.Raise(
+                new BuildingAttackedEvent(this,damageData.Attacker));
         }
 
         public override void Heal(int amount)
@@ -793,29 +789,41 @@ namespace ShiftedSignal.Garden.Buildable
 
         #region Interact
 
-        public void Highlight(bool highlight)
+        public override void Highlight(bool highlight)
         {
             if (!IsUnderConstruction)
+            {
+                base.Highlight(highlight);
                 return;
+            }
 
-            // Temporary: construction sites already show ghost visuals.
-            // Later we can add outline/highlight feedback here.
+            // Construction-site-specific highlight can go here.
+            //
+            // For now, if you still want the normal
+            // AbstractCommandable highlight:
+            base.Highlight(highlight);
         }
 
-        public void Interact(Player player)
+        public override void Interact(Player player)
         {
-            if (!IsUnderConstruction)
+            if (IsUnderConstruction)
+            {
+                // Construction-site interaction.
+                // For example, begin/assign construction.
                 return;
+            }
 
+            // Normal completed-building interaction.
+            base.Interact(player);
+
+            // Later:
             // Open Building UI
         }
 
         public void ContinuousInteract(Player player)
         {
             if (!IsUnderConstruction)
-            {
                 return;
-            }
 
             AddBuildProgress(Time.deltaTime);
         }

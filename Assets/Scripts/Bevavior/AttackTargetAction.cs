@@ -37,38 +37,65 @@ namespace ShiftedSignal.Garden.Behavior
 
         protected override Status OnStart()
         {
-            if (!HasValidInputs())
+            if (!HasValidUnitInputs())
                 return Status.Failure;
-            
-            attacker = Self.Value.GetComponent<IAttacker>();
 
-            selfTransform = Self.Value.transform;
-            navMeshAgent = selfTransform.GetComponent<NavMeshAgent>();
-            unit = selfTransform.GetComponent<AbstractUnit>();
-            animator = selfTransform.GetComponent<Animator>();
+            // The target disappeared before this node started.
+            // Treat that as the attack being complete.
+            if (Target == null ||
+                Target.Value == null)
+            {
+                return Status.Success;
+            }
 
-            selfDamageable = Self.Value.GetComponentInParent<IDamageable>();
+            IDamageable damageable =
+                Target.Value.GetComponentInParent<IDamageable>();
 
-            targetTransform = Target.Value.transform;
-            targetDamageable = Target.Value.GetComponentInParent<IDamageable>();
+            if (damageable == null ||
+                damageable.CurrentHealth <= 0)
+            {
+                return Status.Success;
+            }
 
-            
+            attacker =
+                Self.Value.GetComponent<IAttacker>();
+
+            selfTransform =
+                Self.Value.transform;
+
+            navMeshAgent =
+                selfTransform.GetComponent<NavMeshAgent>();
+
+            unit =
+                selfTransform.GetComponent<AbstractUnit>();
+
+            animator =
+                selfTransform.GetComponent<Animator>();
+
+            selfDamageable =
+                Self.Value.GetComponentInParent<IDamageable>();
+
+            targetTransform =
+                Target.Value.transform;
+
+            targetDamageable =
+                damageable;
 
             return Status.Running;
         }
 
         protected override Status OnUpdate()
         {
-            if (ShouldYieldToRetaliation())
-                return Status.Failure;
-        
             if (targetTransform == null ||
                 targetDamageable == null ||
                 targetDamageable.CurrentHealth <= 0)
             {
                 return Status.Success;
             }
-            
+
+            if (ShouldYieldToRetaliation())
+                return Status.Failure;
+        
             animator?.SetFloat(AnimationConstants.SPEED, navMeshAgent.velocity.magnitude);
 
             if (Vector3.Distance(targetTransform.position, selfTransform.position) >= AttackConfig.Value.Range)
@@ -112,8 +139,6 @@ namespace ShiftedSignal.Garden.Behavior
                 }
 
             }
-
-            
 
             return Status.Running;
         }
@@ -172,15 +197,15 @@ namespace ShiftedSignal.Garden.Behavior
                 AttackConfig.Value.CanDamageBuildables);
         }
 
-        private bool HasValidInputs()
-        {
-            return Self.Value != null
-                && Self.Value.TryGetComponent(out AbstractUnit _)
-                && Self.Value.TryGetComponent(out NavMeshAgent _)
-                && Target.Value != null
-                && Target.Value.GetComponentInParent<IDamageable>() != null
-                && AttackConfig.Value != null;
-        }
+        private bool HasValidUnitInputs()
+    {
+        return Self != null &&
+            Self.Value != null &&
+            Self.Value.TryGetComponent(out AbstractUnit _) &&
+            Self.Value.TryGetComponent(out NavMeshAgent _) &&
+            AttackConfig != null &&
+            AttackConfig.Value != null;
+    }
 
         private bool ShouldYieldToRetaliation()
         {

@@ -58,10 +58,6 @@ namespace ShiftedSignal.Garden.Units
             if (!damageables.Add(damageable))
                 return;
 
-            Debug.Log(
-                $"{name} SENSOR ENTER: {damageable.Transform.name}, " +
-                $"sensor owner: {Owner}, target owner: {damageable.Owner}");
-
             SubscribeToDeathEvent();
 
             OnUnitEnter?.Invoke(damageable);
@@ -76,9 +72,6 @@ namespace ShiftedSignal.Garden.Units
 
             if (!damageables.Remove(damageable))
                 return;
-
-            Debug.Log(
-                $"{name} SENSOR EXIT: {damageable.Transform.name}");
 
             OnUnitExit?.Invoke(damageable);
 
@@ -104,10 +97,6 @@ namespace ShiftedSignal.Garden.Units
             // OnEnable already happened before AbstractUnit.Start,
             // so scan again after the radius and owner are configured.
             ScanInitialTargets();
-
-            Debug.Log(
-                $"{name} sensor setup. Owner: {Owner}, " +
-                $"radius: {collider.radius}, targets: {damageables.Count}");
         }
 
         private bool IsValidTarget(IDamageable damageable)

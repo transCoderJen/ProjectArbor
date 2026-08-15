@@ -94,10 +94,6 @@ namespace ShiftedSignal.Garden.TechTree
                     new Dependency(unlockableSO)
                 );
 
-                Debug.Log(
-                    $"Configuring {unlockableSO.name} with " +
-                    $"{unlockableSO.UnlockRequirements.Count()} dependencies"
-                );
             }
         }
 

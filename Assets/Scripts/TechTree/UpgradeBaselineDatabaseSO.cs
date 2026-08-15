@@ -201,10 +201,6 @@ namespace ShiftedSignal.Garden.TechTree
                 {
                     property.SetValue(propertyOwner, value);
 
-                    Debug.Log(
-                        $"Restored '{baseline.TargetObject.name}." +
-                        $"{baseline.PropertyPath}' to {value}."
-                    );
                 }
                 catch (TargetInvocationException exception)
                 {
