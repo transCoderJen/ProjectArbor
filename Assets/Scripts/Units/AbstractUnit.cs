@@ -83,6 +83,48 @@ namespace ShiftedSignal.Garden.Units
             }
         }   
 
+        public GameObject ActiveCombatTarget
+        {
+            get
+            {
+                GameObject retaliationTarget =
+                    GetBlackboardGameObject(
+                        "RetaliationTarget");
+
+                if (IsLivingTarget(
+                        retaliationTarget))
+                {
+                    return retaliationTarget;
+                }
+
+                if (IsLivingTarget(
+                        CurrentTarget))
+                {
+                    return CurrentTarget;
+                }
+
+                return null;
+            }
+        }
+
+        public GameObject RetaliationTarget
+        {
+            get
+            {
+                if (graphAgent == null)
+                    return null;
+
+                if (!graphAgent.GetVariable(
+                        "RetaliationTarget",
+                        out BlackboardVariable<GameObject> variable))
+                {
+                    return null;
+                }
+
+                return variable.Value;
+            }
+        }
+
         public float AgentRadius => agent.radius;
         private NavMeshAgent agent;
         private Animator anim;
@@ -164,65 +206,119 @@ namespace ShiftedSignal.Garden.Units
         }
 
         private void HandleUnitDeath(UnitDeathEvent evt)
-        {
-            if (graphAgent == null ||
-                !graphAgent.isActiveAndEnabled ||
-                !gameObject.activeInHierarchy)
-            {
-                return;
-            }
+{
+    if (graphAgent == null ||
+        !graphAgent.isActiveAndEnabled ||
+        !gameObject.activeInHierarchy)
+    {
+        return;
+    }
 
-            // Do not process this unit's own death event.
-            if (evt.Unit == null || evt.Unit == this)
-                return;
+    // Do not process this unit's own death event.
+    if (evt.Unit == null ||
+        evt.Unit == this)
+    {
+        return;
+    }
 
-            if (!graphAgent.GetVariable(
-                    "TargetGameObject",
-                    out BlackboardVariable<GameObject> targetVariable))
-            {
-                return;
-            }
+    if (!graphAgent.GetVariable(
+            "TargetGameObject",
+            out BlackboardVariable<GameObject> targetVariable))
+    {
+        return;
+    }
 
-            GameObject currentTarget = targetVariable.Value;
+    GameObject currentTarget =
+        targetVariable.Value;
 
-            if (currentTarget == null)
-                return;
+    if (currentTarget == null)
+        return;
 
-            if (evt.Unit.gameObject != currentTarget)
-                return;
+    // Only react if the unit that died was our current target.
+    if (evt.Unit.gameObject != currentTarget)
+        return;
 
-            List<GameObject> nearbyEnemies = SetNearbyEnemiesOnBlackboard();
-            GameObject nextTarget = GetNextNonBuildingTarget(nearbyEnemies);
+    List<GameObject> nearbyEnemies =
+        SetNearbyEnemiesOnBlackboard();
 
-            if (nextTarget != null)
-            {
-                graphAgent.SetVariableValue(
-                    "TargetGameObject",
-                    nextTarget);
+    GameObject nextTarget =
+        GetNextNonBuildingTarget(
+            nearbyEnemies);
 
-                graphAgent.SetVariableValue(
-                    "Command",
-                    UnitCommands.Attack);
+    if (nextTarget != null)
+    {
+        IDamageable nextDamageable =
+            nextTarget.GetComponentInParent<IDamageable>();
 
-                return;
-            }
+        Debug.Log(
+            $"[TARGET SET] {name} | " +
+            $"Source=HandleUnitDeath | " +
+            $"PreviousTarget={currentTarget.name} | " +
+            $"Target={nextTarget.name} | " +
+            $"Owner={(nextDamageable != null ? nextDamageable.Owner.ToString() : "NO IDAMAGEABLE")}");
 
-            graphAgent.SetVariableValue<GameObject>(
-                "TargetGameObject",
-                null);
+        graphAgent.SetVariableValue(
+            "TargetGameObject",
+            nextTarget);
 
-            if (IsAttackMoveActive())
-                return;
+        graphAgent.SetVariableValue(
+            "Command",
+            UnitCommands.Attack);
 
-            graphAgent.SetVariableValue(
-                "Command",
-                UnitCommands.Stop);
-        }
+        return;
+    }
+
+    Debug.Log(
+        $"[TARGET SET] {name} | " +
+        $"Source=HandleUnitDeath | " +
+        $"PreviousTarget={currentTarget.name} | " +
+        $"Target=NULL");
+
+    graphAgent.SetVariableValue<GameObject>(
+        "TargetGameObject",
+        null);
+
+    if (IsAttackMoveActive())
+        return;
+
+    graphAgent.SetVariableValue(
+        "Command",
+        UnitCommands.Stop);
+}
 
         protected virtual void Update()
         {
             if(Helpers.EveryXFrames(10))
                 UpdateMovementAnimation();
+        }
+
+        private GameObject GetBlackboardGameObject(
+            string variableName)
+        {
+            if (graphAgent == null)
+                return null;
+
+            if (!graphAgent.GetVariable(
+                    variableName,
+                    out BlackboardVariable<GameObject> variable))
+            {
+                return null;
+            }
+
+            return variable.Value;
+        }
+
+        private bool IsLivingTarget(
+            GameObject target)
+        {
+            if (target == null)
+                return false;
+
+            IDamageable damageable =
+                target.GetComponentInParent<IDamageable>();
+
+            return damageable != null &&
+                damageable.CurrentHealth > 0;
         }
 
         private void HandleUnitEnter(IDamageable damageable)

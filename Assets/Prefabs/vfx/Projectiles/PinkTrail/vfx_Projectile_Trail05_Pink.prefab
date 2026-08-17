@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4423331654568922}
   - component: {fileID: 198091884797917064}
   - component: {fileID: 199431368381731166}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: ProjectileAB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4942,7 +4942,7 @@ GameObject:
   - component: {fileID: 4322794770080168}
   - component: {fileID: 198041628744906746}
   - component: {fileID: 199623291941316310}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: ParticlesAB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9788,7 +9788,7 @@ GameObject:
   - component: {fileID: 4586738174419448}
   - component: {fileID: 198550182856997728}
   - component: {fileID: 199355984901146744}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: ProjectileAdd
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14718,7 +14718,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4710023674257696}
   - component: {fileID: 96293105974617392}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Trail_AB_Bot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14866,7 +14866,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4508358200371874}
   - component: {fileID: 96067316384308848}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Trail_AB_Top
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15015,7 +15015,7 @@ GameObject:
   - component: {fileID: 4734681762205724}
   - component: {fileID: 198055849861885770}
   - component: {fileID: 199182336985662740}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Particles
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19860,7 +19860,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4369333844462220}
   - component: {fileID: 96386188762803914}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: Trail_Center
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -20011,7 +20011,7 @@ GameObject:
   - component: {fileID: 65195282619077832}
   - component: {fileID: 54085460660374844}
   - component: {fileID: 8463492917261571436}
-  m_Layer: 0
+  m_Layer: 17
   m_Name: vfx_Projectile_Trail05_Pink
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -285,42 +285,71 @@ namespace ShiftedSignal.Garden.Managers
         }
 
 #if UNITY_EDITOR
-        [ContextMenu("Fill Unit Database")]
-        private void FillUnitDatabase()
+[ContextMenu("Fill Unit Database")]
+private void FillUnitDatabase()
+{
+    unitDatabase.Clear();
+
+    const string rootFolder =
+        "Assets/Prefabs/Units/Units";
+
+    if (!AssetDatabase.IsValidFolder(rootFolder))
+    {
+        Debug.LogError(
+            $"Unit database folder not found: {rootFolder}",
+            this);
+
+        return;
+    }
+
+    string[] assetGuids =
+        AssetDatabase.FindAssets(
+            "t:UnitSO",
+            new[] { rootFolder });
+
+    foreach (string guid in assetGuids)
+    {
+        string path =
+            AssetDatabase.GUIDToAssetPath(guid);
+
+        UnitSO unit =
+            AssetDatabase.LoadAssetAtPath<UnitSO>(
+                path);
+
+        if (unit == null)
+            continue;
+
+        /*
+         * Only generate a SaveID if this UnitSO
+         * does not already have one.
+         */
+        if (string.IsNullOrWhiteSpace(unit.SaveID))
         {
-            unitDatabase.Clear();
+            unit.SaveID =
+                System.Guid.NewGuid().ToString();
 
-            const string rootFolder = "Assets/Prefabs/Units/Units";
+            EditorUtility.SetDirty(unit);
 
-            if (!AssetDatabase.IsValidFolder(rootFolder))
-            {
-                Debug.LogError($"Unit database folder not found: {rootFolder}", this);
-                return;
-            }
-
-            string[] assetGuids =
-                AssetDatabase.FindAssets(
-                    "t:UnitSO",
-                    new[] { rootFolder });
-
-            foreach (string guid in assetGuids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-
-                UnitSO unit =
-                    AssetDatabase.LoadAssetAtPath<UnitSO>(path);
-
-                if (unit == null)
-                    continue;
-
-                if (!unitDatabase.Contains(unit))
-                    unitDatabase.Add(unit);
-            }
-
-            Debug.Log($"Filled Unit Database. Count={unitDatabase.Count}", this);
-
-            EditorUtility.SetDirty(this);
+            Debug.Log(
+                $"Generated SaveID for {unit.name}: " +
+                $"{unit.SaveID}",
+                unit);
         }
+
+        if (!unitDatabase.Contains(unit))
+        {
+            unitDatabase.Add(unit);
+        }
+    }
+
+    EditorUtility.SetDirty(this);
+
+    AssetDatabase.SaveAssets();
+
+    Debug.Log(
+        $"Filled Unit Database. Count={unitDatabase.Count}",
+        this);
+}
 #endif
     }
 }

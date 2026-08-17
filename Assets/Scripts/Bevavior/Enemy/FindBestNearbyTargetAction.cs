@@ -39,22 +39,57 @@ namespace ShiftedSignal.Garden.Behavior
                 return Status.Failure;
             }
 
+            Debug.Log(
+                $"[TARGET SEARCH] {Self.Value.name} starting search | " +
+                $"NearbyCount={NearbyEnemies.Value.Count} | " +
+                $"PreviousTarget={(Target.Value != null ? Target.Value.name : "NULL")}");
+
             Target.Value = null;
+
+            Debug.Log(
+                $"[TARGET SET] {Self.Value.name} | " +
+                $"Source=FindBestNearbyTarget Clear | " +
+                $"Target=NULL");
 
             GameObject bestTarget = null;
 
             foreach (GameObject nearbyEnemy in NearbyEnemies.Value)
             {
-                if (!IsValidTarget(nearbyEnemy))
+                if (nearbyEnemy == null)
                     continue;
 
-                if (IsFarmTarget(nearbyEnemy))
-                {
-                    Target.Value = nearbyEnemy;
+                IDamageable damageable =
+                    nearbyEnemy.GetComponentInParent<IDamageable>();
 
+                BaseBuilding building =
+                    nearbyEnemy.GetComponentInParent<BaseBuilding>();
+
+                bool valid =
+                    IsValidTarget(nearbyEnemy);
+
+                bool isFarm =
+                    IsFarmTarget(nearbyEnemy);
+
+                Debug.Log(
+                    $"[TARGET CANDIDATE] {Self.Value.name} | " +
+                    $"Candidate={nearbyEnemy.name} | " +
+                    $"Owner={(damageable != null ? damageable.Owner.ToString() : "NO IDAMAGEABLE")} | " +
+                    $"Building={(building != null ? building.name : "NULL")} | " +
+                    $"Valid={valid} | " +
+                    $"IsFarm={isFarm}");
+
+                if (!valid)
+                    continue;
+
+                if (isFarm)
+                {
                     Debug.Log(
-                        $"{Self.Value.name}: prioritizing Farm target " +
-                        $"{nearbyEnemy.name}");
+                        $"[TARGET SET] {Self.Value.name} | " +
+                        $"Source=FindBestNearbyTarget Farm Priority | " +
+                        $"Target={nearbyEnemy.name} | " +
+                        $"Owner={(damageable != null ? damageable.Owner.ToString() : "NO IDAMAGEABLE")}");
+
+                    Target.Value = nearbyEnemy;
 
                     return Status.Success;
                 }
@@ -69,16 +104,26 @@ namespace ShiftedSignal.Garden.Behavior
             if (bestTarget == null)
             {
                 Debug.Log(
-                    $"{Self.Value.name}: no valid nearby target found.");
+                    $"[TARGET SEARCH] {Self.Value.name} | " +
+                    $"No valid nearby target found.");
 
                 return Status.Failure;
             }
 
-            Target.Value = bestTarget;
+            IDamageable bestDamageable =
+                bestTarget.GetComponentInParent<IDamageable>();
+
+            BaseBuilding bestBuilding =
+                bestTarget.GetComponentInParent<BaseBuilding>();
 
             Debug.Log(
-                $"{Self.Value.name}: selected nearby target " +
-                $"{bestTarget.name}");
+                $"[TARGET SET] {Self.Value.name} | " +
+                $"Source=FindBestNearbyTarget Fallback | " +
+                $"Target={bestTarget.name} | " +
+                $"Owner={(bestDamageable != null ? bestDamageable.Owner.ToString() : "NO IDAMAGEABLE")} | " +
+                $"Building={(bestBuilding != null ? bestBuilding.name : "NULL")}");
+
+            Target.Value = bestTarget;
 
             return Status.Success;
         }

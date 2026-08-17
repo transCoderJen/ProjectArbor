@@ -202,7 +202,9 @@ namespace ShiftedSignal.Garden.Units
                 MilitaryDefenseManager.Instance != null)
             {
                 MilitaryDefenseManager.Instance
-                    .ClearBuildingAssignment(building);
+                    .ClearDefenderAssignment(
+                        building,
+                        this);
 
                 return;
             }

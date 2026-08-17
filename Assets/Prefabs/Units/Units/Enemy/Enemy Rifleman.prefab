@@ -193,12 +193,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0ef9d87f17f0f304a85245e64fc6d935, type: 2}
   - {fileID: 11400000, guid: ea6860028117ad84d8772a1d0808e00c, type: 2}
   decalProjector: {fileID: 7309760360947077046}
-  targetPriority: 1
+  targetPriority: 0
+  overrideTargetPoint: 0
+  TargetPointOverride: {fileID: 0}
   UnitSO: {fileID: 11400000, guid: ac7a3c9cb6f7e9b41b50e3259be06ee6, type: 2}
   AnimationUpdateRate: 0.1
   instanceID: 
   DameagableSensor: {fileID: 1286141188481327066}
   projectileSpawnPoint: {fileID: 1773888792612353914}
+  pursuitLeashDistance: 15
 --- !u!195 &9144625622762310592
 NavMeshAgent:
   m_ObjectHideFlags: 0

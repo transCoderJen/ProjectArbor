@@ -22,6 +22,11 @@ namespace ShiftedSignal.Garden.Behavior
         [SerializeReference] public BlackboardVariable<AttackConfigSO> AttackConfig;
 
         [SerializeReference] public BlackboardVariable<GameObject> RetaliationTarget;
+
+        [SerializeReference] public BlackboardVariable<bool> HasDefenseAssignment;
+
+        [SerializeReference] public BlackboardVariable<GameObject> DefenseTarget;
+        
         private NavMeshAgent navMeshAgent;
         private AbstractUnit unit;
         private Transform selfTransform;
@@ -94,6 +99,9 @@ namespace ShiftedSignal.Garden.Behavior
             }
 
             if (ShouldYieldToRetaliation())
+                return Status.Failure;
+            
+            if (ShouldYieldToDefenseAssignment())
                 return Status.Failure;
         
             animator?.SetFloat(AnimationConstants.SPEED, navMeshAgent.velocity.magnitude);
@@ -198,14 +206,46 @@ namespace ShiftedSignal.Garden.Behavior
         }
 
         private bool HasValidUnitInputs()
-    {
-        return Self != null &&
-            Self.Value != null &&
-            Self.Value.TryGetComponent(out AbstractUnit _) &&
-            Self.Value.TryGetComponent(out NavMeshAgent _) &&
-            AttackConfig != null &&
-            AttackConfig.Value != null;
-    }
+        {
+            return Self != null &&
+                Self.Value != null &&
+                Self.Value.TryGetComponent(out AbstractUnit _) &&
+                Self.Value.TryGetComponent(out NavMeshAgent _) &&
+                AttackConfig != null &&
+                AttackConfig.Value != null;
+        }
+
+        private bool ShouldYieldToDefenseAssignment()
+        {
+            if (HasDefenseAssignment == null ||
+                !HasDefenseAssignment.Value)
+            {
+                return false;
+            }
+
+            if (DefenseTarget == null ||
+                DefenseTarget.Value == null)
+            {
+                return false;
+            }
+
+            // We are already attacking the unit
+            // we're assigned to defend against.
+            if (Target.Value == DefenseTarget.Value)
+                return false;
+
+            IDamageable defenseDamageable =
+                DefenseTarget.Value
+                    .GetComponentInParent<IDamageable>();
+
+            if (defenseDamageable == null ||
+                defenseDamageable.CurrentHealth <= 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         private bool ShouldYieldToRetaliation()
         {
